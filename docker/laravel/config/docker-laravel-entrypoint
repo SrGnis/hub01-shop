@@ -3,14 +3,12 @@
 set -e
 cd /var/www/laravel
 
-echo "Caching configuration..."
-php artisan config:cache
-php artisan route:cache
-
 crontab /tmp/root_crontab
 cron
 
 php artisan migrate --force
+
+php artisan optimize
 
 exec apache2-foreground
 

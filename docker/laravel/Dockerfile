@@ -35,6 +35,9 @@ RUN composer install --optimize-autoloader --no-interaction
 # install node modules
 RUN npm install
 
+# build assets
+RUN npm run build
+
 # copy files
 COPY docker/laravel/config/docker-laravel-entrypoint /usr/local/bin/docker-laravel-entrypoint
 COPY docker/laravel/config/laravel.conf /etc/apache2/sites-available/laravel.conf

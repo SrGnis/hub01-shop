@@ -77,6 +77,30 @@ The application follows a standard Laravel structure with additional components:
 - **Admin Panel**: Comprehensive admin tools
 - **Caching**: Redis-based caching system
 
+## CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **Docker Image Build**: Automatically builds and publishes the application Docker image to GitHub Container Registry (GHCR) when changes are pushed to the main branch.
+- **Image Tags**: Images are tagged with:
+  - `latest`: Always points to the most recent build from the main branch
+  - `sha-<commit>`: Specific commit hash for precise version tracking
+  - Branch name: When building from a specific branch
+
+### Using the Container Image
+
+You can pull the container image from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/srgnis/hub01-shop:latest
+```
+
+To use a specific version:
+
+```bash
+docker pull ghcr.io/srgnis/hub01-shop:sha-<commit_hash>
+```
+
 ## Documentation
 
 Additional documentation can be found in the `docs/` directory:
@@ -84,6 +108,7 @@ Additional documentation can be found in the `docs/` directory:
 - [Laravel Docker](docs/LARAVEL_DOCKER.md): Docker setup information
 - [Cache Documentation](docs/CACHE.md): Caching strategy details
 - [Database Schema](docs/src/uml/hub01_shop.er.md): Entity relationship diagrams
+- [GitHub Actions](docs/GITHUB_ACTIONS.md): CI/CD workflow details
 
 ## License
 
