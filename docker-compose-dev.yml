@@ -15,12 +15,14 @@ services:
     extends: 
       file: ./docker-compose.yml
       service: app
-    image: laravel_app_dev
+    image: hub01_shop_app_dev
     build:
       context: ./
       dockerfile: ./docker/laravel/Dockerfile.dev
       args:
         DGID: ${DGID}
+    ports:
+      - ${VITE_PORT:-5173}:5173
     environment:
       - DUID=${DUID}
       - DGID=${DGID}
