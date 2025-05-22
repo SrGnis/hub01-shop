@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+cd /var/www/laravel
+
+echo "Caching configuration..."
+php artisan config:cache
+php artisan route:cache
+
+crontab /tmp/root_crontab
+cron
+
+php artisan migrate --force
+
+exec apache2-foreground
+
+

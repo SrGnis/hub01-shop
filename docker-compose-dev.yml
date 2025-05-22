@@ -1,0 +1,52 @@
+services:
+  db:
+    extends: 
+      file: ./docker-compose.yml
+      service: db
+    ports:
+      - 13306:3306
+
+  redis:
+    extends: 
+      file: ./docker-compose.yml
+      service: redis
+
+  app:
+    extends: 
+      file: ./docker-compose.yml
+      service: app
+    image: laravel_app_dev
+    build:
+      context: ./
+      dockerfile: ./docker/laravel/Dockerfile.dev
+      args:
+        DGID: ${DGID}
+    environment:
+      - DUID=${DUID}
+      - DGID=${DGID}
+      - APP_ENV=${APP_ENV}
+      - DB_CONNECTION=${DB_CONNECTION}
+      - APP_KEY=${APP_KEY}
+    volumes:
+      - ./src:/var/www/laravel
+      - ./docker/laravel/config/docker-laravel-entrypoint-dev:/usr/local/bin/docker-laravel-entrypoint
+      - ./docker/laravel/config/docker-laravel-dev-start:/usr/local/bin/docker-laravel-dev-start
+      - ./docker/laravel/config/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
+
+  # ==========================================================================================
+  # Mailpit
+  # ==========================================================================================
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    ports:
+        - '1025:1025'
+        - '8025:8025'
+
+  adminer:
+    extends: 
+      file: ./docker-compose.yml
+      service: adminer
+    
+volumes:
+  db_data:
+  redis_data:

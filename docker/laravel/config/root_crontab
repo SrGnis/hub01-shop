@@ -1,0 +1,2 @@
+* * * * * /usr/local/bin/php /var/www/laravel/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/local/bin/php /var/www/laravel/artisan queue:work --stop-when-empty >> /dev/null 2>&1
