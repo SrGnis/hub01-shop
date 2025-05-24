@@ -47,7 +47,7 @@ jobs:
 
       - name: Start app container
         run: |
-          docker compose -f docker-compose-dev.yml up app
+          docker compose -f docker-compose-dev.yml up -d --wait --wait-timeout 30 app
 
       - name: Run Laravel tests
         run: |
