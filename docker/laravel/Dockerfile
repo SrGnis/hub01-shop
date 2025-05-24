@@ -35,7 +35,7 @@ RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stab
 COPY src /var/www/laravel
 
 # install dependencies
-RUN composer install --optimize-autoloader --no-interaction
+RUN composer install --optimize-autoloader --no-interaction --no-dev
 
 # install node modules
 RUN npm install

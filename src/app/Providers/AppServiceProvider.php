@@ -3,8 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Barryvdh\Debugbar\Facades\Debugbar;
-use Illuminate\Support\Facades\App;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,9 +11,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (!App::environment('production')) {
-            $this->app->register(\Barryvdh\Debugbar\ServiceProvider::class);
-        }
     }
 
     /**
@@ -23,8 +18,5 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (App::environment('production')) {
-            Debugbar::disable();
-        }
     }
 }
