@@ -2,10 +2,6 @@ FROM php:8.2-apache
 
 WORKDIR /var/www/laravel
 
-# install composer
-RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar \
-    && chmod +x /usr/local/bin/composer
-
 # install packages
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
@@ -26,11 +22,20 @@ RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
     && docker-php-ext-install gd intl pdo_mysql pdo_pgsql zip \
     && docker-php-ext-enable igbinary opcache redis zstd
 
+# apt cleanup
+RUN apt-get clean \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# install composer
+RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar \
+    && chmod +x /usr/local/bin/composer
+
 # copy files
 COPY src /var/www/laravel
 
 # install dependencies
-RUN composer install --optimize-autoloader --no-interaction
+RUN composer install --optimize-autoloader --no-interaction --no-dev
 
 # install node modules
 RUN npm install
@@ -38,10 +43,12 @@ RUN npm install
 # build assets
 RUN npm run build
 
+RUN chown -R www-data:www-data /var/www
+
 # copy files
 COPY docker/laravel/config/docker-laravel-entrypoint /usr/local/bin/docker-laravel-entrypoint
 COPY docker/laravel/config/laravel.conf /etc/apache2/sites-available/laravel.conf
-COPY docker/laravel/config/root_crontab /tmp/root_crontab
+COPY docker/laravel/config/www-data_crontab /usr/local/etc/www-data_crontab
 COPY docker/laravel/config/php-overrides.ini /usr/local/etc/php/conf.d/php-overrides.ini
 
 # configure apache
@@ -49,10 +56,5 @@ RUN a2enmod rewrite headers \
     && a2ensite laravel \
     && a2dissite 000-default \
     && chmod +x /usr/local/bin/docker-laravel-entrypoint
-
-# apt cleanup
-RUN apt-get clean \
-    && apt-get autoclean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENTRYPOINT ["docker-laravel-entrypoint"]

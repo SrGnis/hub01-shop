@@ -2,6 +2,79 @@
 
 set -e
 
-usermod -u $DUID user
+cd /var/www/laravel
 
-gosu user docker-laravel-dev-start
+# Parse command line arguments
+RUN_TESTS=false
+RUN_STYLE_CHECK=false
+SKIP_DEPS=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --test)
+      RUN_TESTS=true
+      shift
+      ;;
+    --pint)
+      RUN_STYLE_CHECK=true
+      shift
+      ;;
+    --skip-deps)
+      SKIP_DEPS=true
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Set default environment variables if not defined
+if [[ -z "$APP_ENV" ]]; then
+    export APP_ENV=local
+    echo -e "\e[33mENV undefined: APP_ENV,\e[0m use default $APP_ENV"
+fi
+
+if [[ -z "$DB_CONNECTION" ]]; then
+    export DB_CONNECTION=sqlite
+    echo -e "\e[33mENV undefined: DB_CONNECTION,\e[0m use default $DB_CONNECTION"
+fi
+
+if [[ "$DB_CONNECTION" = "sqlite" ]]; then
+    touch database/database.sqlite
+fi
+
+# Install dependencies unless skipped
+if [[ "$SKIP_DEPS" = false ]]; then
+    composer install --no-interaction
+    npm install
+fi
+
+if [[ -z "$APP_KEY" ]]; then
+    msg="ENV undefined: APP_KEY"
+    APP_KEY=$(php artisan key:generate --show)
+    export APP_KEY
+    echo -e "\e[33m${msg},\e[0m generated $APP_KEY"
+fi
+
+# Run migrations unless we're in test mode
+if [[ "$RUN_TESTS" = false ]]; then
+    php artisan migrate --force
+fi
+
+# Handle test execution
+if [[ "$RUN_TESTS" = true ]]; then
+    echo "Running Laravel tests..."
+    php artisan test "$@"
+    exit $?
+fi
+
+# Handle style check
+if [[ "$RUN_STYLE_CHECK" = true ]]; then
+    echo "Running code style checks..."
+    ./vendor/bin/pint --test
+    exit $?
+fi
+
+# Default behavior - run dev environment
+composer run dev

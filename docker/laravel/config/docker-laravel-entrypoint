@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 
 set -e
-cd /var/www/laravel
 
-crontab /tmp/root_crontab
-cron
+service cron start
+
+# swich the user to www-data and run the following commands
+su -s /bin/bash www-data << EOF
+
+crontab /usr/local/etc/www-data_crontab
 
 php artisan migrate --force
 
 php artisan optimize
 
+php artisan storage:link
+EOF
+
 exec apache2-foreground
-
-
