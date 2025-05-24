@@ -46,6 +46,7 @@ fi
 
 # Install dependencies unless skipped
 if [[ "$SKIP_DEPS" = false ]]; then
+    echo "Installing dependencies..."
     composer install --no-interaction
     npm install
 fi
@@ -59,6 +60,7 @@ fi
 
 # Run migrations unless we're in test mode
 if [[ "$RUN_TESTS" = false ]]; then
+    echo "Running migrations..."
     php artisan migrate --force
 fi
 
@@ -77,4 +79,5 @@ if [[ "$RUN_STYLE_CHECK" = true ]]; then
 fi
 
 # Default behavior - run dev environment
+echo "Starting dev environment..."
 composer run dev
