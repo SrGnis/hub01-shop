@@ -26,4 +26,6 @@ RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini \
 RUN groupadd --force -g $DGID user
 RUN useradd -ms /bin/bash --no-user-group -g $DGID -u $DUID user
 
+COPY docker/laravel/config/docker-laravel-entrypoint-dev /usr/local/bin/docker-laravel-entrypoint
+
 USER user
