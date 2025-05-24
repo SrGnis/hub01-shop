@@ -50,8 +50,11 @@ services:
       - ./docker/laravel/config/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
     restart: always
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
 
   # ==========================================================================================
   # Adminer
