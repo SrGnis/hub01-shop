@@ -49,6 +49,12 @@ services:
       - .env:/var/www/laravel/.env:ro
       - ./docker/laravel/config/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
