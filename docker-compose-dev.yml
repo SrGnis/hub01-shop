@@ -12,28 +12,27 @@ services:
       service: redis
 
   app:
-    extends: 
-      file: ./docker-compose.yml
-      service: app
     image: hub01_shop_app_dev
     build:
       context: ./
       dockerfile: ./docker/laravel/Dockerfile.dev
-      args:
-        DUID: ${DUID:-1000}
-        DGID: ${DGID:-1000}
     ports:
-      - ${VITE_PORT:-5173}:5173
-    environment:
-      - DUID=${DUID:-1000}
-      - DGID=${DGID:-1000}
-      - APP_ENV=${APP_ENV}
-      - DB_CONNECTION=${DB_CONNECTION}
-      - APP_KEY=${APP_KEY}
-    volumes:
-      - ./docker/laravel/config/docker-laravel-entrypoint-dev:/usr/local/bin/docker-laravel-entrypoint
-      - ./docker/laravel/config/docker-laravel-dev-start:/usr/local/bin/docker-laravel-dev-start
-      - ./docker/laravel/config/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
+      - ${APP_PORT:-80}:80
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
 
   # ==========================================================================================
   # Mailpit
