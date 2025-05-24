@@ -30,7 +30,7 @@ class FileDownloadTest extends TestCase
         Storage::fake();
 
         // Create project type
-        $this->projectType = ProjectType::factory()->create([
+        $this->projectType = ProjectType::firstOrCreate([
             'value' => 'mod',
             'display_name' => 'Mod',
             'icon' => 'lucide-puzzle',

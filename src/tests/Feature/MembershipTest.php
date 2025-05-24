@@ -27,7 +27,7 @@ class MembershipTest extends TestCase
         parent::setUp();
 
         // Create a project type
-        $this->projectType = ProjectType::factory()->create([
+        $this->projectType = ProjectType::firstOrCreate([
             'value' => 'mod',
             'display_name' => 'Mod',
             'icon' => 'lucide-puzzle',

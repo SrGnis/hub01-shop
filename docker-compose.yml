@@ -45,11 +45,22 @@ services:
     ports:
       - ${APP_PORT:-80}:80
     volumes:
+      - app_data:/var/www/laravel/storage
       - .env:/var/www/laravel/.env:ro
+      - ./docker/laravel/config/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
 
   # ==========================================================================================
   # Adminer
@@ -60,5 +71,6 @@ services:
       - 8080:8080
 
 volumes:
+  app_data:
   db_data:
   redis_data:
