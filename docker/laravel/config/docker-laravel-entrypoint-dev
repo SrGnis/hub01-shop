@@ -4,6 +4,32 @@ set -e
 
 cd /var/www/laravel
 
+# Parse command line arguments
+RUN_TESTS=false
+RUN_STYLE_CHECK=false
+SKIP_DEPS=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --test)
+      RUN_TESTS=true
+      shift
+      ;;
+    --pint)
+      RUN_STYLE_CHECK=true
+      shift
+      ;;
+    --skip-deps)
+      SKIP_DEPS=true
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Set default environment variables if not defined
 if [[ -z "$APP_ENV" ]]; then
     export APP_ENV=local
     echo -e "\e[33mENV undefined: APP_ENV,\e[0m use default $APP_ENV"
@@ -18,8 +44,11 @@ if [[ "$DB_CONNECTION" = "sqlite" ]]; then
     touch database/database.sqlite
 fi
 
-composer install --no-interaction
-npm install
+# Install dependencies unless skipped
+if [[ "$SKIP_DEPS" = false ]]; then
+    composer install --no-interaction
+    npm install
+fi
 
 if [[ -z "$APP_KEY" ]]; then
     msg="ENV undefined: APP_KEY"
@@ -28,6 +57,24 @@ if [[ -z "$APP_KEY" ]]; then
     echo -e "\e[33m${msg},\e[0m generated $APP_KEY"
 fi
 
-php artisan migrate --force
+# Run migrations unless we're in test mode
+if [[ "$RUN_TESTS" = false ]]; then
+    php artisan migrate --force
+fi
 
+# Handle test execution
+if [[ "$RUN_TESTS" = true ]]; then
+    echo "Running Laravel tests..."
+    php artisan test "$@"
+    exit $?
+fi
+
+# Handle style check
+if [[ "$RUN_STYLE_CHECK" = true ]]; then
+    echo "Running code style checks..."
+    ./vendor/bin/pint --test
+    exit $?
+fi
+
+# Default behavior - run dev environment
 composer run dev

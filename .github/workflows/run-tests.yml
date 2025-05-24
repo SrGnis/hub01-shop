@@ -1,0 +1,41 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start Docker Compose services
+        run: |
+          docker compose -f docker-compose-dev.yml up -d db redis
+          
+      - name: Build app container
+        run: |
+          docker compose -f docker-compose-dev.yml build app
+          
+      - name: Run Laravel tests
+        run: |
+          # Run tests inside the container
+          docker compose -f docker-compose-dev.yml run --rm app --test
+          
+      - name: Run code style checks
+        run: |
+          # Run style checks inside the container
+          docker compose -f docker-compose-dev.yml run --rm app --pint
+          
+      - name: Stop Docker Compose services
+        if: always()
+        run: |
+          docker compose -f docker-compose-dev.yml down
