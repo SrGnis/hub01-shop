@@ -50,5 +50,6 @@ services:
       service: adminer
     
 volumes:
+  app_data:
   db_data:
   redis_data:
