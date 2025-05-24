@@ -45,7 +45,9 @@ services:
     ports:
       - ${APP_PORT:-80}:80
     volumes:
+      - app_data:/var/www/laravel/storage
       - .env:/var/www/laravel/.env:ro
+      - ./docker/laravel/config/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
     restart: always
     depends_on:
       - db
@@ -60,5 +62,6 @@ services:
       - 8080:8080
 
 volumes:
+  app_data:
   db_data:
   redis_data:

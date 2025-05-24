@@ -20,6 +20,7 @@ services:
       context: ./
       dockerfile: ./docker/laravel/Dockerfile.dev
       args:
+        DUID: ${DUID}
         DGID: ${DGID}
     ports:
       - ${VITE_PORT:-5173}:5173
@@ -31,6 +32,7 @@ services:
       - APP_KEY=${APP_KEY}
     volumes:
       - ./src:/var/www/laravel
+      - ./src/storage:/var/www/laravel/storage
       - ./docker/laravel/config/docker-laravel-entrypoint-dev:/usr/local/bin/docker-laravel-entrypoint
       - ./docker/laravel/config/docker-laravel-dev-start:/usr/local/bin/docker-laravel-dev-start
       - ./docker/laravel/config/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
