@@ -25,7 +25,7 @@ class ProjectPolicyTest extends TestCase
         $this->user = User::factory()->create(['email_verified_at' => now()]);
 
         // Create a project type first
-        $projectType = \App\Models\ProjectType::create([
+        $projectType = \App\Models\ProjectType::firstOrCreate([
             'value' => 'mod',
             'display_name' => 'Mod',
             'icon' => 'lucide-puzzle'
