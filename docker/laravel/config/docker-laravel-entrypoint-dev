@@ -48,6 +48,7 @@ fi
 if [[ "$SKIP_DEPS" = false ]]; then
     composer install --no-interaction
     npm install
+    php artisan storage:link
 fi
 
 if [[ -z "$APP_KEY" ]]; then
