@@ -14,9 +14,9 @@ return new class extends Migration
         if (User::count() === 0) {
             User::create([
                 'name' => 'admin',
-                'email' => 'admin@example.com',
+                'email' => env('APP_ADMIN_EMAIL', 'admin@example.com'),
                 'email_verified_at' => now(),
-                'password' => Hash::make('admin'),
+                'password' => Hash::make(env('APP_ADMIN_PASSWORD', 'admin')),
                 'role' => 'admin',
             ]);
         }
