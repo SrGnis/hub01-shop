@@ -20,29 +20,43 @@ jobs:
       - name: Copy environment file
         run: cp .env.testing .env
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Start Docker Compose services
         run: |
-          docker compose -f docker-compose-dev.yml up -d db redis
-          
-      - name: Build app container
-        run: |
-          docker compose -f docker-compose-dev.yml build app
+          docker compose -f docker-compose-testing.yml up -d db redis
+
+      - name: Build app container with cache
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/laravel/Dockerfile.testing
+          tags: hub01_shop_app_testing
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Start app container
         run: |
-          docker compose -f docker-compose-dev.yml up -d --wait --wait-timeout 30 app
-          
+          docker compose -f docker-compose-testing.yml up -d --wait --wait-timeout 30 app
+
       - name: Run Laravel tests
         run: |
           # Run tests inside the container
-          docker compose -f docker-compose-dev.yml exec app php artisan test
-          
+          docker compose -f docker-compose-testing.yml exec -u www-data app php artisan test
+
       - name: Run code style checks
         run: |
           # Run style checks inside the container
-          docker compose -f docker-compose-dev.yml exec app ./vendor/bin/pint --test
-          
+          docker compose -f docker-compose-testing.yml exec -u www-data app ./vendor/bin/pint --test
+
       - name: Stop Docker Compose services
         if: always()
         run: |
-          docker compose -f docker-compose-dev.yml down
+          docker compose -f docker-compose-testing.yml down
