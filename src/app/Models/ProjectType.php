@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 
 class ProjectType extends Model
 {
@@ -42,8 +41,6 @@ class ProjectType extends Model
 
     /**
      * Get the projects for this project type.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function projects(): HasMany
     {
@@ -52,8 +49,6 @@ class ProjectType extends Model
 
     /**
      * The tags that belong to the ProjectType
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectTags(): BelongsToMany
     {
@@ -67,8 +62,6 @@ class ProjectType extends Model
 
     /**
      * The tag groups that belong to the ProjectType
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectTagGroups(): BelongsToMany
     {
@@ -82,8 +75,6 @@ class ProjectType extends Model
 
     /**
      * The version tags that belong to the ProjectType
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectVersionTags(): BelongsToMany
     {
@@ -97,8 +88,6 @@ class ProjectType extends Model
 
     /**
      * The version tag groups that belong to the ProjectType
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectVersionTagGroups(): BelongsToMany
     {
@@ -112,11 +101,9 @@ class ProjectType extends Model
 
     /**
      * Get the pluralized display name for this project type.
-     *
-     * @return string
      */
     public function pluralizedDisplayName(): string
     {
-        return $this->display_name . 's';
+        return $this->display_name.'s';
     }
 }

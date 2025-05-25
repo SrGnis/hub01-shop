@@ -34,7 +34,7 @@ class ProjectVersionTag extends Model
     {
         static::saved(function ($tag) {
             foreach (ProjectType::all() as $projectType) {
-                Cache::forget('project_version_tags_by_type_' . $projectType->value);
+                Cache::forget('project_version_tags_by_type_'.$projectType->value);
             }
 
             foreach ($tag->projectVersions as $projectVersion) {
@@ -44,7 +44,7 @@ class ProjectVersionTag extends Model
 
         static::deleting(function ($tag) {
             foreach (ProjectType::all() as $projectType) {
-                Cache::forget('project_version_tags_by_type_' . $projectType->value);
+                Cache::forget('project_version_tags_by_type_'.$projectType->value);
             }
 
             foreach ($tag->projectVersions as $projectVersion) {
@@ -55,8 +55,6 @@ class ProjectVersionTag extends Model
 
     /**
      * Get the tag group for this tag
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function tagGroup(): BelongsTo
     {
@@ -65,8 +63,6 @@ class ProjectVersionTag extends Model
 
     /**
      * The project versions that belong to the ProjectVersionTag
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectVersions(): BelongsToMany
     {
@@ -80,8 +76,6 @@ class ProjectVersionTag extends Model
 
     /**
      * The project types that belong to the ProjectVersionTag
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectTypes(): BelongsToMany
     {

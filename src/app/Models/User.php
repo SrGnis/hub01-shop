@@ -12,6 +12,7 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use Notifiable;
 
     /**
@@ -59,8 +60,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return 'name';
     }
 
-
-
     /**
      * Send the email verification notification.
      *
@@ -68,7 +67,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new CustomVerifyEmail());
+        $this->notify(new CustomVerifyEmail);
     }
 
     /**
@@ -108,7 +107,6 @@ class User extends Authenticatable implements MustVerifyEmail
             ->using(Membership::class);
     }
 
-
     /**
      * Get the pending project invitations for the user
      *
@@ -141,8 +139,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Check if the user is an admin
-     *
-     * @return bool
      */
     public function isAdmin(): bool
     {

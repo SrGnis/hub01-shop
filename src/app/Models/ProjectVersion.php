@@ -84,8 +84,6 @@ class ProjectVersion extends Model
 
     /**
      * Get the project that owns the project version
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function project(): BelongsTo
     {
@@ -94,8 +92,6 @@ class ProjectVersion extends Model
 
     /**
      * Get the files for the project version
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function files(): HasMany
     {
@@ -104,8 +100,6 @@ class ProjectVersion extends Model
 
     /**
      * Get all dependencies of this project version
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function dependencies(): HasMany
     {
@@ -114,8 +108,6 @@ class ProjectVersion extends Model
 
     /**
      * Get all project versions that depend on this project version
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function dependedOnBy(): HasMany
     {
@@ -124,8 +116,6 @@ class ProjectVersion extends Model
 
     /**
      * Get all project version dependencies that are required
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function requiredDependencies(): HasMany
     {
@@ -134,8 +124,6 @@ class ProjectVersion extends Model
 
     /**
      * Get all project version dependencies that are optional
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function optionalDependencies(): HasMany
     {
@@ -144,8 +132,6 @@ class ProjectVersion extends Model
 
     /**
      * Get all project version dependencies that are embedded
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function embeddedDependencies(): HasMany
     {
@@ -154,8 +140,6 @@ class ProjectVersion extends Model
 
     /**
      * Get the background color class attribute
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function bgColorClass(): Attribute
     {
@@ -166,8 +150,6 @@ class ProjectVersion extends Model
 
     /**
      * Get the display name attribute
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function displayName(): Attribute
     {
@@ -178,8 +160,6 @@ class ProjectVersion extends Model
 
     /**
      * The tags that belong to the ProjectVersion
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function tags(): BelongsToMany
     {
@@ -193,25 +173,21 @@ class ProjectVersion extends Model
 
     /**
      * Clear the tags cache for this project version
-     *
-     * @return void
      */
     public function clearTagsCache(): void
     {
-        Cache::forget('project_version_tags_' . $this->id);
+        Cache::forget('project_version_tags_'.$this->id);
     }
 
     /**
      * Clear the tag groups cache for this project type
-     *
-     * @return void
      */
     public function clearTagGroupCaches(): void
     {
         $projectType = $this->project->projectType;
 
-        Cache::forget('project_tag_groups_by_type_' . $projectType->value);
+        Cache::forget('project_tag_groups_by_type_'.$projectType->value);
 
-        Cache::forget('project_version_tag_groups_by_type_' . $projectType->value);
+        Cache::forget('project_version_tag_groups_by_type_'.$projectType->value);
     }
 }

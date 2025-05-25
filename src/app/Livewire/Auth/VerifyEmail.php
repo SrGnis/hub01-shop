@@ -9,7 +9,7 @@ class VerifyEmail extends Component
 {
     public function mount()
     {
-        if (!Auth::user() || Auth::user()->hasVerifiedEmail()) {
+        if (! Auth::user() || Auth::user()->hasVerifiedEmail()) {
             return redirect()->intended(route('project-search', \App\Models\ProjectType::first()));
         }
     }
@@ -22,7 +22,7 @@ class VerifyEmail extends Component
 
         Auth::user()->sendEmailVerificationNotification();
 
-        # TODO: this dont work
+        // TODO: this dont work
         $this->dispatch('status', 'verification-link-sent');
     }
 

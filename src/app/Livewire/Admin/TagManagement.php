@@ -10,14 +10,20 @@ use Livewire\Component;
 class TagManagement extends Component
 {
     public $tagId = null;
+
     public $projectTagName = '';
+
     public $tagIcon = 'lucide-tag';
+
     public $tagGroupId = null;
+
     public $tagProjectTypes = [];
+
     public $isEditingTag = false;
 
     // Confirmation
     public $confirmingDeletion = false;
+
     public $itemToDelete = null;
 
     protected function rules()
@@ -44,8 +50,9 @@ class TagManagement extends Component
     public function editTag($id)
     {
         $tag = ProjectTag::find($id);
-        if (!$tag) {
+        if (! $tag) {
             session()->flash('error', 'Tag not found.');
+
             return;
         }
 

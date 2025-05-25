@@ -35,7 +35,7 @@ class PasswordChanged extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Password Changed for Your HUB01 Shop Account')
             ->greeting('Hello!')
             ->line('The password for your HUB01 Shop account has been changed.')
@@ -51,7 +51,7 @@ class PasswordChanged extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'type' => 'password_changed'
+            'type' => 'password_changed',
         ];
     }
 }

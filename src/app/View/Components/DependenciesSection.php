@@ -25,8 +25,6 @@ class DependenciesSection extends Component
     /**
      * Create a new component instance.
      *
-     * @param ProjectVersion $version
-     * @param Project $project
      * @return void
      */
     public function __construct(ProjectVersion $version, Project $project)

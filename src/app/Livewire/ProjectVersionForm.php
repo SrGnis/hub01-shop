@@ -5,19 +5,17 @@ namespace App\Livewire;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionDependency;
-use App\Models\ProjectType;
 use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
 use App\Notifications\BrokenDependencyNotification;
 use Barryvdh\Debugbar\Facades\Debugbar;
-use Livewire\Component;
-use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
 // TODO: refactor the logic into a service
 class ProjectVersionForm extends Component
@@ -25,32 +23,44 @@ class ProjectVersionForm extends Component
     use WithFileUploads;
 
     public Project $project;
+
     public ?string $version_key = null;
+
     public ProjectVersion $version;
+
     public $isEditing = false;
 
     public $name = '';
+
     public $version_number = '';
+
     public $release_type = 'release';
+
     public $release_date;
+
     public $changelog = '';
+
     public $files = [];
+
     public $dependencies = [];
+
     public $existingFiles = [];
+
     public $deleteConfirmation = '';
+
     public $selectedTags = [];
 
     public function mount($projectType, $project, $version_key = null)
     {
         $this->project = $project;
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login', ['projectType' => $projectType])
                 ->with('error', 'Please log in to upload versions.');
         }
 
         if ($version_key) {
-            if (!Gate::allows('editVersion', $project)) {
+            if (! Gate::allows('editVersion', $project)) {
                 return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project])
                     ->with('error', 'You do not have permission to edit this project.');
             }
@@ -82,7 +92,7 @@ class ProjectVersionForm extends Component
                         'version_id' => null,
                         'dependency_name' => $dependency->dependency_name,
                         'dependency_version' => $dependency->dependency_version,
-                        'has_manual_version' => false
+                        'has_manual_version' => false,
                     ];
 
                     if ($dependency->dependency_project_id) {
@@ -110,7 +120,7 @@ class ProjectVersionForm extends Component
                         'version_id' => null,
                         'dependency_name' => $dependency->dependency_name,
                         'dependency_version' => $dependency->dependency_version,
-                        'has_manual_version' => !empty($dependency->dependency_version) && $dependency->dependency_version !== 'Any'
+                        'has_manual_version' => ! empty($dependency->dependency_version) && $dependency->dependency_version !== 'Any',
                     ];
                 }
 
@@ -119,7 +129,7 @@ class ProjectVersionForm extends Component
 
         } else {
 
-            if (!Gate::allows('uploadVersion', $project)) {
+            if (! Gate::allows('uploadVersion', $project)) {
                 return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project])
                     ->with('error', 'You do not have permission to upload versions.');
             }
@@ -138,7 +148,7 @@ class ProjectVersionForm extends Component
             'version_id' => null,
             'dependency_name' => '',
             'dependency_version' => '',
-            'has_manual_version' => false
+            'has_manual_version' => false,
         ];
     }
 
@@ -156,7 +166,7 @@ class ProjectVersionForm extends Component
             ->map(function ($version) {
                 return [
                     'id' => $version->id,
-                    'name' => $version->version . ' (' . $version->release_type . ')'
+                    'name' => $version->version.' ('.$version->release_type.')',
                 ];
             })
             ->toArray();
@@ -200,6 +210,7 @@ class ProjectVersionForm extends Component
 
         if ($project) {
             $this->dependencies[$index]['project_id'] = $project->id;
+
             return true;
         }
 
@@ -240,7 +251,7 @@ class ProjectVersionForm extends Component
             return redirect()->route('project.version.show', [
                 'projectType' => $this->project->projectType,
                 'project' => $this->project,
-                'version_key' => $projectVersion
+                'version_key' => $projectVersion,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -260,7 +271,7 @@ class ProjectVersionForm extends Component
             'changelog' => 'nullable|string',
             'dependencies' => 'array',
             'dependencies.*.type' => 'required|in:required,optional,embedded',
-            'dependencies.*.mode' => 'required|in:linked,manual'
+            'dependencies.*.mode' => 'required|in:linked,manual',
         ];
 
         $rules['version_number'] = [
@@ -278,7 +289,7 @@ class ProjectVersionForm extends Component
                 if ($query->exists()) {
                     $fail('This version number is already used in this project.');
                 }
-            }
+            },
         ];
 
         $this->addDependencyValidationRules($rules);
@@ -292,7 +303,7 @@ class ProjectVersionForm extends Component
             'dependencies.*.dependency_name.required' => 'The project name field is required',
             'dependencies.*.dependency_name.max' => 'The project name must not exceed 255 characters',
             'dependencies.*.dependency_version.required' => 'The version field is required',
-            'dependencies.*.dependency_version.max' => 'The version must not exceed 50 characters'
+            'dependencies.*.dependency_version.max' => 'The version must not exceed 50 characters',
         ];
 
         $this->validate($rules, $messages);
@@ -308,7 +319,7 @@ class ProjectVersionForm extends Component
                 $rules["dependencies.{$index}.project_id"] = 'required|exists:project,id';
                 $rules["dependencies.{$index}.project_slug"] = 'required|string';
 
-                if (!empty($dependency['project_id']) && $dependency['has_specific_version']) {
+                if (! empty($dependency['project_id']) && $dependency['has_specific_version']) {
                     $rules["dependencies.{$index}.version_id"] = 'required|exists:project_version,id';
                 }
 
@@ -328,7 +339,7 @@ class ProjectVersionForm extends Component
      */
     private function addFileValidationRules(&$rules)
     {
-        if (!$this->isEditing || count($this->files) > 0) {
+        if (! $this->isEditing || count($this->files) > 0) {
             $rules['files'] = 'required|array|min:1';
             $rules['files.*'] = 'file|max:102400';
 
@@ -347,6 +358,7 @@ class ProjectVersionForm extends Component
 
                                 if ($existingFile['name'] === $fileName) {
                                     $fail("A file with the name '{$fileName}' already exists in this version.");
+
                                     return;
                                 }
                             }
@@ -362,7 +374,7 @@ class ProjectVersionForm extends Component
                         if ($count > 1) {
                             $fail("Duplicate file name '{$fileName}' in the upload batch. File names must be unique.");
                         }
-                    }
+                    },
                 ];
             }
         }
@@ -380,7 +392,7 @@ class ProjectVersionForm extends Component
             'version' => $this->version_number,
             'release_type' => $this->release_type,
             'release_date' => $this->release_date,
-            'changelog' => $this->changelog
+            'changelog' => $this->changelog,
         ];
 
         if ($this->isEditing) {
@@ -397,22 +409,18 @@ class ProjectVersionForm extends Component
 
     /**
      * Save tags for the project version
-     *
-     * @param ProjectVersion $projectVersion
      */
     private function saveTags(ProjectVersion $projectVersion)
     {
         if ($this->isEditing) {
             $projectVersion->tags()->sync($this->selectedTags);
-        } elseif (!empty($this->selectedTags)) {
+        } elseif (! empty($this->selectedTags)) {
             $projectVersion->tags()->attach($this->selectedTags);
         }
     }
 
     /**
      * Delete files marked for deletion
-     *
-     * @param ProjectVersion $projectVersion
      */
     private function deleteMarkedFiles(ProjectVersion $projectVersion)
     {
@@ -429,8 +437,6 @@ class ProjectVersionForm extends Component
 
     /**
      * Upload and save new files
-     *
-     * @param ProjectVersion $projectVersion
      */
     private function uploadNewFiles(ProjectVersion $projectVersion)
     {
@@ -442,7 +448,7 @@ class ProjectVersionForm extends Component
                 $projectVersion->files()->create([
                     'name' => $fileName,
                     'path' => $path,
-                    'size' => $file->getSize()
+                    'size' => $file->getSize(),
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {
                 if (str_contains($e->getMessage(), 'project_file_unique')) {
@@ -456,15 +462,13 @@ class ProjectVersionForm extends Component
 
     /**
      * Save dependencies for the project version
-     *
-     * @param ProjectVersion $projectVersion
      */
     private function saveDependencies(ProjectVersion $projectVersion)
     {
         foreach ($this->dependencies as $dependency) {
-            if ($dependency['mode'] === 'linked' && !empty($dependency['project_id'])) {
+            if ($dependency['mode'] === 'linked' && ! empty($dependency['project_id'])) {
                 $this->saveLinkedDependency($projectVersion, $dependency);
-            } elseif ($dependency['mode'] === 'manual' && !empty($dependency['dependency_name'])) {
+            } elseif ($dependency['mode'] === 'manual' && ! empty($dependency['dependency_name'])) {
                 $this->saveManualDependency($projectVersion, $dependency);
             }
         }
@@ -472,9 +476,6 @@ class ProjectVersionForm extends Component
 
     /**
      * Save a linked dependency
-     *
-     * @param ProjectVersion $projectVersion
-     * @param array $dependency
      */
     private function saveLinkedDependency(ProjectVersion $projectVersion, array $dependency)
     {
@@ -482,14 +483,14 @@ class ProjectVersionForm extends Component
             'project_version_id' => $projectVersion->id,
             'dependency_project_id' => $dependency['has_specific_version'] ? null : $dependency['project_id'],
             'dependency_project_version_id' => $dependency['has_specific_version'] ? $dependency['version_id'] : null,
-            'dependency_type' => $dependency['type']
+            'dependency_type' => $dependency['type'],
         ];
 
-        if (!empty($dependency['dependency_name'])) {
+        if (! empty($dependency['dependency_name'])) {
             $dependencyData['dependency_name'] = $dependency['dependency_name'];
         }
 
-        if (!empty($dependency['dependency_version'])) {
+        if (! empty($dependency['dependency_version'])) {
             $dependencyData['dependency_version'] = $dependency['dependency_version'];
         }
 
@@ -498,9 +499,6 @@ class ProjectVersionForm extends Component
 
     /**
      * Save a manual dependency
-     *
-     * @param ProjectVersion $projectVersion
-     * @param array $dependency
      */
     private function saveManualDependency(ProjectVersion $projectVersion, array $dependency)
     {
@@ -510,7 +508,7 @@ class ProjectVersionForm extends Component
             'dependency_project_version_id' => null,
             'dependency_type' => $dependency['type'],
             'dependency_name' => $dependency['dependency_name'],
-            'dependency_version' => $dependency['has_manual_version'] ? $dependency['dependency_version'] : 'Any'
+            'dependency_version' => $dependency['has_manual_version'] ? $dependency['dependency_version'] : 'Any',
         ]);
     }
 
@@ -519,19 +517,20 @@ class ProjectVersionForm extends Component
      */
     public function deleteVersion()
     {
-        if (!$this->isEditing) {
+        if (! $this->isEditing) {
             return;
         }
 
-        if (!Auth::check() || !Gate::allows('editVersion', $this->project)) {
+        if (! Auth::check() || ! Gate::allows('editVersion', $this->project)) {
             session()->flash('error', 'You do not have permission to delete this version.');
+
             return;
         }
 
         $this->validate([
-            'deleteConfirmation' => 'required|in:' . $this->version->version,
+            'deleteConfirmation' => 'required|in:'.$this->version->version,
         ], [
-            'deleteConfirmation.in' => 'The version number you entered does not match. Please enter the exact version number to confirm deletion.'
+            'deleteConfirmation.in' => 'The version number you entered does not match. Please enter the exact version number to confirm deletion.',
         ]);
 
         try {
@@ -545,10 +544,10 @@ class ProjectVersionForm extends Component
                     $project = $dependency->projectVersion->project;
                     $version = $dependency->projectVersion;
 
-                    if (!isset($dependentProjects[$project->id])) {
+                    if (! isset($dependentProjects[$project->id])) {
                         $dependentProjects[$project->id] = [
                             'project' => $project,
-                            'versions' => []
+                            'versions' => [],
                         ];
                     }
 
@@ -588,12 +587,13 @@ class ProjectVersionForm extends Component
 
             return redirect()->route('project.show', [
                 'projectType' => $this->project->projectType,
-                'project' => $this->project
+                'project' => $this->project,
             ])->with('message', 'Version deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            session()->flash('error', 'Failed to delete version: ' . $e->getMessage());
+            session()->flash('error', 'Failed to delete version: '.$e->getMessage());
+
             return;
         }
     }
@@ -606,7 +606,7 @@ class ProjectVersionForm extends Component
     public function getAvailableTags()
     {
         $projectType = $this->project->projectType;
-        $cacheKey = 'project_version_tags_by_type_' . $projectType->value;
+        $cacheKey = 'project_version_tags_by_type_'.$projectType->value;
 
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($projectType) {
             return ProjectVersionTag::whereHas('projectTypes', function ($query) use ($projectType) {
@@ -623,7 +623,7 @@ class ProjectVersionForm extends Component
     public function getAvailableTagGroups()
     {
         $projectType = $this->project->projectType;
-        $cacheKey = 'project_version_tag_groups_by_type_' . $projectType->value;
+        $cacheKey = 'project_version_tag_groups_by_type_'.$projectType->value;
 
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($projectType) {
             return ProjectVersionTagGroup::whereHas('projectTypes', function ($query) use ($projectType) {

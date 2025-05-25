@@ -47,11 +47,6 @@ class DependencyGroup extends Component
     /**
      * Create a new component instance.
      *
-     * @param string $title
-     * @param Collection $dependencies
-     * @param Project $project
-     * @param ProjectVersion $version
-     * @param string $badgeColor
      * @return void
      */
     public function __construct(string $title, Collection $dependencies, Project $project, ProjectVersion $version, string $badgeColor)

@@ -53,6 +53,7 @@ class CreateAdminCommand extends Command
             foreach ($validator->errors()->all() as $error) {
                 $this->error($error);
             }
+
             return 1;
         }
 
@@ -66,6 +67,7 @@ class CreateAdminCommand extends Command
         ]);
 
         $this->info("Admin user {$user->name} created successfully!");
+
         return 0;
     }
 
@@ -76,13 +78,15 @@ class CreateAdminCommand extends Command
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->error("User with email {$email} not found.");
+
             return 1;
         }
 
         if ($user->isAdmin()) {
             $this->info("User {$user->name} is already an admin.");
+
             return 0;
         }
 
@@ -90,6 +94,7 @@ class CreateAdminCommand extends Command
         $user->save();
 
         $this->info("User {$user->name} has been promoted to admin.");
+
         return 0;
     }
 }

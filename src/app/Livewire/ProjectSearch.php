@@ -2,11 +2,9 @@
 
 namespace App\Livewire;
 
-use App\Models\ProjectType;
 use App\Models\Project;
-use App\Models\ProjectTag;
 use App\Models\ProjectTagGroup;
-use App\Models\ProjectVersionTag;
+use App\Models\ProjectType;
 use App\Models\ProjectVersionTagGroup;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
@@ -20,29 +18,34 @@ class ProjectSearch extends Component
     public ProjectType $projectType;
 
     public $search = '';
+
     public $selectedTags = [];
+
     public $selectedVersionTags = [];
+
     public $orderBy = 'downloads';
+
     public $orderDirection = 'desc';
+
     public $resultsPerPage = 10;
 
     public $orderOptions = [
         ['id' => 'name', 'name' => 'Project Name', 'icon' => 'lucide-text'],
         ['id' => 'created_at', 'name' => 'Creation Date', 'icon' => 'lucide-calendar'],
         ['id' => 'latest_version', 'name' => 'Update Date', 'icon' => 'lucide-refresh-cw'],
-        ['id' => 'downloads', 'name' => 'Downloads', 'icon' => 'lucide-download']
+        ['id' => 'downloads', 'name' => 'Downloads', 'icon' => 'lucide-download'],
     ];
 
     public $directionOptions = [
         ['id' => 'asc', 'name' => 'Ascending', 'icon' => 'lucide-arrow-up'],
-        ['id' => 'desc', 'name' => 'Descending', 'icon' => 'lucide-arrow-down']
+        ['id' => 'desc', 'name' => 'Descending', 'icon' => 'lucide-arrow-down'],
     ];
 
     public $perPageOptions = [
         ['id' => 10, 'name' => '10'],
         ['id' => 25, 'name' => '25'],
         ['id' => 50, 'name' => '50'],
-        ['id' => 100, 'name' => '100']
+        ['id' => 100, 'name' => '100'],
     ];
 
     public function mount(ProjectType $projectType)
@@ -58,12 +61,11 @@ class ProjectSearch extends Component
     #[Computed]
     public function projects()
     {
-        $projects = Project::where('name', 'like', '%' . $this->search . '%')
-        ->where('project_type_id', $this->projectType->id)
-        ->withSum('versions', 'downloads')
-        ->withMax('versions', 'release_date')
-        ->with('owner', 'tags', 'projectType')
-        ;
+        $projects = Project::where('name', 'like', '%'.$this->search.'%')
+            ->where('project_type_id', $this->projectType->id)
+            ->withSum('versions', 'downloads')
+            ->withMax('versions', 'release_date')
+            ->with('owner', 'tags', 'projectType');
 
         // Filter by project tags
         if (count($this->selectedTags)) {
@@ -103,7 +105,8 @@ class ProjectSearch extends Component
     public function tagGroups()
     {
         // TODO: refactor this
-        $cacheKey = 'project_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_tag_groups_by_type_'.$this->projectType->value;
+
         return Cache::remember($cacheKey, now()->addHours(24), function () {
             return ProjectTagGroup::whereHas('projectTypes', function ($query) {
                 $query->where('project_type_id', $this->projectType->id);
@@ -119,7 +122,8 @@ class ProjectSearch extends Component
     public function versionTagGroups()
     {
         // TODO: refactor this
-        $cacheKey = 'project_version_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tag_groups_by_type_'.$this->projectType->value;
+
         return Cache::remember($cacheKey, now()->addHours(24), function () {
             return ProjectVersionTagGroup::whereHas('projectTypes', function ($query) {
                 $query->where('project_type_id', $this->projectType->id);

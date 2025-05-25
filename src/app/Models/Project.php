@@ -17,6 +17,7 @@ class Project extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     /**
@@ -49,8 +50,6 @@ class Project extends Model
 
     /**
      * Get the project type for this project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function projectType(): BelongsTo
     {
@@ -59,8 +58,6 @@ class Project extends Model
 
     /**
      * Get the versions for the project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function versions(): HasMany
     {
@@ -69,8 +66,6 @@ class Project extends Model
 
     /**
      * Get all project versions that depend on this project (not a specific version)
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function dependedOnBy(): HasMany
     {
@@ -79,8 +74,6 @@ class Project extends Model
 
     /**
      * The tags that belong to the Project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function tags(): BelongsToMany
     {
@@ -94,8 +87,6 @@ class Project extends Model
 
     /**
      * Get the memberships associated with the project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function memberships(): HasMany
     {
@@ -104,8 +95,6 @@ class Project extends Model
 
     /**
      * Get the users associated with the project through memberships
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function users(): BelongsToMany
     {
@@ -116,8 +105,6 @@ class Project extends Model
 
     /**
      * Get the users associated with the project through memberships
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function active_users(): BelongsToMany
     {
@@ -129,8 +116,6 @@ class Project extends Model
 
     /**
      * Get the owner of the project (user with primary membership)
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function owner(): BelongsToMany
     {
@@ -143,7 +128,7 @@ class Project extends Model
     /**
      * Generate a unique slug based on the project name.
      *
-     * @param string|null $customSlug Optional custom slug to use instead of generating from name
+     * @param  string|null  $customSlug  Optional custom slug to use instead of generating from name
      * @return string The generated unique slug
      */
     public function generateSlug(?string $customSlug = null): string
@@ -154,7 +139,7 @@ class Project extends Model
 
         // Check if the slug already exists
         while (static::where('slug', $slug)->where('id', '!=', $this->id)->exists()) {
-            $slug = $originalSlug . '-' . $counter++;
+            $slug = $originalSlug.'-'.$counter++;
         }
 
         return $slug;
@@ -162,8 +147,6 @@ class Project extends Model
 
     /**
      * Get the pretty name attribute
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function prettyName(): Attribute
     {
@@ -174,14 +157,13 @@ class Project extends Model
 
     /**
      * Get the downloads attribute
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function downloads(): Attribute
     {
         return Attribute::make(
             get: function () {
-                $cacheKey = 'project_downloads_' . $this->id;
+                $cacheKey = 'project_downloads_'.$this->id;
+
                 return Cache::remember($cacheKey, now()->addHours(24), function () {
                     return $this->versions()->sum('downloads');
                 });
@@ -191,29 +173,26 @@ class Project extends Model
 
     /**
      * Clear the downloads cache for this project
-     *
-     * @return void
      */
     public function clearDownloadsCache(): void
     {
-        Cache::forget('project_downloads_' . $this->id);
+        Cache::forget('project_downloads_'.$this->id);
     }
 
     /**
      * Get the recent versions attribute
-     *
-     * @param int $limit
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function recentVersions(int $limit = 3): Attribute
     {
         return Attribute::make(
             get: function () use ($limit) {
-                $cacheKey = 'project_recent_versions_' . $this->id . '_' . $limit;
+                $cacheKey = 'project_recent_versions_'.$this->id.'_'.$limit;
+
                 return Cache::remember($cacheKey, now()->addHours(24), function () use ($limit) {
                     $latestRelease = $this->versions->where('release_type', 'release')->sortByDesc('release_date')->first();
                     $otherVersions = $this->versions->sortByDesc('release_date')->take($limit);
                     $allVersions = $latestRelease ? collect([$latestRelease])->merge($otherVersions) : $otherVersions;
+
                     return $allVersions->unique('id')->take($limit);
                 });
             }
@@ -222,26 +201,23 @@ class Project extends Model
 
     /**
      * Clear the recent versions cache for this project
-     *
-     * @return void
      */
     public function clearRecentVersionsCache(): void
     {
-        Cache::forget('project_recent_versions_' . $this->id . '_3');
-        Cache::forget('project_recent_versions_' . $this->id . '_5');
-        Cache::forget('project_recent_versions_' . $this->id . '_10');
+        Cache::forget('project_recent_versions_'.$this->id.'_3');
+        Cache::forget('project_recent_versions_'.$this->id.'_5');
+        Cache::forget('project_recent_versions_'.$this->id.'_10');
     }
 
     /**
      * Get the versions max release date attribute
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function recentReleaseDate(): Attribute
     {
         return Attribute::make(
             get: function () {
-                $cacheKey = 'project_recent_release_date_' . $this->id;
+                $cacheKey = 'project_recent_release_date_'.$this->id;
+
                 return Cache::remember($cacheKey, now()->addHours(24), function () {
                     return $this->versions->max('release_date');
                 });
@@ -251,24 +227,21 @@ class Project extends Model
 
     /**
      * Clear the versions max release date cache for this project
-     *
-     * @return void
      */
     public function clearRecentReleaseDateCache(): void
     {
-        Cache::forget('project_recent_release_date_' . $this->id);
+        Cache::forget('project_recent_release_date_'.$this->id);
     }
 
     /**
      * Get the total size of all files in the project
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function size(): Attribute
     {
         return Attribute::make(
             get: function () {
-                $cacheKey = 'project_size_' . $this->id;
+                $cacheKey = 'project_size_'.$this->id;
+
                 return Cache::remember($cacheKey, now()->addHours(24), function () {
                     return $this->versions()
                         ->with('files')
@@ -284,43 +257,37 @@ class Project extends Model
 
     /**
      * Clear the size cache for this project
-     *
-     * @return void
      */
     public function clearSizeCache(): void
     {
-        Cache::forget('project_size_' . $this->id);
+        Cache::forget('project_size_'.$this->id);
     }
 
     /**
      * Format the size in a human-readable format
-     *
-     * @return string
      */
     public function getFormattedSizeAttribute(): string
     {
         $size = $this->size;
 
         if ($size < 1024) {
-            return $size . ' B';
+            return $size.' B';
         } elseif ($size < 1048576) {
-            return round($size / 1024, 2) . ' KB';
+            return round($size / 1024, 2).' KB';
         } elseif ($size < 1073741824) {
-            return round($size / 1048576, 2) . ' MB';
+            return round($size / 1048576, 2).' MB';
         } else {
-            return round($size / 1073741824, 2) . ' GB';
+            return round($size / 1073741824, 2).' GB';
         }
     }
 
     /**
      * Get the logo URL for the project
-     *
-     * @return string
      */
     public function getLogoUrl(): string
     {
         if ($this->logo_path && Storage::disk('public')->exists($this->logo_path)) {
-            return asset('storage/' .  $this->logo_path);
+            return asset('storage/'.$this->logo_path);
         }
 
         return asset('images/placeholder.png');

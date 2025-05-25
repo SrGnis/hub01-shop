@@ -17,8 +17,8 @@ use App\Models\ProjectVersion;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class AccessTest extends TestCase
 {
@@ -247,7 +247,7 @@ class AccessTest extends TestCase
         $projectType = $project->projectType;
         $version = ProjectVersion::factory()->create([
             'project_id' => $project->id,
-            'version' => '1.0.0'
+            'version' => '1.0.0',
         ]);
         $this->actingAs($user);
 

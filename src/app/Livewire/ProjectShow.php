@@ -8,6 +8,7 @@ use Livewire\Component;
 class ProjectShow extends Component
 {
     public Project $project;
+
     public $activeTab = 'description';
 
     protected $queryString = ['activeTab'];

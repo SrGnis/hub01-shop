@@ -14,7 +14,7 @@ enum ReleaseType: string
      */
     public function bgColorClass(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ALPHA => 'bg-red-700',
             self::BETA => 'bg-amber-700',
             self::RC => 'bg-blue-700',
@@ -27,7 +27,7 @@ enum ReleaseType: string
      */
     public function displayName(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ALPHA => 'Alpha',
             self::BETA => 'Beta',
             self::RC => 'RC',
@@ -40,7 +40,7 @@ enum ReleaseType: string
      */
     public static function fromString(string $value): self
     {
-        return match(strtolower($value)) {
+        return match (strtolower($value)) {
             'alpha' => self::ALPHA,
             'beta' => self::BETA,
             'rc' => self::RC,

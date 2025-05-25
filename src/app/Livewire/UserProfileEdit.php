@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Notifications\PasswordChanged;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 
@@ -15,16 +14,21 @@ class UserProfileEdit extends Component
     public User $user;
 
     public $name;
+
     public $email;
+
     public $bio;
+
     public $current_password;
+
     public $password;
+
     public $password_confirmation;
 
     public function mount(User $user)
     {
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login')
                 ->with('error', 'Please log in.');
         }
@@ -43,8 +47,8 @@ class UserProfileEdit extends Component
     public function updateProfile()
     {
         $this->validate([
-            'name' => 'required|string|max:255|unique:users,name,' . $this->user->id,
-            'email' => 'required|email|max:255|unique:users,email,' . $this->user->id,
+            'name' => 'required|string|max:255|unique:users,name,'.$this->user->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$this->user->id,
             'bio' => 'nullable|string|max:1000',
         ]);
 
@@ -66,7 +70,7 @@ class UserProfileEdit extends Component
         $this->user->password = Hash::make($this->password);
         $this->user->save();
 
-        $this->user->notify(new PasswordChanged());
+        $this->user->notify(new PasswordChanged);
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
 

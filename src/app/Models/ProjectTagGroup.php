@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
 class ProjectTagGroup extends Model
@@ -33,7 +33,7 @@ class ProjectTagGroup extends Model
         static::saved(function ($tagGroup) {
             if ($tagGroup->projectTypes->isNotEmpty()) {
                 foreach ($tagGroup->projectTypes as $projectType) {
-                    Cache::forget('project_tag_groups_by_type_' . $projectType->value);
+                    Cache::forget('project_tag_groups_by_type_'.$projectType->value);
                 }
             }
         });
@@ -41,7 +41,7 @@ class ProjectTagGroup extends Model
         static::deleting(function ($tagGroup) {
             if ($tagGroup->projectTypes->isNotEmpty()) {
                 foreach ($tagGroup->projectTypes as $projectType) {
-                    Cache::forget('project_tag_groups_by_type_' . $projectType->value);
+                    Cache::forget('project_tag_groups_by_type_'.$projectType->value);
                 }
             }
         });
@@ -49,8 +49,6 @@ class ProjectTagGroup extends Model
 
     /**
      * Get the tags for this tag group
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function tags(): HasMany
     {
@@ -59,8 +57,6 @@ class ProjectTagGroup extends Model
 
     /**
      * The project types that belong to the ProjectTagGroup
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectTypes(): BelongsToMany
     {

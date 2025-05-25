@@ -28,8 +28,8 @@ use App\Models\Project;
 use App\Models\ProjectType;
 use App\Models\User;
 use Livewire\Livewire;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 // TODO: duplicated tests with AccessTest
 class LivewireComponentTest extends TestCase
@@ -118,7 +118,7 @@ class LivewireComponentTest extends TestCase
 
         Livewire::test(ProjectVersionShow::class, [
             'project' => $project,
-            'version_key' => $version->version
+            'version_key' => $version->version,
         ])
             ->assertStatus(200);
     }

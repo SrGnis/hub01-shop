@@ -19,7 +19,7 @@ class ProjectFileFactory extends Factory
     public function definition(): array
     {
         $name = fake()->words(rand(1, 3), true);
-        $fileName = str_replace(' ', '_', $name) . '.zip';
+        $fileName = str_replace(' ', '_', $name).'.zip';
         $file = UploadedFile::fake()->create($fileName, fake()->numberBetween(10, 100));
         $filePath = $file->store('project-files');
 

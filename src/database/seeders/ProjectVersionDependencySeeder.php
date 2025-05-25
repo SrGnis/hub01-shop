@@ -81,7 +81,7 @@ class ProjectVersionDependencySeeder extends Seeder
             }
 
             // Bulk insert all dependency records for this chunk
-            if (!empty($dependencyRecords)) {
+            if (! empty($dependencyRecords)) {
                 DB::table('project_version_dependency')->insert($dependencyRecords);
             }
         });

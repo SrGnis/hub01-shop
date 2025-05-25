@@ -9,12 +9,16 @@ use Livewire\Component;
 class TagGroupManagement extends Component
 {
     public $tagGroupId = null;
+
     public $tagGroupName = '';
+
     public $tagGroupProjectTypes = [];
+
     public $isEditingTagGroup = false;
 
     // Confirmation
     public $confirmingDeletion = false;
+
     public $itemToDelete = null;
 
     protected function rules()
@@ -33,8 +37,9 @@ class TagGroupManagement extends Component
     public function editTagGroup($id)
     {
         $tagGroup = ProjectTagGroup::find($id);
-        if (!$tagGroup) {
+        if (! $tagGroup) {
             session()->flash('error', 'Tag group not found.');
+
             return;
         }
 

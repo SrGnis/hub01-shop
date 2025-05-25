@@ -13,7 +13,7 @@ enum DependencyType: string
      */
     public function bgColorClass(): string
     {
-        return match($this) {
+        return match ($this) {
             self::REQUIRED => 'bg-red-700',
             self::OPTIONAL => 'bg-blue-700',
             self::EMBEDDED => 'bg-green-700',
@@ -25,7 +25,7 @@ enum DependencyType: string
      */
     public function displayName(): string
     {
-        return match($this) {
+        return match ($this) {
             self::REQUIRED => 'Required',
             self::OPTIONAL => 'Optional',
             self::EMBEDDED => 'Embedded',
@@ -37,7 +37,7 @@ enum DependencyType: string
      */
     public static function fromString(string $value): self
     {
-        return match(strtolower($value)) {
+        return match (strtolower($value)) {
             'required' => self::REQUIRED,
             'optional' => self::OPTIONAL,
             'embedded' => self::EMBEDDED,

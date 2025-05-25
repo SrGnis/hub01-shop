@@ -2,9 +2,9 @@
 
 namespace App\View\Components;
 
-use App\Models\ProjectVersionDependency;
 use App\Models\Project;
 use App\Models\ProjectVersion;
+use App\Models\ProjectVersionDependency;
 use Illuminate\View\Component;
 
 class DependencyItem extends Component
@@ -40,10 +40,7 @@ class DependencyItem extends Component
     /**
      * Create a new component instance.
      *
-     * @param ProjectVersionDependency $dependency
-     * @param Project $project
-     * @param ProjectVersion $version
-     * @param string $badgeColor
+     * @param  string  $badgeColor
      * @return void
      */
     public function __construct(ProjectVersionDependency $dependency, Project $project, ProjectVersion $version, $badgeColor = 'bg-red-700')

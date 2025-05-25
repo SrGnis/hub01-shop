@@ -64,7 +64,7 @@ class ProjectDeleted extends Notification implements ShouldQueue
             'project_id' => $this->projectId,
             'project_name' => $this->projectName,
             'deleted_by_user_id' => $this->deletedByUserId,
-            'deleted_by_user_name' => $this->deletedByUserName
+            'deleted_by_user_name' => $this->deletedByUserName,
         ]);
     }
 
@@ -83,10 +83,10 @@ class ProjectDeleted extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage())
-            ->subject('Project Deleted: ' . $this->projectName)
+        return (new MailMessage)
+            ->subject('Project Deleted: '.$this->projectName)
             ->greeting('Hello!')
-            ->line($this->deletedByUserName . ' has deleted the project "' . $this->projectName . '".')
+            ->line($this->deletedByUserName.' has deleted the project "'.$this->projectName.'".')
             ->line('The project will be permanently deleted after 14 days. Until then, you can still see it in your profile page.')
             ->line('Thank you for using HUB01 Shop!');
     }
@@ -104,7 +104,7 @@ class ProjectDeleted extends Notification implements ShouldQueue
             'project_type' => $this->projectType,
             'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
-            'type' => 'project_deleted'
+            'type' => 'project_deleted',
         ];
     }
 }

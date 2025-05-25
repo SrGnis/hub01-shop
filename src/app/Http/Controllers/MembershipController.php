@@ -11,7 +11,6 @@ class MembershipController extends Controller
     /**
      * Accept a membership invitation
      *
-     * @param \App\Models\Membership $membership
      * @return \Illuminate\Http\RedirectResponse
      */
     public function accept(Membership $membership)
@@ -20,25 +19,25 @@ class MembershipController extends Controller
             'membership_id' => $membership->id,
             'status' => $membership->status,
             'user_id' => $membership->user_id,
-            'current_user' => Auth::id()
+            'current_user' => Auth::id(),
         ]);
 
         if ($membership->status !== 'pending') {
             Log::warning('Attempted to accept non-pending membership', [
                 'membership_id' => $membership->id,
-                'status' => $membership->status
+                'status' => $membership->status,
             ]);
 
             return redirect()->route('project-search', ['projectType' => 'mod'])
                 ->with('error', 'This invitation is no longer valid.');
         }
 
-        if (!Auth::check() || Auth::id() !== $membership->user_id) {
+        if (! Auth::check() || Auth::id() !== $membership->user_id) {
             Log::warning('User authentication failed for membership acceptance', [
                 'membership_id' => $membership->id,
                 'membership_user_id' => $membership->user_id,
                 'is_authenticated' => Auth::check(),
-                'current_user_id' => Auth::id()
+                'current_user_id' => Auth::id(),
             ]);
 
             return redirect()->route('login')
@@ -49,14 +48,13 @@ class MembershipController extends Controller
 
         return redirect()->route('project.show', [
             'projectType' => $membership->project->projectType,
-            'project' => $membership->project
+            'project' => $membership->project,
         ])->with('message', 'You have successfully joined the project!');
     }
 
     /**
      * Reject a membership invitation
      *
-     * @param \App\Models\Membership $membership
      * @return \Illuminate\Http\RedirectResponse
      */
     public function reject(Membership $membership)
@@ -65,20 +63,20 @@ class MembershipController extends Controller
             'membership_id' => $membership->id,
             'status' => $membership->status,
             'user_id' => $membership->user_id,
-            'current_user' => Auth::id()
+            'current_user' => Auth::id(),
         ]);
 
         if ($membership->status !== 'pending') {
             Log::warning('Attempted to reject non-pending membership', [
                 'membership_id' => $membership->id,
-                'status' => $membership->status
+                'status' => $membership->status,
             ]);
 
             return redirect()->route('project-search', ['projectType' => 'mod'])
                 ->with('error', 'This invitation is no longer valid.');
         }
 
-        if (!Auth::check() || Auth::id() !== $membership->user_id) {
+        if (! Auth::check() || Auth::id() !== $membership->user_id) {
             return redirect()->route('login')
                 ->with('error', 'You need to log in to reject this invitation.');
         }

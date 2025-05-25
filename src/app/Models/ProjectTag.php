@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class ProjectTag extends Model
 {
@@ -37,21 +35,19 @@ class ProjectTag extends Model
         // Clear the tags cache when a tag is created, updated, or deleted
         static::saved(function ($tag) {
             foreach (ProjectType::all() as $projectType) {
-                Cache::forget('project_tag_groups_by_type_' . $projectType->value);
+                Cache::forget('project_tag_groups_by_type_'.$projectType->value);
             }
         });
 
         static::deleting(function ($tag) {
             foreach (ProjectType::all() as $projectType) {
-                Cache::forget('project_tag_groups_by_type_' . $projectType->value);
+                Cache::forget('project_tag_groups_by_type_'.$projectType->value);
             }
         });
     }
 
     /**
      * Get the tag group for this tag
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function tagGroup(): BelongsTo
     {
@@ -60,8 +56,6 @@ class ProjectTag extends Model
 
     /**
      * The projects that belong to the ProjectTag
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projects(): BelongsToMany
     {
@@ -75,8 +69,6 @@ class ProjectTag extends Model
 
     /**
      * The project types that belong to the ProjectTag
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function projectTypes(): BelongsToMany
     {

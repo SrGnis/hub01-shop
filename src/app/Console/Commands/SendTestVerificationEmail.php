@@ -33,7 +33,7 @@ class SendTestVerificationEmail extends Command
         // Check if user exists
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             // Create a temporary user for testing
             $user = new User([
                 'name' => 'Test User',
@@ -41,16 +41,16 @@ class SendTestVerificationEmail extends Command
                 'password' => Hash::make('password'),
             ]);
 
-            $this->info("Creating a temporary user for testing (will not be saved to database).");
+            $this->info('Creating a temporary user for testing (will not be saved to database).');
         } else {
             $this->info("Using existing user: {$user->name} <{$user->email}>.");
         }
 
         // Send the verification email
-        $user->notify(new CustomVerifyEmail());
+        $user->notify(new CustomVerifyEmail);
 
         $this->info("Verification email sent to {$email}.");
-        $this->info("Check your log file at: storage/logs/laravel.log");
+        $this->info('Check your log file at: storage/logs/laravel.log');
 
         return Command::SUCCESS;
     }

@@ -64,7 +64,7 @@ class ProjectVersionDependency extends Model
                 }
             }
 
-            if (empty($dependency->dependency_version) && !empty($dependency->dependency_name)) {
+            if (empty($dependency->dependency_version) && ! empty($dependency->dependency_name)) {
                 $dependency->dependency_version = 'Any';
             }
         });
@@ -72,8 +72,6 @@ class ProjectVersionDependency extends Model
 
     /**
      * Get the project version that has this dependency
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function projectVersion(): BelongsTo
     {
@@ -82,8 +80,6 @@ class ProjectVersionDependency extends Model
 
     /**
      * Get the specific project version that is depended on
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function dependencyProjectVersion(): BelongsTo
     {
@@ -92,8 +88,6 @@ class ProjectVersionDependency extends Model
 
     /**
      * Get the project that is depended on (when no specific version is required)
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function dependencyProject(): BelongsTo
     {
@@ -102,8 +96,6 @@ class ProjectVersionDependency extends Model
 
     /**
      * Get the background color class for this dependency type
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function bgColorClass(): Attribute
     {
@@ -114,8 +106,6 @@ class ProjectVersionDependency extends Model
 
     /**
      * Get the display name for this dependency type
-     *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
      */
     public function displayName(): Attribute
     {

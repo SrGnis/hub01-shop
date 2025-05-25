@@ -9,17 +9,21 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class MembershipTest extends TestCase
 {
     use RefreshDatabase;
 
     protected User $owner;
+
     protected User $invitedUser;
+
     protected ProjectType $projectType;
+
     protected Project $project;
+
     protected Membership $pendingMembership;
 
     protected function setUp(): void
@@ -52,7 +56,7 @@ class MembershipTest extends TestCase
         $ownerMembership = new Membership([
             'role' => 'owner',
             'primary' => true,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $ownerMembership->user()->associate($this->owner);
         $ownerMembership->project()->associate($this->project);
@@ -69,7 +73,7 @@ class MembershipTest extends TestCase
         $this->pendingMembership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
         $this->pendingMembership->user()->associate($this->invitedUser);
         $this->pendingMembership->project()->associate($this->project);
@@ -89,7 +93,7 @@ class MembershipTest extends TestCase
         // Should redirect to the project page
         $response->assertRedirect(route('project.show', [
             'projectType' => $this->projectType->value,
-            'project' => $this->project->slug
+            'project' => $this->project->slug,
         ]));
 
         // Membership status should be updated to 'active'

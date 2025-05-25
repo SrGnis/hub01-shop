@@ -10,18 +10,23 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class FileDownloadTest extends TestCase
 {
     use RefreshDatabase;
 
     protected ProjectType $projectType;
+
     protected Project $project;
+
     protected ProjectVersion $version;
+
     protected UploadedFile $testFile;
+
     protected string $filePath;
+
     protected ProjectFile $projectFile;
 
     protected function setUp(): void
@@ -63,7 +68,7 @@ class FileDownloadTest extends TestCase
             'project_version_id' => $this->version->id,
             'name' => 'test-mod.zip',
             'path' => $this->filePath,
-            'size' => $this->testFile->getSize()
+            'size' => $this->testFile->getSize(),
         ]);
     }
 
@@ -76,7 +81,7 @@ class FileDownloadTest extends TestCase
             'projectType' => $this->projectType,
             'project' => $this->project,
             'version' => $this->version->version,
-            'file' => $this->projectFile->name
+            'file' => $this->projectFile->name,
         ]));
 
         $response->assertStatus(200);
@@ -95,7 +100,7 @@ class FileDownloadTest extends TestCase
             'projectType' => $this->projectType,
             'project' => $this->project,
             'version' => $this->version->version,
-            'file' => $this->projectFile->name
+            'file' => $this->projectFile->name,
         ]));
 
         // Refresh the model from the database
@@ -113,7 +118,7 @@ class FileDownloadTest extends TestCase
             'projectType' => $this->projectType,
             'project' => $this->project,
             'version' => $this->version->version,
-            'file' => 'nonexistent-file.zip'
+            'file' => 'nonexistent-file.zip',
         ]));
 
         $response->assertStatus(404);

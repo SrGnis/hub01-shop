@@ -94,20 +94,20 @@ class MembershipRemoved extends Notification implements ShouldQueue
         $url = route('project.show', ['projectType' => 'mod', 'project' => $this->projectId]);
 
         $subject = $this->isSelfRemoval
-            ? $this->removedUserName . ' has left the project: ' . $this->projectName
-            : 'Member removed from project: ' . $this->projectName;
+            ? $this->removedUserName.' has left the project: '.$this->projectName
+            : 'Member removed from project: '.$this->projectName;
 
         $message = $this->isSelfRemoval
-            ? $this->removedUserName . ' has left the project "' . $this->projectName . '"'
-            : $this->removedByUserName . ' has removed ' . $this->removedUserName . ' from the project "' . $this->projectName . '"';
+            ? $this->removedUserName.' has left the project "'.$this->projectName.'"'
+            : $this->removedByUserName.' has removed '.$this->removedUserName.' from the project "'.$this->projectName.'"';
 
-        return (new MailMessage())
-                    ->subject($subject)
-                    ->greeting('Hello!')
-                    ->line($message)
-                    ->line('As a member of this project, you are being notified of this change.')
-                    ->action('View Project', $url)
-                    ->line('Thank you for using HUB01 Shop!');
+        return (new MailMessage)
+            ->subject($subject)
+            ->greeting('Hello!')
+            ->line($message)
+            ->line('As a member of this project, you are being notified of this change.')
+            ->action('View Project', $url)
+            ->line('Thank you for using HUB01 Shop!');
     }
 
     /**
@@ -125,7 +125,7 @@ class MembershipRemoved extends Notification implements ShouldQueue
             'removed_by_user_id' => $this->removedByUserId,
             'removed_by_user_name' => $this->removedByUserName,
             'is_self_removal' => $this->isSelfRemoval,
-            'type' => 'membership_removed'
+            'type' => 'membership_removed',
         ];
     }
 }

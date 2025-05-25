@@ -2,11 +2,11 @@
 
 use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\MembershipController;
+use App\Livewire\ProjectForm;
 use App\Livewire\ProjectSearch;
 use App\Livewire\ProjectShow;
-use App\Livewire\ProjectVersionShow;
 use App\Livewire\ProjectVersionForm;
-use App\Livewire\ProjectForm;
+use App\Livewire\ProjectVersionShow;
 use App\Livewire\UserProfile;
 use App\Livewire\UserProfileEdit;
 use Illuminate\Support\Facades\Route;
@@ -23,11 +23,11 @@ Route::get('/user/{user}', UserProfile::class)->name('user.profile');
 Route::get('/user/{user}/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
 
 // Membership Management
-Route::get('/membership/{membership}/accept', MembershipController::class . '@accept')
+Route::get('/membership/{membership}/accept', MembershipController::class.'@accept')
     ->middleware('signed')
     ->name('membership.accept');
 
-Route::get('/membership/{membership}/reject', MembershipController::class . '@reject')
+Route::get('/membership/{membership}/reject', MembershipController::class.'@reject')
     ->middleware('signed')
     ->name('membership.reject');
 

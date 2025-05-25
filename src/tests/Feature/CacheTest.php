@@ -11,22 +11,28 @@ use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CacheTest extends TestCase
 {
     use RefreshDatabase;
 
     protected ProjectType $projectType;
+
     protected Project $project;
+
     protected ProjectVersion $projectVersion;
+
     protected ProjectTagGroup $projectTagGroup;
+
     protected ProjectTag $projectTag;
+
     protected ProjectVersionTagGroup $projectVersionTagGroup;
+
     protected ProjectVersionTag $projectVersionTag;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -73,7 +79,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_tag_groups_are_cached(): void
     {
-        $cacheKey = 'project_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_tag_groups_by_type_'.$this->projectType->value;
 
         $this->assertFalse(Cache::has($cacheKey));
 
@@ -97,7 +103,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_tag_groups_cache_is_invalidated_when_tag_group_is_updated(): void
     {
-        $cacheKey = 'project_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_tag_groups_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -112,7 +118,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_tag_groups_cache_is_invalidated_when_tag_group_is_deleted(): void
     {
-        $cacheKey = 'project_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_tag_groups_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -126,7 +132,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tag_groups_are_cached(): void
     {
-        $cacheKey = 'project_version_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tag_groups_by_type_'.$this->projectType->value;
 
         $this->assertFalse(Cache::has($cacheKey));
 
@@ -150,7 +156,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tag_groups_cache_is_invalidated_when_tag_group_is_updated(): void
     {
-        $cacheKey = 'project_version_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tag_groups_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -165,7 +171,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tag_groups_cache_is_invalidated_when_tag_group_is_deleted(): void
     {
-        $cacheKey = 'project_version_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tag_groups_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -179,7 +185,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tags_are_cached(): void
     {
-        $cacheKey = 'project_version_tags_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tags_by_type_'.$this->projectType->value;
 
         $this->assertFalse(Cache::has($cacheKey));
 
@@ -199,7 +205,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tags_cache_is_invalidated_when_tag_is_updated(): void
     {
-        $cacheKey = 'project_version_tags_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tags_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -214,7 +220,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tags_cache_is_invalidated_when_tag_is_deleted(): void
     {
-        $cacheKey = 'project_version_tags_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tags_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -228,7 +234,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tags_per_version_are_cached(): void
     {
-        $cacheKey = 'project_version_tags_' . $this->projectVersion->id;
+        $cacheKey = 'project_version_tags_'.$this->projectVersion->id;
 
         $this->assertFalse(Cache::has($cacheKey));
 
@@ -244,7 +250,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tags_per_version_cache_is_invalidated_when_tag_is_updated(): void
     {
-        $cacheKey = 'project_version_tags_' . $this->projectVersion->id;
+        $cacheKey = 'project_version_tags_'.$this->projectVersion->id;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -259,7 +265,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_tag_groups_cache_should_be_invalidated_when_project_version_is_created(): void
     {
-        $cacheKey = 'project_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_tag_groups_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 
@@ -275,7 +281,7 @@ class CacheTest extends TestCase
     #[Test]
     public function test_project_version_tag_groups_cache_should_be_invalidated_when_project_version_is_created(): void
     {
-        $cacheKey = 'project_version_tag_groups_by_type_' . $this->projectType->value;
+        $cacheKey = 'project_version_tag_groups_by_type_'.$this->projectType->value;
 
         Cache::put($cacheKey, 'test-value', now()->addHours(24));
 

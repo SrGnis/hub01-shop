@@ -50,7 +50,7 @@ class PermanentlyDeleteProjects implements ShouldQueue
 
             Log::info("Permanently deleted {$count} projects");
         } else {
-            Log::info("No projects found for permanent deletion");
+            Log::info('No projects found for permanent deletion');
         }
     }
 }
