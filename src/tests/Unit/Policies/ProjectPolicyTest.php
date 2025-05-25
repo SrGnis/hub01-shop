@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Policies;
 
+use App\Models\Membership;
 use App\Models\Project;
 use App\Models\User;
-use App\Models\Membership;
 use App\Policies\ProjectPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,26 +14,28 @@ class ProjectPolicyTest extends TestCase
     use RefreshDatabase;
 
     protected ProjectPolicy $policy;
+
     protected User $user;
+
     protected Project $project;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
-        $this->policy = new ProjectPolicy();
+        $this->policy = new ProjectPolicy;
         $this->user = User::factory()->create(['email_verified_at' => now()]);
 
         // Create a project type first
-        $projectType = \App\Models\ProjectType::create([
+        $projectType = \App\Models\ProjectType::firstOrCreate([
             'value' => 'mod',
             'display_name' => 'Mod',
-            'icon' => 'lucide-puzzle'
+            'icon' => 'lucide-puzzle',
         ]);
 
         // Create project with the project type ID
         $this->project = Project::factory()->create([
-            'project_type_id' => $projectType->id
+            'project_type_id' => $projectType->id,
         ]);
     }
 
@@ -67,7 +69,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -85,7 +87,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -112,7 +114,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -131,7 +133,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -158,7 +160,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -177,7 +179,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -204,7 +206,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -231,7 +233,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -250,7 +252,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'active'
+            'status' => 'active',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -266,7 +268,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'rejected'
+            'status' => 'rejected',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);
@@ -286,7 +288,7 @@ class ProjectPolicyTest extends TestCase
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
         $membership->user()->associate($this->user);
         $membership->project()->associate($this->project);

@@ -12,7 +12,6 @@ abstract class BasePolicy
     /**
      * Determine if the given user is an admin and should be granted all abilities.
      *
-     * @param  \App\Models\User|null  $user
      * @return bool|void
      */
     public function before(?User $user)

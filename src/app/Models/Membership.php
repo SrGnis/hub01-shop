@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Illuminate\Support\Facades\Cache;
 
 class Membership extends Pivot
 {
@@ -15,12 +14,12 @@ class Membership extends Pivot
     protected $fillable = [
         'role',
         'primary',
-        'status'
+        'status',
     ];
 
     protected $casts = [
         'primary' => 'boolean',
-        'status' => 'string'
+        'status' => 'string',
     ];
 
     /**
@@ -28,15 +27,10 @@ class Membership extends Pivot
      *
      * @return void
      */
-    protected static function booted()
-    {
-
-    }
+    protected static function booted() {}
 
     /**
      * Get the User associated with the Membership
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
@@ -45,8 +39,6 @@ class Membership extends Pivot
 
     /**
      * Get the Project associated with the Membership
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function project(): BelongsTo
     {
@@ -57,7 +49,6 @@ class Membership extends Pivot
      * Get the Mod associated with the Membership (legacy method for backward compatibility)
      *
      * @deprecated Use project() instead
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function mod(): BelongsTo
     {
@@ -66,8 +57,6 @@ class Membership extends Pivot
 
     /**
      * Get the user who sent the invitation
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function inviter(): BelongsTo
     {

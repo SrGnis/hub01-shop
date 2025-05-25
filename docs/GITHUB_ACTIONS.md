@@ -2,6 +2,13 @@
 
 This document describes the GitHub Actions workflows used in the Hub01 Shop project.
 
+## Overview
+
+The project uses two main GitHub Actions workflows:
+
+1. **Docker Image Build and Publish**: Builds and publishes the application Docker image to GitHub Container Registry when changes are pushed to the main branch.
+2. **Run Tests**: Runs automated tests when pull requests are opened or updated to ensure code quality before merging.
+
 ## Docker Image Build and Publish
 
 File: `.github/workflows/docker-publish.yml`
@@ -99,4 +106,54 @@ To customize the workflow:
 
 1. Edit the `.github/workflows/docker-publish.yml` file
 2. Modify the triggers, tags, or build arguments as needed
+3. Commit and push your changes
+
+## Run Tests
+
+File: `.github/workflows/run-tests.yml`
+
+### Overview
+
+This workflow automatically runs tests when pull requests are opened or updated against the main branch. It helps ensure code quality and prevent regressions before merging changes.
+
+### Workflow Details
+
+#### Triggers
+
+- **Pull requests to main branch**: Automatically runs when pull requests are opened, synchronized, or reopened against the main branch
+- **Manual trigger**: Can be run manually using the "workflow_dispatch" event
+
+#### Jobs
+
+The workflow consists of a single job named `test` that performs the following steps:
+
+1. **Checkout repository**: Fetches the latest code from the repository
+2. **Set up Docker Buildx**: Configures Docker Buildx for building containers
+3. **Start Docker Compose services**: Starts the required services (database and Redis)
+4. **Build app container**: Builds the application container using docker-compose
+5. **Run Laravel tests**: Executes the Laravel test suite using PHPUnit
+6. **Run code style checks**: Verifies code style using Laravel Pint
+7. **Stop Docker Compose services**: Ensures all services are stopped after tests complete
+
+### Environment Configuration
+
+The workflow sets up a testing environment with:
+
+- SQLite in-memory database for fast testing
+- Testing environment configuration
+
+### Troubleshooting
+
+If the tests fail, check the following:
+
+1. **Test failures**: Review the specific test failures in the GitHub Actions logs
+2. **Environment issues**: Ensure the testing environment is properly configured
+3. **Code style issues**: Fix any code style violations reported by Laravel Pint
+
+### Customization
+
+To customize the test workflow:
+
+1. Edit the `.github/workflows/run-tests.yml` file
+2. Modify the test commands or add additional testing steps
 3. Commit and push your changes

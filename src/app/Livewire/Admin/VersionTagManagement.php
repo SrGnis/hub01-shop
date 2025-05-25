@@ -2,22 +2,28 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\ProjectType;
 use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
-use App\Models\ProjectType;
 use Livewire\Component;
 
 class VersionTagManagement extends Component
 {
     public $versionTagId = null;
+
     public $versionTagName = '';
+
     public $versionTagIcon = 'lucide-tag';
+
     public $versionTagGroupId = null;
+
     public $versionTagProjectTypes = [];
+
     public $isEditingVersionTag = false;
 
     // Confirmation
     public $confirmingDeletion = false;
+
     public $itemToDelete = null;
 
     protected function rules()
@@ -44,8 +50,9 @@ class VersionTagManagement extends Component
     public function editVersionTag($id)
     {
         $versionTag = ProjectVersionTag::find($id);
-        if (!$versionTag) {
+        if (! $versionTag) {
             session()->flash('error', 'Version tag not found.');
+
             return;
         }
 

@@ -9,7 +9,9 @@ use Livewire\Component;
 class ProjectVersionShow extends Component
 {
     public Project $project;
+
     public string $version_key;
+
     public ProjectVersion $version;
 
     public function mount(Project $project, string $version_key)
@@ -27,7 +29,7 @@ class ProjectVersionShow extends Component
             'files',
             'dependencies.dependencyProjectVersion.project',
             'dependencies.dependencyProject',
-            'tags.tagGroup'
+            'tags.tagGroup',
         ]);
     }
 

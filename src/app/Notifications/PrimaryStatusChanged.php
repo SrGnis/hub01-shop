@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Models\Membership;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -86,13 +85,13 @@ class PrimaryStatusChanged extends Notification implements ShouldQueue
     {
         $url = route('project.show', ['projectType' => 'mod', 'project' => $this->projectId]);
 
-        return (new MailMessage())
-                    ->subject('Primary Owner Changed for Project: ' . $this->projectName)
-                    ->greeting('Hello!')
-                    ->line($this->changedByUserName . ' has changed the primary owner of the project "' . $this->projectName . '" to ' . $this->newPrimaryUserName . '.')
-                    ->line('As a member of this project, you are being notified of this change.')
-                    ->action('View Project', $url)
-                    ->line('Thank you for using HUB01 Shop!');
+        return (new MailMessage)
+            ->subject('Primary Owner Changed for Project: '.$this->projectName)
+            ->greeting('Hello!')
+            ->line($this->changedByUserName.' has changed the primary owner of the project "'.$this->projectName.'" to '.$this->newPrimaryUserName.'.')
+            ->line('As a member of this project, you are being notified of this change.')
+            ->action('View Project', $url)
+            ->line('Thank you for using HUB01 Shop!');
     }
 
     /**
@@ -109,7 +108,7 @@ class PrimaryStatusChanged extends Notification implements ShouldQueue
             'new_primary_user_name' => $this->newPrimaryUserName,
             'changed_by_user_id' => $this->changedByUserId,
             'changed_by_user_name' => $this->changedByUserName,
-            'type' => 'primary_status_changed'
+            'type' => 'primary_status_changed',
         ];
     }
 }

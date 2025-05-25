@@ -13,20 +13,29 @@ class UserManagement extends Component
     use WithPagination;
 
     public $search = '';
+
     public $sortField = 'created_at';
+
     public $sortDirection = 'desc';
+
     public $perPage = 10;
 
     // User form
     public $userId = null;
+
     public $name = '';
+
     public $email = '';
+
     public $password = '';
+
     public $role = 'user';
+
     public $isEditing = false;
 
     // Confirmation
     public $confirmingUserDeletion = false;
+
     public $userToDelete = null;
 
     protected $rules = [
@@ -88,7 +97,7 @@ class UserManagement extends Component
             $user->email = $this->email;
             $user->role = $this->role;
 
-            if (!empty($this->password)) {
+            if (! empty($this->password)) {
                 $user->password = Hash::make($this->password);
             }
 
@@ -126,6 +135,7 @@ class UserManagement extends Component
                 session()->flash('error', 'You cannot delete your own account.');
                 $this->confirmingUserDeletion = false;
                 $this->userToDelete = null;
+
                 return;
             }
 

@@ -64,7 +64,7 @@ class ProjectRestored extends Notification implements ShouldQueue
             'project_' => $this->projectSlug,
             'project_name' => $this->projectName,
             'restored_by_user_id' => $this->restoredByUserId,
-            'restored_by_user_name' => $this->restoredByUserName
+            'restored_by_user_name' => $this->restoredByUserName,
         ]);
     }
 
@@ -85,10 +85,10 @@ class ProjectRestored extends Notification implements ShouldQueue
     {
         $url = route('project.show', ['projectType' => $this->projectType, 'project' => $this->projectSlug]);
 
-        return (new MailMessage())
-            ->subject('Project Restored: ' . $this->projectName)
+        return (new MailMessage)
+            ->subject('Project Restored: '.$this->projectName)
             ->greeting('Hello!')
-            ->line($this->restoredByUserName . ' has restored the project "' . $this->projectName . '".')
+            ->line($this->restoredByUserName.' has restored the project "'.$this->projectName.'".')
             ->line('The project is now active again and all its data has been restored.')
             ->action('View Project', $url)
             ->line('Thank you for using HUB01 Shop!');
@@ -107,7 +107,7 @@ class ProjectRestored extends Notification implements ShouldQueue
             'project_type' => $this->projectType,
             'restored_by_user_id' => $this->restoredByUserId,
             'restored_by_user_name' => $this->restoredByUserName,
-            'type' => 'project_restored'
+            'type' => 'project_restored',
         ];
     }
 }

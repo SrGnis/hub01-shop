@@ -24,15 +24,16 @@ class UserProfile extends Component
     /**
      * Restore a soft-deleted project
      *
-     * @param int $projectId
+     * @param  int  $projectId
      * @return void
      */
     public function restoreProject($projectId)
     {
         $project = Project::onlyTrashed()->findOrFail($projectId);
 
-        if (!Auth::check() || !Gate::allows('restore', $project)) {
+        if (! Auth::check() || ! Gate::allows('restore', $project)) {
             session()->flash('error', 'You do not have permission to restore this project.');
+
             return;
         }
 
@@ -52,12 +53,12 @@ class UserProfile extends Component
             session()->flash('message', 'Project restored successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to restore project: ' . $e->getMessage(), [
+            Log::error('Failed to restore project: '.$e->getMessage(), [
                 'project_id' => $project->id,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
-            session()->flash('error', 'Failed to restore project: ' . $e->getMessage());
+            session()->flash('error', 'Failed to restore project: '.$e->getMessage());
         }
     }
 
@@ -76,7 +77,7 @@ class UserProfile extends Component
 
         return view('livewire.user-profile', [
             'activeProjects' => $activeProjects,
-            'deletedProjects' => $deletedProjects
+            'deletedProjects' => $deletedProjects,
         ]);
     }
 }

@@ -1,9 +1,9 @@
 <?php
 
 use App\Livewire\Admin\Dashboard;
-use App\Livewire\Admin\UserManagement;
 use App\Livewire\Admin\ProjectManagement;
 use App\Livewire\Admin\SiteManagement;
+use App\Livewire\Admin\UserManagement;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {

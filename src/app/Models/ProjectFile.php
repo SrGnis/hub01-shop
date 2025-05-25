@@ -36,8 +36,6 @@ class ProjectFile extends Model
 
     /**
      * Get the project version that owns the project file
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function projectVersion(): BelongsTo
     {

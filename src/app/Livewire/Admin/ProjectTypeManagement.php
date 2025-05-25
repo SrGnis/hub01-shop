@@ -8,13 +8,18 @@ use Livewire\Component;
 class ProjectTypeManagement extends Component
 {
     public $projectTypeId = null;
+
     public $projectTypeValue = '';
+
     public $projectTypeDisplayName = '';
+
     public $projectTypeIcon = 'lucide-package';
+
     public $isEditingProjectType = false;
 
     // Confirmation
     public $confirmingDeletion = false;
+
     public $itemToDelete = null;
 
     protected function rules()
@@ -42,8 +47,9 @@ class ProjectTypeManagement extends Component
     public function editProjectType($id)
     {
         $projectType = ProjectType::find($id);
-        if (!$projectType) {
+        if (! $projectType) {
             session()->flash('error', 'Project type not found.');
+
             return;
         }
 

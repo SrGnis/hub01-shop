@@ -11,12 +11,14 @@ class ProjectShowChangelog extends Component
     use WithPagination;
 
     public Project $project;
+
     public $perPage = 10;
+
     public $perPageOptions = [
         ['id' => 10, 'name' => '10'],
         ['id' => 25, 'name' => '25'],
         ['id' => 50, 'name' => '50'],
-        ['id' => 100, 'name' => '100']
+        ['id' => 100, 'name' => '100'],
     ];
 
     public function mount(Project $project)
@@ -37,7 +39,7 @@ class ProjectShowChangelog extends Component
             ->paginate($this->perPage);
 
         return view('livewire.project-show-changelog', [
-            'versions' => $versions
+            'versions' => $versions,
         ]);
     }
 }

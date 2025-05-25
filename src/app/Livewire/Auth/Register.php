@@ -15,7 +15,7 @@ class Register extends Component
         'john.doe',
         'jane_smith',
         'developer-2023',
-        'tech.user.42'
+        'tech.user.42',
     ];
 
     public function mount()

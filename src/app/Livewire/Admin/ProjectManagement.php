@@ -12,14 +12,20 @@ class ProjectManagement extends Component
     use WithPagination;
 
     public $search = '';
+
     public $sortField = 'created_at';
+
     public $sortDirection = 'desc';
+
     public $perPage = 10;
+
     public $filterType = '';
+
     public $filterStatus = '';
 
     // Confirmation
     public $confirmingProjectDeletion = false;
+
     public $projectToDelete = null;
 
     public function sortBy($field)

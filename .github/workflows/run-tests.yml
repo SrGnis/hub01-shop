@@ -1,0 +1,62 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches: [ "main", "dev" ]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Copy environment file
+        run: cp .env.testing .env
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Start Docker Compose services
+        run: |
+          docker compose -f docker-compose-testing.yml up -d db redis
+
+      - name: Build app container with cache
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/laravel/Dockerfile.testing
+          tags: hub01_shop_app_testing
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start app container
+        run: |
+          docker compose -f docker-compose-testing.yml up -d --wait --wait-timeout 30 app
+
+      - name: Run Laravel tests
+        run: |
+          # Run tests inside the container
+          docker compose -f docker-compose-testing.yml exec -u www-data app php artisan test
+
+      - name: Run code style checks
+        run: |
+          # Run style checks inside the container
+          docker compose -f docker-compose-testing.yml exec -u www-data app ./vendor/bin/pint --test
+
+      - name: Stop Docker Compose services
+        if: always()
+        run: |
+          docker compose -f docker-compose-testing.yml down

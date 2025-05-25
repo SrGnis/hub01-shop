@@ -2,21 +2,21 @@
 
 namespace App\Livewire;
 
-use App\Models\ProjectType;
 use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectTagGroup;
+use App\Models\ProjectType;
 use App\Models\User;
+use App\Notifications\BrokenDependencyNotification;
 use App\Notifications\MembershipInvitation;
 use App\Notifications\MembershipRemoved;
 use App\Notifications\PrimaryStatusChanged;
 use App\Notifications\ProjectDeleted;
-use App\Notifications\BrokenDependencyNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -27,23 +27,36 @@ class ProjectForm extends Component
     use WithFileUploads;
 
     public ProjectType $projectType;
+
     public ?Project $project = null;
+
     public $isEditing = false;
 
     public $name = '';
+
     public $slug = '';
+
     public $summary = '';
+
     public $description = '';
+
     public $logo = null;
+
     public $removeLogo = false;
+
     public $website = '';
+
     public $issues = '';
+
     public $source = '';
+
     public $status = 'active';
+
     public $selectedTags = [];
 
     // Membership management
     public $newMemberName = '';
+
     public $newMemberRole = 'contributor';
 
     // Project deletion
@@ -53,7 +66,7 @@ class ProjectForm extends Component
     {
         $this->projectType = $projectType;
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login', ['projectType' => $projectType])
                 ->with('error', 'Please log in to create a project.');
         }
@@ -62,7 +75,7 @@ class ProjectForm extends Component
             $this->project = $project;
             $this->isEditing = true;
 
-            if (!Gate::allows('update', $project)) {
+            if (! Gate::allows('update', $project)) {
                 return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project])
                     ->with('error', 'You do not have permission to edit this project.');
             }
@@ -82,7 +95,7 @@ class ProjectForm extends Component
 
         } else {
 
-            if (!Gate::allows('create', Project::class)) {
+            if (! Gate::allows('create', Project::class)) {
                 return redirect()->route('project-search', ['projectType' => $projectType])
                     ->with('error', 'You do not have permission to create a project.');
             }
@@ -117,7 +130,7 @@ class ProjectForm extends Component
             'tags' => $tags,
             'tagGroups' => $tagGroups,
             'memberships' => $memberships,
-            'roles' => $roles
+            'roles' => $roles,
         ]);
     }
 
@@ -129,7 +142,7 @@ class ProjectForm extends Component
         if ($this->isEditing) {
             $this->slug = $this->project->generateSlug($this->name);
         } else {
-            $project = new Project();
+            $project = new Project;
             $this->slug = $project->generateSlug($this->name);
         }
 
@@ -162,7 +175,7 @@ class ProjectForm extends Component
 
         // Add slug validation with unique constraint that excludes the current project when editing
         if ($this->isEditing) {
-            $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug,' . $this->project->id;
+            $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug,'.$this->project->id;
         } else {
             $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug';
         }
@@ -170,11 +183,11 @@ class ProjectForm extends Component
         $this->validate($rules);
 
         if ($this->isEditing) {
-            if (!Auth::check() || !Gate::allows('update', $this->project)) {
+            if (! Auth::check() || ! Gate::allows('update', $this->project)) {
                 session()->flash('error', 'You do not have permission to edit this project.');
+
                 return redirect()->route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]);
             }
-
 
             $logoPath = $this->project->logo_path;
 
@@ -191,7 +204,6 @@ class ProjectForm extends Component
                 $logoPath = $this->logo->store('project-logos', 'public');
             }
 
-
             $this->project->update([
                 'name' => $this->name,
                 'slug' => $this->slug,
@@ -203,7 +215,6 @@ class ProjectForm extends Component
                 'source' => $this->source,
                 'status' => $this->status,
             ]);
-
 
             $this->project->tags()->sync($this->selectedTags);
 
@@ -217,7 +228,6 @@ class ProjectForm extends Component
                 $logoPath = $this->logo->store('project-logos', 'public');
             }
 
-
             $project = Project::create([
                 'name' => $this->name,
                 'slug' => $this->slug,
@@ -230,7 +240,6 @@ class ProjectForm extends Component
                 'status' => $this->status,
                 'project_type_id' => $this->projectType->id,
             ]);
-
 
             $project->tags()->attach($this->selectedTags);
 
@@ -256,12 +265,13 @@ class ProjectForm extends Component
      */
     public function addMember()
     {
-        if (!$this->isEditing) {
+        if (! $this->isEditing) {
             return;
         }
 
-        if (!Auth::check() || !Gate::allows('addMember', $this->project)) {
+        if (! Auth::check() || ! Gate::allows('addMember', $this->project)) {
             session()->flash('error', 'You do not have permission to add members to this project.');
+
             return redirect()->route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]);
         }
 
@@ -269,13 +279,14 @@ class ProjectForm extends Component
             'newMemberName' => 'required|string|exists:users,name',
             'newMemberRole' => 'required|in:owner,contributor,tester,translator',
         ], [
-            'newMemberName.exists' => 'No user found with this name.'
+            'newMemberName.exists' => 'No user found with this name.',
         ]);
 
         $user = User::where('name', $this->newMemberName)->first();
 
         if ($this->project->users()->where('user_id', $user->id)->exists()) {
             $this->addError('newMemberName', 'This user is already a member of the project.');
+
             return;
         }
 
@@ -303,34 +314,38 @@ class ProjectForm extends Component
     /**
      * Remove a member from the project
      *
-     * @param int $membershipId
+     * @param  int  $membershipId
      */
     public function removeMember($membershipId)
     {
-        if (!$this->isEditing) {
+        if (! $this->isEditing) {
             return;
         }
 
-        if (!Auth::check() || !Gate::allows('removeMember', $this->project)) {
+        if (! Auth::check() || ! Gate::allows('removeMember', $this->project)) {
             session()->flash('error', 'You do not have permission to remove members from this project.');
+
             return redirect()->route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]);
         }
         $membership = Membership::findOrFail($membershipId);
 
         if ($membership->project_id !== $this->project->id) {
             session()->flash('error', 'Invalid membership.');
+
             return;
         }
 
         if ($membership->user_id === Auth::id()) {
             if ($membership->primary) {
                 session()->flash('error', 'You cannot remove yourself as the primary owner. Transfer ownership to another member first.');
+
                 return;
             }
         }
 
         if ($membership->primary && $this->project->memberships()->where('primary', true)->count() <= 1) {
             session()->flash('error', 'You cannot remove the last primary member of the project.');
+
             return;
         }
 
@@ -354,11 +369,13 @@ class ProjectForm extends Component
 
             if ($isSelfRemoval) {
                 session()->flash('message', 'You have left the project successfully!');
+
                 return redirect()->route('project-search', ['projectType' => $this->projectType->value]);
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Failed to remove member: ' . $e->getMessage());
+            session()->flash('error', 'Failed to remove member: '.$e->getMessage());
+
             return;
         }
 
@@ -371,16 +388,17 @@ class ProjectForm extends Component
     /**
      * Set a member as primary for the project
      *
-     * @param int $membershipId
+     * @param  int  $membershipId
      */
     public function setPrimaryMember($membershipId)
     {
-        if (!$this->isEditing) {
+        if (! $this->isEditing) {
             return;
         }
 
-        if (!Auth::check() || !Gate::allows('removeMember', $this->project)) {
+        if (! Auth::check() || ! Gate::allows('removeMember', $this->project)) {
             session()->flash('error', 'You do not have permission to manage project ownership.');
+
             return redirect()->route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]);
         }
 
@@ -388,21 +406,25 @@ class ProjectForm extends Component
 
         if ($membership->project_id !== $this->project->id) {
             session()->flash('error', 'Invalid membership.');
+
             return;
         }
 
         if ($membership->status !== 'active') {
             session()->flash('error', 'Only active members can be set as primary.');
+
             return;
         }
 
         if ($membership->primary) {
             session()->flash('error', 'This member is already a primary member.');
+
             return;
         }
 
-        if (!$this->project->memberships()->where('user_id', Auth::id())->where('primary', true)->exists()) {
+        if (! $this->project->memberships()->where('user_id', Auth::id())->where('primary', true)->exists()) {
             session()->flash('error', 'Only primary owners can transfer ownership.');
+
             return;
         }
 
@@ -428,7 +450,8 @@ class ProjectForm extends Component
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Failed to update primary member: ' . $e->getMessage());
+            session()->flash('error', 'Failed to update primary member: '.$e->getMessage());
+
             return;
         }
 
@@ -443,19 +466,20 @@ class ProjectForm extends Component
      */
     public function deleteProject()
     {
-        if (!$this->isEditing) {
+        if (! $this->isEditing) {
             return;
         }
 
-        if (!Auth::check() || !Gate::allows('delete', $this->project)) {
+        if (! Auth::check() || ! Gate::allows('delete', $this->project)) {
             session()->flash('error', 'You do not have permission to delete this project.');
+
             return;
         }
 
         $this->validate([
-            'deleteConfirmation' => 'required|in:' . $this->project->name,
+            'deleteConfirmation' => 'required|in:'.$this->project->name,
         ], [
-            'deleteConfirmation.in' => 'The project name you entered does not match. Please enter the exact project name to confirm deletion.'
+            'deleteConfirmation.in' => 'The project name you entered does not match. Please enter the exact project name to confirm deletion.',
         ]);
 
         $projectType = $this->project->projectType;
@@ -478,10 +502,10 @@ class ProjectForm extends Component
                     $project = $dependency->projectVersion->project;
                     $version = $dependency->projectVersion;
 
-                    if (!isset($dependentProjects[$project->id])) {
+                    if (! isset($dependentProjects[$project->id])) {
                         $dependentProjects[$project->id] = [
                             'project' => $project,
-                            'versions' => []
+                            'versions' => [],
                         ];
                     }
 
@@ -494,10 +518,10 @@ class ProjectForm extends Component
                     $project = $dependency->projectVersion->project;
                     $version = $dependency->projectVersion;
 
-                    if (!isset($dependentProjects[$project->id])) {
+                    if (! isset($dependentProjects[$project->id])) {
                         $dependentProjects[$project->id] = [
                             'project' => $project,
-                            'versions' => []
+                            'versions' => [],
                         ];
                     }
 
@@ -505,7 +529,7 @@ class ProjectForm extends Component
                         return $v->id;
                     }, $dependentProjects[$project->id]['versions']);
 
-                    if (!in_array($version->id, $versionIds)) {
+                    if (! in_array($version->id, $versionIds)) {
                         $dependentProjects[$project->id]['versions'][] = $version;
                     }
                 }
@@ -542,12 +566,13 @@ class ProjectForm extends Component
                 ->with('message', 'Project deleted successfully. Members can still see it in their profile for the next 14 days.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to delete project: ' . $e->getMessage(), [
+            Log::error('Failed to delete project: '.$e->getMessage(), [
                 'project_id' => $this->project->id,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
-            session()->flash('error', 'Failed to delete project: ' . $e->getMessage());
+            session()->flash('error', 'Failed to delete project: '.$e->getMessage());
+
             return;
         }
     }

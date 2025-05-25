@@ -2,19 +2,23 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\ProjectVersionTagGroup;
 use App\Models\ProjectType;
+use App\Models\ProjectVersionTagGroup;
 use Livewire\Component;
 
 class VersionTagGroupManagement extends Component
 {
     public $versionTagGroupId = null;
+
     public $versionTagGroupName = '';
+
     public $versionTagGroupProjectTypes = [];
+
     public $isEditingVersionTagGroup = false;
 
     // Confirmation
     public $confirmingDeletion = false;
+
     public $itemToDelete = null;
 
     protected function rules()
@@ -33,8 +37,9 @@ class VersionTagGroupManagement extends Component
     public function editVersionTagGroup($id)
     {
         $versionTagGroup = ProjectVersionTagGroup::find($id);
-        if (!$versionTagGroup) {
+        if (! $versionTagGroup) {
             session()->flash('error', 'Version tag group not found.');
+
             return;
         }
 

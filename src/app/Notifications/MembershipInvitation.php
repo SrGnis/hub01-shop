@@ -7,8 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class MembershipInvitation extends Notification implements ShouldQueue
 {
@@ -50,7 +50,7 @@ class MembershipInvitation extends Notification implements ShouldQueue
         Log::info('Creating new MembershipInvitation notification', [
             'membership_id' => $membership->id,
             'inviter_id' => $membership->invited_by,
-            'project_id' => $membership->project_id
+            'project_id' => $membership->project_id,
         ]);
 
         $this->membership_id = $membership->id;
@@ -61,12 +61,12 @@ class MembershipInvitation extends Notification implements ShouldQueue
             'membership_role' => $membership->role,
             'project_name' => $membership->project->name,
             'project_summary' => $membership->project->summary,
-            'inviter_name' => $membership->inviter->name
+            'inviter_name' => $membership->inviter->name,
         ];
 
         Log::info('MembershipInvitation notification created', [
             'membership_id' => $this->membership_id,
-            'data' => $this->data
+            'data' => $this->data,
         ]);
     }
 
@@ -90,14 +90,14 @@ class MembershipInvitation extends Notification implements ShouldQueue
         $acceptUrl = URL::signedRoute('membership.accept', ['membership' => $membership->id]);
         $rejectUrl = URL::signedRoute('membership.reject', ['membership' => $membership->id]);
 
-        return (new MailMessage())
-                    ->subject('Invitation to join project: ' . $this->data['project_name'])
-                    ->greeting('Hello!')
-                    ->line($this->data['inviter_name'] . ' has invited you to join the project "' . $this->data['project_name'] . '" as a ' . $this->data['membership_role'] . '.')
-                    ->line('Project summary: ' . $this->data['project_summary'])
-                    ->action('Accept Invitation', $acceptUrl)
-                    ->line('This invitation will expire in 7 days.')
-                    ->salutation('Thank you for using HUB01 Shop!');
+        return (new MailMessage)
+            ->subject('Invitation to join project: '.$this->data['project_name'])
+            ->greeting('Hello!')
+            ->line($this->data['inviter_name'].' has invited you to join the project "'.$this->data['project_name'].'" as a '.$this->data['membership_role'].'.')
+            ->line('Project summary: '.$this->data['project_summary'])
+            ->action('Accept Invitation', $acceptUrl)
+            ->line('This invitation will expire in 7 days.')
+            ->salutation('Thank you for using HUB01 Shop!');
     }
 
     /**
@@ -114,7 +114,7 @@ class MembershipInvitation extends Notification implements ShouldQueue
             'inviter_id' => $this->inviter_id,
             'inviter_name' => $this->data['inviter_name'],
             'role' => $this->data['membership_role'],
-            'type' => 'membership_invitation'
+            'type' => 'membership_invitation',
         ];
     }
 }

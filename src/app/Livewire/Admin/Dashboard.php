@@ -3,10 +3,9 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Project;
-use App\Models\User;
-use App\Models\ProjectVersion;
 use App\Models\ProjectFile;
-use Illuminate\Support\Facades\DB;
+use App\Models\ProjectVersion;
+use App\Models\User;
 use Livewire\Component;
 
 class Dashboard extends Component

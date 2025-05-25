@@ -48,9 +48,6 @@ class ProjectFactory extends Factory
 
     /**
      * Add an owner to the project.
-     *
-     * @param User $user
-     * @return static
      */
     public function owner(User $user): static
     {
@@ -72,6 +69,7 @@ class ProjectFactory extends Factory
     {
         return $this->state(function () {
             $modType = ProjectType::where('value', 'mod')->first();
+
             return [
                 'project_type_id' => $modType->id,
             ];
@@ -91,6 +89,7 @@ class ProjectFactory extends Factory
     {
         return $this->state(function () {
             $tileSetType = ProjectType::where('value', 'tile_set')->first();
+
             return [
                 'project_type_id' => $tileSetType->id,
             ];
@@ -110,6 +109,7 @@ class ProjectFactory extends Factory
     {
         return $this->state(function () {
             $soundPackType = ProjectType::where('value', 'sound_pack')->first();
+
             return [
                 'project_type_id' => $soundPackType->id,
             ];
@@ -124,8 +124,6 @@ class ProjectFactory extends Factory
 
     /**
      * Generate random markdown content using Faker.
-     *
-     * @return string
      */
     public function randomMarkdown(): string
     {
@@ -137,23 +135,23 @@ class ProjectFactory extends Factory
 
         for ($i = 0; $i < $paragraphs; $i++) {
             // Add headers
-            $markdown .= '## ' . $faker->sentence() . "\n\n";
+            $markdown .= '## '.$faker->sentence()."\n\n";
 
             // Add paragraphs
-            $markdown .= $faker->paragraph() . "\n\n";
+            $markdown .= $faker->paragraph()."\n\n";
 
             // Randomly add lists
             if (rand(0, 1)) {
                 $listItems = rand(2, 5);
                 for ($j = 0; $j < $listItems; $j++) {
-                    $markdown .= '- ' . $faker->sentence() . "\n";
+                    $markdown .= '- '.$faker->sentence()."\n";
                 }
                 $markdown .= "\n";
             }
 
             // Randomly add code blocks
             if (rand(0, 1)) {
-                $markdown .= "```\n" . $faker->text() . "\n```\n\n";
+                $markdown .= "```\n".$faker->text()."\n```\n\n";
             }
         }
 
@@ -169,12 +167,12 @@ class ProjectFactory extends Factory
     {
         try {
             // Create a unique filename
-            $filename = 'project-logo-' . uniqid() . '.png';
+            $filename = 'project-logo-'.uniqid().'.png';
             $directory = 'project-logos';
-            $fullPath = storage_path('app/public/' . $directory);
+            $fullPath = storage_path('app/public/'.$directory);
 
             // Create directory if it doesn't exist
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 mkdir($fullPath, 0755, true);
             }
 
@@ -207,8 +205,8 @@ class ProjectFactory extends Factory
                 $angle = 2 * M_PI * $i / $numVertices;
                 $x = $centerX + $radius * cos($angle);
                 $y = $centerY + $radius * sin($angle);
-                $vertices[] = (int)$x;
-                $vertices[] = (int)$y;
+                $vertices[] = (int) $x;
+                $vertices[] = (int) $y;
             }
 
             // Generate vibrant polygon colors that contrast with dark backgrounds
@@ -220,7 +218,7 @@ class ProjectFactory extends Factory
                 [255, 100, 255], // Magenta
                 [100, 255, 255], // Cyan
                 [255, 165, 0],   // Orange
-                [128, 0, 128]    // Purple
+                [128, 0, 128],    // Purple
             ];
 
             $randomColor = $vibrantColors[array_rand($vibrantColors)];
@@ -287,8 +285,8 @@ class ProjectFactory extends Factory
                         $angle = 2 * M_PI * $i / $numVertices;
                         $x = $centerX + $innerRadius * cos($angle);
                         $y = $centerY + $innerRadius * sin($angle);
-                        $innerVertices[] = (int)$x;
-                        $innerVertices[] = (int)$y;
+                        $innerVertices[] = (int) $x;
+                        $innerVertices[] = (int) $y;
                     }
 
                     imagefilledpolygon($image, $innerVertices, $numVertices, $accentColor);
@@ -311,15 +309,16 @@ class ProjectFactory extends Factory
             }
 
             // Save the image
-            $filePath = $fullPath . '/' . $filename;
+            $filePath = $fullPath.'/'.$filename;
             imagepng($image, $filePath);
             imagedestroy($image);
 
             // Return the relative path for storage in the database
-            return $directory . '/' . $filename;
+            return $directory.'/'.$filename;
         } catch (\Exception $e) {
             // If there's an error, log it and return null (the default placeholder will be used)
-            \Illuminate\Support\Facades\Log::error('Failed to generate project logo: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to generate project logo: '.$e->getMessage());
+
             return null;
         }
     }

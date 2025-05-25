@@ -8,8 +8,8 @@ use App\Models\ProjectVersion;
 use App\Models\ProjectVersionTag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -76,7 +76,7 @@ class DatabaseSeeder extends Seeder
             // Check if project type already exists
             $exists = DB::table('project_type')->where('value', $type['value'])->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 $projectTypesToInsert[] = [
                     'value' => $type['value'],
                     'display_name' => $type['display_name'],
@@ -87,7 +87,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        if (!empty($projectTypesToInsert)) {
+        if (! empty($projectTypesToInsert)) {
             DB::table('project_type')->insert($projectTypesToInsert);
         }
 
@@ -205,8 +205,8 @@ class DatabaseSeeder extends Seeder
                     ];
 
                     // Tag group to project type relation (if not already processed)
-                    $groupKey = $groupId . '-' . $projectTypeId;
-                    if (!isset($processedTagGroups[$groupKey])) {
+                    $groupKey = $groupId.'-'.$projectTypeId;
+                    if (! isset($processedTagGroups[$groupKey])) {
                         $tagGroupProjectTypeRelations[] = [
                             'project_type_id' => $projectTypeId,
                             'tag_group_id' => $groupId,
@@ -220,11 +220,11 @@ class DatabaseSeeder extends Seeder
         }
 
         // Bulk insert relations
-        if (!empty($tagProjectTypeRelations)) {
+        if (! empty($tagProjectTypeRelations)) {
             DB::table('project_tag_project_type')->insert($tagProjectTypeRelations);
         }
 
-        if (!empty($tagGroupProjectTypeRelations)) {
+        if (! empty($tagGroupProjectTypeRelations)) {
             DB::table('project_tag_group_project_type')->insert($tagGroupProjectTypeRelations);
         }
     }
@@ -239,10 +239,10 @@ class DatabaseSeeder extends Seeder
             ->mod()
             ->has(
                 ProjectVersion::factory(2)
-                ->has(
-                    ProjectFile::factory(1),
-                    'files'
-                ),
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
                 'versions'
             )
             ->create();
@@ -251,10 +251,10 @@ class DatabaseSeeder extends Seeder
             ->tileSet()
             ->has(
                 ProjectVersion::factory(2)
-                ->has(
-                    ProjectFile::factory(1),
-                    'files'
-                ),
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
                 'versions'
             )
             ->create();
@@ -263,10 +263,10 @@ class DatabaseSeeder extends Seeder
             ->soundPack()
             ->has(
                 ProjectVersion::factory(2)
-                ->has(
-                    ProjectFile::factory(1),
-                    'files'
-                ),
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
                 'versions'
             )
             ->create();
@@ -306,7 +306,7 @@ class DatabaseSeeder extends Seeder
                 $randomTagKeys = array_rand($tagsByProjectType[$projectTypeId], $tagCount);
 
                 // Convert to array if only one tag selected
-                if (!is_array($randomTagKeys)) {
+                if (! is_array($randomTagKeys)) {
                     $randomTagKeys = [$randomTagKeys];
                 }
 
@@ -322,7 +322,7 @@ class DatabaseSeeder extends Seeder
             }
 
             // Bulk insert all tag assignments
-            if (!empty($tagAssignments)) {
+            if (! empty($tagAssignments)) {
                 DB::table('project_version_project_version_tag')->insert($tagAssignments);
             }
 

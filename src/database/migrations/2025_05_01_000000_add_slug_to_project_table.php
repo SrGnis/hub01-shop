@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class () extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -26,7 +27,7 @@ return new class () extends Migration {
             $counter = 1;
 
             while (\App\Models\Project::where('slug', $project->slug)->where('id', '!=', $project->id)->exists()) {
-                $project->slug = $originalSlug . '-' . $counter++;
+                $project->slug = $originalSlug.'-'.$counter++;
             }
 
             $project->save();

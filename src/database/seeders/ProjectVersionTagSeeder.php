@@ -64,8 +64,6 @@ class ProjectVersionTagSeeder extends Seeder
             ]);
             $tag->projectTypes()->attach(ProjectType::where('value', 'tile_set')->first()->id);
         }
-        
+
     }
-
-
 }

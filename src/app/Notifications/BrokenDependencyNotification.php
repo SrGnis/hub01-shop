@@ -16,15 +16,25 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected $dependentProjectSlug;
+
     protected $dependentProjectName;
+
     protected $dependentProjectType;
+
     protected $dependentVersionId;
+
     protected $dependentVersionNumber;
+
     protected $deletedProjectSlug;
+
     protected $deletedProjectName;
+
     protected $deletedVersionNumber;
+
     protected $deletedByUserId;
+
     protected $deletedByUserName;
+
     protected $isProjectDeleted;
 
     /**
@@ -68,7 +78,7 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
             'deleted_version_number' => $this->deletedVersionNumber,
             'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
-            'is_project_deleted' => $this->isProjectDeleted
+            'is_project_deleted' => $this->isProjectDeleted,
         ]);
     }
 
@@ -90,26 +100,26 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
         $url = route('project.version.edit', [
             'projectType' => $this->dependentProjectType,
             'project' => $this->dependentProjectSlug,
-            'version_key' => $this->dependentVersionNumber
+            'version_key' => $this->dependentVersionNumber,
         ]);
 
         $subject = $this->isProjectDeleted
             ? 'Dependency Broken: Project Deleted'
             : 'Dependency Broken: Version Deleted';
 
-        $message = (new MailMessage())
+        $message = (new MailMessage)
             ->subject($subject)
             ->greeting('Hello!');
 
         if ($this->isProjectDeleted) {
-            $message->line($this->deletedByUserName . ' has deleted the project "' . $this->deletedProjectName . '".');
-            $message->line('This project was a dependency for your project "' . $this->dependentProjectName . '"' .
-                ($this->dependentVersionNumber ? ' version ' . $this->dependentVersionNumber : '') . '.');
+            $message->line($this->deletedByUserName.' has deleted the project "'.$this->deletedProjectName.'".');
+            $message->line('This project was a dependency for your project "'.$this->dependentProjectName.'"'.
+                ($this->dependentVersionNumber ? ' version '.$this->dependentVersionNumber : '').'.');
         } else {
-            $message->line($this->deletedByUserName . ' has deleted version ' . $this->deletedVersionNumber .
-                ' of the project "' . $this->deletedProjectName . '".');
-            $message->line('This version was a dependency for your project "' . $this->dependentProjectName . '"' .
-                ($this->dependentVersionNumber ? ' version ' . $this->dependentVersionNumber : '') . '.');
+            $message->line($this->deletedByUserName.' has deleted version '.$this->deletedVersionNumber.
+                ' of the project "'.$this->deletedProjectName.'".');
+            $message->line('This version was a dependency for your project "'.$this->dependentProjectName.'"'.
+                ($this->dependentVersionNumber ? ' version '.$this->dependentVersionNumber : '').'.');
         }
 
         if ($this->dependentVersionNumber) {
@@ -143,7 +153,7 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
             'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
             'is_project_deleted' => $this->isProjectDeleted,
-            'type' => 'broken_dependency'
+            'type' => 'broken_dependency',
         ];
     }
 }
