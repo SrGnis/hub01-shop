@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Create log directories for supervisor
+mkdir -p /var/log/supervisor
+
+# Switch the user to www-data and run the following commands
+su -s /bin/bash www-data << EOF
+
+php artisan optimize:clear
+
+php artisan optimize
+
+php artisan migrate --force
+
+php artisan storage:link
+EOF
+
+# Start supervisor which will manage all processes (Apache, Laravel scheduler, queue worker)
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

@@ -1,0 +1,29 @@
+# syntax = edrevo/dockerfile-plus
+
+INCLUDE+ ./docker/laravel/Dockerfile
+
+ARG DUID
+ARG DGID
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    gosu \
+    git \
+    vim nano \
+    iputils-ping \
+    less \
+    htop \
+    && apt-get clean \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini \
+    && docker-php-ext-install pcntl \
+    && pecl install xdebug \
+    && pecl clear-cache \
+    && docker-php-ext-enable xdebug
+
+RUN groupadd --force -g $DGID user
+RUN useradd -ms /bin/bash --no-user-group -g $DGID -u $DUID user
+
+USER user

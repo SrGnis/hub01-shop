@@ -1,0 +1,65 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Docker
+.dockerignore
+docker-compose*.yml
+docker-compose*.yaml
+
+# IDE and editor files
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node.js
+src/node_modules
+src/npm-debug.log
+src/yarn-debug.log
+src/yarn-error.log
+src/.pnpm-debug.log
+
+# Laravel specific
+src/vendor
+src/.env
+src/.env.*
+!src/.env.example
+src/storage/app/*
+src/storage/framework/cache/*
+src/storage/framework/sessions/*
+src/storage/framework/views/*
+src/storage/logs/*
+src/bootstrap/cache/*
+src/public/hot
+src/public/storage
+
+# Build artifacts
+src/public/build
+src/public/dist
+src/public/css
+src/public/js
+
+# Testing
+src/phpunit.xml
+src/.phpunit.result.cache
+src/coverage
+
+# Documentation
+docs
+*.md
+LICENSE
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+*.tmp
+*.swp

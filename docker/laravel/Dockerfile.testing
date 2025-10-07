@@ -1,0 +1,5 @@
+# syntax = edrevo/dockerfile-plus
+
+INCLUDE+ ./docker/laravel/Dockerfile
+
+RUN composer install --optimize-autoloader --no-interaction

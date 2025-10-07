@@ -1,0 +1,37 @@
+services:
+  db:
+    extends: 
+      file: ./docker-compose.yml
+      service: db
+
+  redis:
+    extends: 
+      file: ./docker-compose.yml
+      service: redis
+
+  app:
+    image: hub01_shop_app_testing
+    build:
+      context: ./
+      dockerfile: ./docker/laravel/Dockerfile.testing
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    
+volumes:
+  db_data:
+  redis_data:
