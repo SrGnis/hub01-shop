@@ -1,0 +1,57 @@
+services:
+  db:
+    extends: 
+      file: ./docker-compose.yml
+      service: db
+    ports:
+      - 13306:3306
+
+  redis:
+    extends: 
+      file: ./docker-compose.yml
+      service: redis
+
+  app:
+    extends: 
+      file: ./docker-compose.yml
+      service: app
+    image: hub01_shop_app_dev
+    build:
+      context: ./
+      dockerfile: ./docker/laravel/Dockerfile.dev
+      args:
+        DUID: ${DUID:-1000}
+        DGID: ${DGID:-1000}
+    ports:
+      - ${VITE_PORT:-5173}:5173
+    environment:
+      - DUID=${DUID:-1000}
+      - DGID=${DGID:-1000}
+      - APP_ENV=${APP_ENV}
+      - DB_CONNECTION=${DB_CONNECTION}
+      - APP_KEY=${APP_KEY}
+    volumes:
+      - ./src:/var/www/laravel
+      - ./src/storage:/var/www/laravel/storage
+      - ./docker/laravel/config/docker-laravel-entrypoint-dev:/usr/local/bin/docker-laravel-entrypoint
+      - ./docker/laravel/config/docker-laravel-dev-start:/usr/local/bin/docker-laravel-dev-start
+      - ./docker/laravel/config/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
+      - ./docker/laravel/vite.config.js:/var/www/laravel/vite.config.js
+
+  # ==========================================================================================
+  # Mailpit
+  # ==========================================================================================
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    ports:
+        - '1025:1025'
+        - '8025:8025'
+
+  adminer:
+    extends: 
+      file: ./docker-compose.yml
+      service: adminer
+    
+volumes:
+  db_data:
+  redis_data:

@@ -1,0 +1,173 @@
+@startuml Hub01 Shop
+skinparam linetype ortho
+
+entity "user" {
+  *id : int <<PK>>
+  ---
+  *name : string
+  *email : string
+  *password : string
+  bio : text
+  email_verified_at : timestamp
+  remember_token : string
+  timestamps : timestamps
+}
+
+entity "password_reset_tokens" {
+  email : string <<PK>>
+  ---
+  token : string
+  created_at : timestamp
+}
+
+entity "verification_tokens" {
+  email : string <<PK>>
+  ---
+  token : string
+  created_at : timestamp
+}
+
+entity "sessions" {
+  *id : string <<PK>>
+  ---
+  *user_id : int <<FK>>
+  ip_address : string
+  user_agent : text
+  payload : text
+  last_activity : int
+}
+
+entity "project" {
+  *id : int <<PK>>
+  ---
+  *name : string
+  summary : text
+  description : text
+  website : string
+  issues : string
+  source : string
+  *status : enum
+  *project_type_id : int <<FK>>
+  timestamps : timestamps
+}
+
+entity "project_type" {
+  *id : int <<PK>>
+  ---
+  *value : string
+  *display_name : string
+  *icon : string
+  timestamps : timestamps
+}
+
+entity "membership" {
+  *id : int <<PK>>
+  ---
+  *role : string
+  *primary : boolean
+  *user_id : int <<FK>>
+  *project_id : int <<FK>>
+  timestamps : timestamps
+}
+package project_tags <<Frame>> {
+  
+  entity "project_tag_group" {
+    *id : int <<PK>>
+    ---
+    *name : string
+    timestamps : timestamps
+  }
+
+  entity "project_tag" {
+    *id : int <<PK>>
+    ---
+    *name : string
+    icon : string
+    project_tag_group_id : int <<FK>>
+    timestamps : timestamps
+  }
+
+}
+  
+entity "project_version" {
+  *id : int <<PK>>
+  ---
+  *name : string
+  *version : string
+  changelog : text
+  *release_type : enum
+  *release_date : date
+  *downloads : int
+  *project_id : int <<FK>>
+  timestamps : timestamps
+}
+
+package project_version_tags <<Frame>> {
+
+  entity "project_version_tag_group" {
+    *id : int <<PK>>
+    ---
+    *name : string
+    timestamps : timestamps
+  }
+
+  entity "project_version_tag" {
+    *id : int <<PK>>
+    ---
+    *name : string
+    icon : string
+    project_version_tag_group_id : int <<FK>>
+    timestamps : timestamps
+  }
+
+}
+
+entity "project_version_dependency" {
+  *id : int <<PK>>
+  ---
+  *project_version_id : int <<FK>>
+  *dependency_project_version_id : int <<FK>>
+  *dependency_project_id : int <<FK>>
+  *dependency_type : enum
+  timestamps : timestamps
+}
+
+entity "project_file" {
+  *id : int <<PK>>
+  ---
+  *project_version_id : int <<FK>>
+  *path : string
+  *name : string
+  *size : int
+  timestamps : timestamps
+}
+
+user ||-o{ sessions
+
+user }o--o{ project 
+(user, project) .. membership
+
+project ||--o{ project_version
+project }o--|| project_type
+project_version ||--o{ project_file
+project_version ||--o{ project_version_dependency
+project_version_dependency }o--o| project_version
+project_version_dependency }o--o| project
+
+
+project_tag }o--|| project_tag_group
+
+project_type }o--o{ project_tag_group
+
+project }o--o{  project_tag
+
+project_type }o--o{ project_tag
+
+
+project_version_tag }o--|| project_version_tag_group
+
+project_type }o--o{ project_version_tag_group
+
+project_version }o--o{  project_version_tag
+
+project_type }o--o{ project_version_tag
