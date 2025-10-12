@@ -14,7 +14,7 @@ export default defineConfig({
     ],
     server: {
         hmr: {
-            host: 'localhost',
+            host: '192.168.0.105',
             protocol: 'ws',
             port: 5173,
         },

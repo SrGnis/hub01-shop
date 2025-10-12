@@ -33,7 +33,7 @@ class ProjectFactory extends Factory
         return [
             'name' => $name,
             'slug' => \Illuminate\Support\Str::slug($name),
-            'summary' => fake()->text(),
+            'summary' => fake()->text(150),
             'description' => $this->randomMarkdown(),
             'logo_path' => $logoPath,
             'website' => fake()->url(),
