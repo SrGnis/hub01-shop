@@ -8,23 +8,21 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased">
+<body class="min-h-screen font-sans antialiased bg-base-200">
  
     {{-- The navbar with `sticky` and `full-width` --}}
     <x-nav sticky full-width>
  
         <x-slot:brand>
-            {{-- Drawer toggle for "main-drawer" --}}
-            <label for="main-drawer" class="lg:hidden mr-3">
-                <x-icon name="o-bars-3" class="cursor-pointer" />
-            </label>
- 
             {{-- Brand --}}
             <div>App</div>
         </x-slot:brand>
  
         {{-- Right side actions --}}
         <x-slot:actions>
+            <x-button icon="o-envelope" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Messages" />
+            <x-button icon="o-bell" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Notifications" />
+
             @if($user = auth()->user())
                 {{-- Authenticated User Actions --}}
                 <x-button icon="o-envelope" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Messages" />
@@ -62,7 +60,9 @@
     <x-main with-nav full-width>
         {{-- The `$slot` goes here --}}
         <x-slot:content>
-            {{ $slot }}
+            <div class="max-w-screen-xl mx-auto">
+                {{ $slot }}
+            </div>
         </x-slot:content>
     </x-main>
  

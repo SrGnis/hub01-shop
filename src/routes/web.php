@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\ProjectSearch;
 use App\Livewire\Welcome;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +24,7 @@ Route::get('/', function () {
 //     ->name('membership.reject');
 
 // Route::get('/create/{projectType}', ProjectForm::class)->middleware('verified')->name('project.create');
-// Route::get('/search/{projectType}s', ProjectSearch::class)->name('project-search');
+Route::get('/search/{projectType}s', ProjectSearch::class)->name('project-search');
 // Route::get('/{projectType}/{project}', ProjectShow::class)->name('project.show');
 // Route::get('/{projectType}/{project}/edit', ProjectForm::class)->middleware('verified')->name('project.edit');
 // Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->middleware('verified')->name('project.version.create');
@@ -34,6 +35,9 @@ Route::get('/', function () {
 // Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])
 //     ->name('file.download');
 
-Route::get('/search/{projectType}s',function () {
+// Route::get('/search/{projectType}s',function () {
+//     return view('welcome');
+// } )->name('project-search');
+Route::get('/welcome',function () {
     return view('welcome');
-} )->name('project-search');
+} )->name('project.show');
