@@ -10,51 +10,95 @@
 </head>
 <body class="min-h-screen font-sans antialiased bg-base-200">
  
-    {{-- The navbar with `sticky` and `full-width` --}}
-    <x-nav sticky full-width>
- 
-        <x-slot:brand>
-            {{-- Brand --}}
-            <div>App</div>
-        </x-slot:brand>
- 
-        {{-- Right side actions --}}
-        <x-slot:actions>
-            <x-button icon="o-envelope" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Messages" />
-            <x-button icon="o-bell" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Notifications" />
-
-            @if($user = auth()->user())
-                {{-- Authenticated User Actions --}}
-                <x-button icon="o-envelope" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Messages" />
-                <x-button icon="o-bell" link="###" class="btn-ghost btn-sm btn-circle" tooltip-left="Notifications" />
+    {{-- Navbar --}}
+    <div class="bg-base-100 border-base-content/10 border-b-[length:var(--border)] sticky top-0 z-10">
+        <div class="flex items-center justify-between px-6 py-3 max-w-screen-2xl mx-auto">
+            {{-- Brand (Left) --}}
+            <div class="flex-shrink-0">
+                <a href="/" class="flex items-center gap-2">
+                    <div class="w-8 h-8">
+                        <img src="{{ asset('images/logo.svg') }}" alt="" class="w-full h-full object-contain">
+                    </div>
+                    <div class="hidden md:block text-xl font-bold text-primary">
+                        {{ config('app.name') }}
+                    </div>
+                </a>
+            </div>
+            
+            {{-- Navigation (Center) --}}
+            <div class="absolute left-1/2 transform -translate-x-1/2">
+                {{-- Desktop: Horizontal buttons --}}
+                <div class="hidden md:flex items-center gap-1">
+                    @foreach (\App\Models\ProjectType::all() as $projectType)
+                        <a href="{{ route('project-search', $projectType) }}" class="btn btn-ghost btn-sm">
+                            <x-icon :name="$projectType->icon" class="w-5 h-5" />
+                            <span>{{ $projectType->pluralizedDisplayName() }}</span>
+                        </a>
+                    @endforeach
+                </div>
                 
-                {{-- User Dropdown --}}
-                <x-dropdown>
-                    <x-slot:trigger>
-                        <x-button class="btn-ghost btn-sm btn-circle" icon="o-user" />
-                    </x-slot:trigger>
-                    
-                    <x-menu-item title="{{ $user->name }}" subtitle="{{ $user->email }}" no-hover />
-                    <x-menu-separator />
-                    
-                    <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
-                        @csrf
-                    </form>
-                    <x-menu-item
-                        title="Logout"
-                        icon="o-power"
-                        @click.prevent="$refs.logoutForm.submit()"
-                    />
-                </x-dropdown>
-            @else
-                {{-- Guest Links --}}
-                <x-button label="Login" icon="o-arrow-right-on-rectangle" link="{{ route('login') }}" class="btn-ghost btn-sm" responsive />
-                @if (Route::has('register'))
-                    <x-button label="Register" icon="o-user-plus" link="{{ route('register') }}" class="btn-primary btn-sm" responsive />
+                {{-- Mobile: Dropdown --}}
+                <div class="md:hidden">
+                    <x-dropdown>
+
+                        <x-slot:trigger>
+                            <x-button label="Discover" icon="search" class="btn-ghost btn-sm" />
+                        </x-slot:trigger>
+                        
+                        @foreach (\App\Models\ProjectType::all() as $projectType)
+                            <x-menu-item 
+                                title="{{ $projectType->pluralizedDisplayName() }}" 
+                                icon="{{ $projectType->icon }}"
+                                link="{{ route('project-search', $projectType) }}" 
+                            />
+                        @endforeach
+                    </x-dropdown>
+                </div>
+            </div>
+            
+            {{-- Actions (Right) --}}
+            <div class="flex-shrink-0">
+                @if($user = auth()->user())
+                    {{-- User Dropdown --}}
+                    <x-dropdown>
+                        <x-slot:trigger>
+                            <x-button class="btn-ghost btn-sm btn-circle" icon="user" />
+                        </x-slot:trigger>
+                        
+                        <x-menu-item title="{{ $user->name }}" subtitle="{{ $user->email }}" no-hover />
+                        <x-menu-separator />
+                        
+                        <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
+                            @csrf
+                        </form>
+                        <x-menu-item
+                            title="Logout"
+                            icon="power"
+                            @click.prevent="$refs.logoutForm.submit()"
+                        />
+                    </x-dropdown>
+                @else
+                    {{-- Login & Register Dropdown --}}
+                    <x-dropdown>
+                        <x-slot:trigger>
+                            <x-button label="Account" icon="user-circle" class="btn-ghost btn-sm" responsive />
+                        </x-slot:trigger>
+                        
+                        <x-menu-item 
+                            title="Login" 
+                            icon="log-in" 
+                            link="{{ route('login') }}" 
+                        />
+                        <x-menu-item 
+                            title="Register" 
+                            icon="user-plus" 
+                            link="{{ route('register') }}" 
+                        />
+                    </x-dropdown>
                 @endif
-            @endif
-        </x-slot:actions>
-    </x-nav>
+            </div>
+        </div>
+    </div>
  
     {{-- The main content with `full-width` --}}
     <x-main with-nav full-width>

@@ -37,7 +37,7 @@
                 <div class="flex flex-wrap gap-2">
                     @foreach ($project->tags as $tag)
                         <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
-                            @svg($tag->icon, 'w-3 h-3 mr-1')
+                            <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
                             {{ $tag->name }}
                         </div>
                     @endforeach
@@ -48,19 +48,19 @@
         <!-- Stats at bottom for mobile -->
         <div class="flex flex-wrap gap-3 text-xs border-t pt-3">
             <div class="flex items-center gap-1">
-                @svg('lucide-download', 'w-3 h-3')
+                <x-icon name="lucide-download" class="w-3 h-3" />
                 <span>{{ number_format($project->versions_sum_downloads ?? 0) }} downloads</span>
             </div>
 
             @if($project->versions_max_release_date)
                 <div class="flex items-center gap-1">
-                    @svg('lucide-calendar', 'w-3 h-3')
+                    <x-icon name="lucide-calendar" class="w-3 h-3" />
                     <span>Updated {{ \Carbon\Carbon::parse($project->versions_max_release_date)->diffForHumans() }}</span>
                 </div>
             @endif
 
             <div class="flex items-center gap-1">
-                @svg('lucide-calendar-plus', 'w-3 h-3')
+                <x-icon name="lucide-calendar-plus" class="w-3 h-3" />
                 <span>Created {{ $project->created_at->diffForHumans() }}</span>
             </div>
         </div>
@@ -107,7 +107,7 @@
                         <div class="flex flex-wrap gap-4">
                             @foreach ($project->tags as $tag)
                                 <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
-                                    @svg($tag->icon, 'w-3 h-3 mr-1')
+                                    <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
                                     {{ $tag->name }}
                                 </div>
                             @endforeach
@@ -119,19 +119,19 @@
             <!-- Right Column: Stats -->
             <div class="flex-shrink-0 w-48 flex flex-col justify-evenly text-sm">
                 <div class="flex items-center gap-2">
-                    @svg('lucide-download')
+                    <x-icon name="lucide-download" />
                     <span><span class="font-bold text-xl">{{ number_format($project->versions_sum_downloads ?? 0) }}</span> downloads</span>
                 </div>
 
                 @if($project->versions_max_release_date)
                     <div class="flex items-center gap-2">
-                        @svg('lucide-calendar')
+                        <x-icon name="lucide-calendar" />
                         <span>Updated {{ \Carbon\Carbon::parse($project->versions_max_release_date)->diffForHumans() }}</span>
                     </div>
                 @endif
 
                 <div class="flex items-center gap-2">
-                    @svg('lucide-calendar-plus')
+                    <x-icon name="lucide-calendar-plus" />
                     <span>Created {{ $project->created_at->diffForHumans() }}</span>
                 </div>
             </div>

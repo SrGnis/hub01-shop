@@ -16,7 +16,8 @@
     "laravel/tinker": "^2.10.1",
     "livewire/livewire": "^3.6",
     "mallardduck/blade-lucide-icons": "^1.23",
-    "robsontenorio/mary": "^2.4"
+    "robsontenorio/mary": "dev-main",
+    "webinvader/fakerphp-english-word-provider": "^1.0"
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",
@@ -66,6 +67,9 @@
     "sort-packages": true,
     "allow-plugins": { "pestphp/pest-plugin": true, "php-http/discovery": true }
   },
-  "minimum-stability": "stable",
+  "repositories": {
+    "robsontenorio/mary": { "type": "path", "url": "lib/mary", "options": { "symlink": true } }
+  },
+  "minimum-stability": "dev",
   "prefer-stable": true
 }

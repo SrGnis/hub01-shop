@@ -24,9 +24,6 @@ class ProjectSearch extends Component
     public string $orderDirection = 'desc';
     public int $resultsPerPage = 10;
 
-    // UI state
-    public bool $showMobileFilters = false;
-
     public function mount(ProjectType $projectType)
     {
         $this->projectType = $projectType;
@@ -117,16 +114,7 @@ class ProjectSearch extends Component
         $this->resetPage();
     }
 
-    // UI interaction methods
-    public function toggleMobileFilters()
-    {
-        $this->showMobileFilters = !$this->showMobileFilters;
-    }
 
-    public function closeMobileFilters()
-    {
-        $this->showMobileFilters = false;
-    }
 
     public function clearFilters()
     {
