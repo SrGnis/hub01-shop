@@ -148,145 +148,110 @@
     </div>
 
     <!-- MOBILE FILTERS MODAL -->
-    <dialog
+    <x-mary-modal
         x-show="showMobileFilters"
-        x-cloak
-        class="modal"
-        :class="{'modal-open': showMobileFilters}"
-        @keydown.escape.window="showMobileFilters = false"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
+        title="Filter & Sort Projects"
+        separator 
+        box-class="max-h-[90vh]"
     >
-        <div
-            class="modal-box max-h-[90vh] overflow-y-auto sm:max-h-none w-11/12 max-w-none sm:w-auto sm:max-w-lg"
-            x-transition:enter="transition ease-out duration-300 transform"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-200 transform"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-        >
-            <!-- Close button -->
-            <button
-                @click="showMobileFilters = false"
-                class="btn btn-circle btn-sm btn-ghost absolute end-2 top-2 z-[999]"
-            >
-                <x-icon name="lucide-x" class="w-4 h-4" />
-            </button>
 
-            <!-- Header -->
-            <div class="mb-5">
-                <h3 class="text-xl font-bold">Filter & Sort Projects</h3>
-                <hr class="border-t border-base-content/10 mt-2" />
-            </div>
-
-            <div class="space-y-6">
-                <!-- Sorting Options -->
-                <div class="border-b pb-6">
-                    <h3 class="font-semibold text-lg mb-4">Sort Options</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium">Order by</span>
-                            <x-select
-                                wire:model.live="orderBy"
-                                :options="$this->orderOptions"
-                                option-value="id"
-                                option-label="name"
-                            />
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium">Direction</span>
-                            <x-select
-                                wire:model.live="orderDirection"
-                                :options="$this->directionOptions"
-                                option-value="id"
-                                option-label="name"
-                            />
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium">Results per page</span>
-                            <x-select
-                                wire:model.live="resultsPerPage"
-                                :options="$this->perPageOptions"
-                                option-value="id"
-                                option-label="name"
-                            />
-                        </div>
+        <div class="space-y-6">
+            <!-- Sorting Options -->
+            <div class="border-b pb-6">
+                <h3 class="font-semibold text-lg mb-4">Sort Options</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Order by</span>
+                        <x-select
+                            wire:model.live="orderBy"
+                            :options="$this->orderOptions"
+                            option-value="id"
+                            option-label="name"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Direction</span>
+                        <x-select
+                            wire:model.live="orderDirection"
+                            :options="$this->directionOptions"
+                            option-value="id"
+                            option-label="name"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Results per page</span>
+                        <x-select
+                            wire:model.live="resultsPerPage"
+                            :options="$this->perPageOptions"
+                            option-value="id"
+                            option-label="name"
+                        />
                     </div>
                 </div>
+            </div>
 
-                <!-- Project Tags -->
-                @if($this->tagGroups->count() > 0)
-                    <div class="border-b pb-6">
-                        <h3 class="font-semibold text-lg mb-4">Project Tags</h3>
-                        @foreach ($this->tagGroups as $tagGroup)
-                            <div class="mb-4">
-                                <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
-                                <div class="space-y-2">
-                                    @foreach ($tagGroup->tags as $tag)
-                                        <x-checkbox
-                                            wire:model.live="selectedTags"
-                                            value="{{ $tag->id }}"
-                                            right
-                                            class="text-sm"
-                                        >
-                                            <x-slot:label class="flex items-center gap-2">
-                                                    <div class="flex items-center gap-2">
-                                                        <x-icon :name="$tag->icon" class="w-4 h-4" />
-                                                        {{ $tag->name }}
-                                                    </div>
-                                                </x-slot:label>
-                                        </x-checkbox>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-
-                <!-- Version Tags -->
-                @if($this->versionTagGroups->count() > 0)
-                    <div>
-                        <h3 class="font-semibold text-lg mb-4">Version Tags</h3>
-                        @foreach ($this->versionTagGroups as $tagGroup)
-                            <div class="mb-4">
-                                <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
-                                <div class="space-y-2">
-                                    @foreach ($tagGroup->tags as $tag)
-                                        <x-checkbox
-                                            wire:model.live="selectedVersionTags"
-                                            value="{{ $tag->id }}"
-                                            right
-                                            class="text-sm"
-                                        >
-                                            <x-slot:label class="flex items-center gap-2">
+            <!-- Project Tags -->
+            @if($this->tagGroups->count() > 0)
+                <div class="border-b pb-6">
+                    <h3 class="font-semibold text-lg mb-4">Project Tags</h3>
+                    @foreach ($this->tagGroups as $tagGroup)
+                        <div class="mb-4">
+                            <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
+                            <div class="space-y-2">
+                                @foreach ($tagGroup->tags as $tag)
+                                    <x-checkbox
+                                        wire:model.live="selectedTags"
+                                        value="{{ $tag->id }}"
+                                        right
+                                        class="text-sm"
+                                    >
+                                        <x-slot:label class="flex items-center gap-2">
                                                 <div class="flex items-center gap-2">
                                                     <x-icon :name="$tag->icon" class="w-4 h-4" />
                                                     {{ $tag->name }}
                                                 </div>
                                             </x-slot:label>
-                                        </x-checkbox>
-                                    @endforeach
-                                </div>
+                                    </x-checkbox>
+                                @endforeach
                             </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
 
-            <!-- Modal Actions -->
-            <hr class="border-t border-base-content/10 mt-5" />
-            <div class="modal-action">
-                <x-button label="Clear All" wire:click="clearFilters" icon="x" />
-                <x-button label="Apply Filters" @click="showMobileFilters = false" icon="check" class="btn-primary" />
-            </div>
+            <!-- Version Tags -->
+            @if($this->versionTagGroups->count() > 0)
+                <div>
+                    <h3 class="font-semibold text-lg mb-4">Version Tags</h3>
+                    @foreach ($this->versionTagGroups as $tagGroup)
+                        <div class="mb-4">
+                            <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
+                            <div class="space-y-2">
+                                @foreach ($tagGroup->tags as $tag)
+                                    <x-checkbox
+                                        wire:model.live="selectedVersionTags"
+                                        value="{{ $tag->id }}"
+                                        right
+                                        class="text-sm"
+                                    >
+                                        <x-slot:label class="flex items-center gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <x-icon :name="$tag->icon" class="w-4 h-4" />
+                                                {{ $tag->name }}
+                                            </div>
+                                        </x-slot:label>
+                                    </x-checkbox>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
-        <!-- Modal backdrop -->
-        <div class="modal-backdrop" @click="showMobileFilters = false"></div>
-    </dialog>
+        <x-slot:actions>
+            <x-button label="Clear All" wire:click="clearFilters" icon="x" />
+            <x-button label="Apply Filters" @click="showMobileFilters = false" icon="check" class="btn-primary" />
+        </x-slot:actions>
+    </x-mary-modal>
 </div>
