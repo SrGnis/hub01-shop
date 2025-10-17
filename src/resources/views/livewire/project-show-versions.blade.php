@@ -39,14 +39,14 @@
                                     <span class="font-semibold truncate">{{ $version->name }}</span>
                                     <div class="flex items-center gap-2">
                                         <span class="text-sm">{{ $version->version }}</span>
-                                        <x-badge :label="$version->display_name" class="badge-sm" />
+                                        <x-badge :value="$version->display_name" class="badge-sm badge-soft" />
                                     </div>
                                 </div>
                             </td>
                             <td class="hidden lg:table-cell">
                                 <div class="flex flex-wrap gap-1">
                                     @foreach($version->tags as $tag)
-                                        <x-badge :label="$tag->name" class="badge-sm gap-1">
+                                        <x-badge :value="$tag->name" class="badge-sm gap-1 badge-soft">
                                             <x-icon :name="$tag->icon" class="w-3 h-3" />
                                         </x-badge>
                                     @endforeach

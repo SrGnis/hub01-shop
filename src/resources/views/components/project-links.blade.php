@@ -23,7 +23,7 @@
                 <x-button
                     link="{{ $project->issues }}"
                     external
-                    icon="exclamation-triangle"
+                    icon="bug"
                     label="Issue Tracker"
                     class="w-full btn-ghost justify-start"
                 />
