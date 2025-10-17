@@ -1,9 +1,9 @@
 <div x-data="{ showMobileFilters: false }">
     <!-- HEADER -->
-    <x-header title="{{ $projectType->name }} Projects" separator progress-indicator>
+    <x-header title="{{ $projectType->pluralizedDisplayName() }}" separator progress-indicator>
         <x-slot:actions>
             <x-input
-                placeholder="Search projects..."
+                placeholder="Search {{ $projectType->pluralizedDisplayName() }}..."
                 wire:model.live.debounce.500ms="search"
                 clearable
                 icon="search"

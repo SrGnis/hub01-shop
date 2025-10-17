@@ -21,7 +21,7 @@
                         </div>
                     </div>
                     @if($user->pivot->primary)
-                        <x-badge label="Primary" class="badge-primary badge-sm" />
+                        <x-badge value="Primary" class="badge-primary badge-sm" />
                     @endif
                 </div>
             @endforeach

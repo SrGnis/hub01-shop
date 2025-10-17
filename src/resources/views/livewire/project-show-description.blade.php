@@ -1,5 +1,5 @@
 <x-card>
-    <x-markdown class="prose prose-sm max-w-none dark:prose-invert">
+    <x-markdown class="prose max-w-none dark:prose-invert">
         {!! $project->description !!}
     </x-markdown>
 </x-card>
