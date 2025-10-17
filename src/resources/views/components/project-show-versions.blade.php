@@ -1,10 +1,12 @@
+@props(['project', 'versions'])
+
 <x-card>
     <x-slot:title class="flex justify-between items-center">
         <span>All Versions</span>
         <div class="flex items-center gap-2">
-            <label for="perPage" class="text-sm">Show:</label>
+            <label for="versionsPerPage" class="text-sm">Show:</label>
             <x-select
-                wire:model.live="perPage"
+                wire:model.live="versionsPerPage"
                 :options="[
                     ['id' => 10, 'name' => '10'],
                     ['id' => 25, 'name' => '25'],
@@ -81,7 +83,7 @@
         </div>
 
         <div class="mt-6">
-            {{ $versions->links('vendor.livewire.tailwind') }}
+            {{ $versions->links('vendor.livewire.tailwind', ['scrollTo' => false]) }}
         </div>
     @else
         <div class="text-center py-12">

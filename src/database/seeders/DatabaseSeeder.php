@@ -250,7 +250,7 @@ class DatabaseSeeder extends Seeder
         Project::factory(5)
             ->tileSet()
             ->has(
-                ProjectVersion::factory(2)
+                ProjectVersion::factory(50)
                     ->has(
                         ProjectFile::factory(1),
                         'files'
