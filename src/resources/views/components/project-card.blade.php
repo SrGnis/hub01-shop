@@ -49,13 +49,15 @@
         <div class="flex flex-wrap gap-3 text-xs border-t pt-3">
             <div class="flex items-center gap-1">
                 <x-icon name="lucide-download" class="w-3 h-3" />
-                <span>{{ number_format($project->versions_sum_downloads ?? 0) }} downloads</span>
+                <span>
+                    {{ $project->downloads }} downloads
+                </span>
             </div>
 
-            @if($project->versions_max_release_date)
+            @if($project->recent_release_date)
                 <div class="flex items-center gap-1">
                     <x-icon name="lucide-calendar" class="w-3 h-3" />
-                    <span>Updated {{ \Carbon\Carbon::parse($project->versions_max_release_date)->diffForHumans() }}</span>
+                    <span>Updated {{ \Carbon\Carbon::parse($project->recent_release_date)->diffForHumans() }}</span>
                 </div>
             @endif
 
@@ -120,13 +122,15 @@
             <div class="flex-shrink-0 w-48 flex flex-col justify-evenly text-sm">
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-download" />
-                    <span><span class="font-bold text-xl">{{ number_format($project->versions_sum_downloads ?? 0) }}</span> downloads</span>
+                    <span><span class="font-bold text-xl">
+                        {{ $project->downloads }} downloads
+                    </span>
                 </div>
 
-                @if($project->versions_max_release_date)
+                @if($project->recent_release_date)
                     <div class="flex items-center gap-2">
                         <x-icon name="lucide-calendar" />
-                        <span>Updated {{ \Carbon\Carbon::parse($project->versions_max_release_date)->diffForHumans() }}</span>
+                        <span>Updated {{ \Carbon\Carbon::parse($project->recent_release_date)->diffForHumans() }}</span>
                     </div>
                 @endif
 

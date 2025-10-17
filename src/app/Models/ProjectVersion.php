@@ -32,6 +32,11 @@ class ProjectVersion extends Model
         'downloads',
     ];
 
+    protected $casts = [
+        'release_date' => 'date',
+        'release_type' => ReleaseType::class,
+    ];
+
     /**
      * Get the route key for the model.
      *
@@ -144,7 +149,7 @@ class ProjectVersion extends Model
     public function bgColorClass(): Attribute
     {
         return Attribute::make(
-            get: fn () => ReleaseType::fromString($this->release_type)->bgColorClass()
+            get: fn () => $this->release_type->bgColorClass()
         );
     }
 
@@ -154,7 +159,7 @@ class ProjectVersion extends Model
     public function displayName(): Attribute
     {
         return Attribute::make(
-            get: fn () => ReleaseType::fromString($this->release_type)->displayName()
+            get: fn () => $this->release_type->displayName()
         );
     }
 
