@@ -1,4 +1,4 @@
-<div class="w-full lg:w-10/12 m-auto py-6">
+<div>
 
     <!-- Back Button and Actions -->
     <div class="mb-6 flex justify-between items-center flex-wrap gap-4">
