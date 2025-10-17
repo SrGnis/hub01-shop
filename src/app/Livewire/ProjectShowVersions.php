@@ -16,26 +16,16 @@ class ProjectShowVersions extends Component
 
     public function mount(Project $project)
     {
-        logger('ProjectShowVersions mount called', [
-            'project_id' => $project->id,
-            'project_slug' => $project->slug,
-        ]);
-
         $this->project = $project;
     }
 
     public function updatedPerPage()
     {
-        logger('ProjectShowVersions perPage updated to: '.$this->perPage);
         $this->resetPage();
     }
 
     public function render()
     {
-        logger('ProjectShowVersions render called', [
-            'project_id' => $this->project->id,
-        ]);
-
         $versions = $this->project->versions()
             ->with('tags.tagGroup')
             ->orderBy('release_date', 'desc')
