@@ -26,10 +26,7 @@ class ProjectService
         int $resultsPerPage = 10
     ): LengthAwarePaginator {
         $projects = Project::where('name', 'like', '%' . $search . '%')
-            ->where('project_type_id', $projectType->id)
-            ->withSum('versions', 'downloads')
-            ->withMax('versions', 'release_date')
-            ->with('owner', 'tags', 'projectType');
+            ->where('project_type_id', $projectType->id);
 
         // Filter by project tags
         if (count($selectedTags)) {
@@ -62,10 +59,10 @@ class ProjectService
             case 'created_at':
                 return $query->orderBy('created_at', $orderDirection);
             case 'latest_version':
-                return $query->orderBy('versions_max_release_date', $orderDirection);
+                return $query->orderBy('recent_release_date', $orderDirection);
             case 'downloads':
             default:
-                return $query->orderBy('versions_sum_downloads', $orderDirection);
+                return $query->orderBy('downloads', $orderDirection);
         }
     }
 

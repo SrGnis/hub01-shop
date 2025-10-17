@@ -1,3 +1,7 @@
+@php
+    $allProjectTypes = \App\Models\ProjectType::all();
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -29,7 +33,7 @@
             <div class="absolute left-1/2 transform -translate-x-1/2">
                 {{-- Desktop: Horizontal buttons --}}
                 <div class="hidden md:flex items-center gap-1">
-                    @foreach (\App\Models\ProjectType::all() as $projectType)
+                    @foreach ($allProjectTypes as $projectType)
                         <a href="{{ route('project-search', $projectType) }}" class="btn btn-ghost btn-sm">
                             <x-icon :name="$projectType->icon" class="w-5 h-5" />
                             <span>{{ $projectType->pluralizedDisplayName() }}</span>
@@ -45,7 +49,7 @@
                             <x-button label="Discover" icon="search" class="btn-ghost btn-sm" />
                         </x-slot:trigger>
                         
-                        @foreach (\App\Models\ProjectType::all() as $projectType)
+                        @foreach ($allProjectTypes as $projectType)
                             <x-menu-item 
                                 title="{{ $projectType->pluralizedDisplayName() }}" 
                                 icon="{{ $projectType->icon }}"

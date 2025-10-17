@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\ProjectFullScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+#[ScopedBy(ProjectFullScope::class)]
 class Project extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectFactory> */
@@ -38,6 +41,12 @@ class Project extends Model
         'source',
         'status',
         'project_type_id',
+    ];
+
+    protected $with = [
+        'projectType',
+        'tags.tagGroup',
+        'owner',
     ];
 
     /**
@@ -156,30 +165,6 @@ class Project extends Model
     }
 
     /**
-     * Get the downloads attribute
-     */
-    public function downloads(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $cacheKey = 'project_downloads_'.$this->id;
-
-                return Cache::remember($cacheKey, now()->addHours(24), function () {
-                    return $this->versions()->sum('downloads');
-                });
-            }
-        );
-    }
-
-    /**
-     * Clear the downloads cache for this project
-     */
-    public function clearDownloadsCache(): void
-    {
-        Cache::forget('project_downloads_'.$this->id);
-    }
-
-    /**
      * Get the recent versions attribute
      */
     public function recentVersions(int $limit = 3): Attribute
@@ -207,30 +192,6 @@ class Project extends Model
         Cache::forget('project_recent_versions_'.$this->id.'_3');
         Cache::forget('project_recent_versions_'.$this->id.'_5');
         Cache::forget('project_recent_versions_'.$this->id.'_10');
-    }
-
-    /**
-     * Get the versions max release date attribute
-     */
-    public function recentReleaseDate(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $cacheKey = 'project_recent_release_date_'.$this->id;
-
-                return Cache::remember($cacheKey, now()->addHours(24), function () {
-                    return $this->versions->max('release_date');
-                });
-            }
-        );
-    }
-
-    /**
-     * Clear the versions max release date cache for this project
-     */
-    public function clearRecentReleaseDateCache(): void
-    {
-        Cache::forget('project_recent_release_date_'.$this->id);
     }
 
     /**
