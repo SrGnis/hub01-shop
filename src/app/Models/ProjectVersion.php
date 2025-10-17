@@ -55,13 +55,6 @@ class ProjectVersion extends Model
     protected static function booted()
     {
         static::updated(function ($projectVersion) {
-            if ($projectVersion->isDirty('downloads')) {
-                $projectVersion->project->clearDownloadsCache();
-            }
-
-            if ($projectVersion->isDirty('release_date') || $projectVersion->isDirty('release_type')) {
-                $projectVersion->project->clearRecentReleaseDateCache();
-            }
 
             $projectVersion->project->clearRecentVersionsCache();
 
@@ -70,18 +63,12 @@ class ProjectVersion extends Model
 
         static::created(function ($projectVersion) {
 
-            $projectVersion->project->clearRecentReleaseDateCache();
-
             $projectVersion->project->clearRecentVersionsCache();
 
             $projectVersion->clearTagGroupCaches();
         });
 
         static::deleting(function ($projectVersion) {
-
-            $projectVersion->project->clearRecentReleaseDateCache();
-
-            $projectVersion->project->clearDownloadsCache();
 
             $projectVersion->project->clearRecentVersionsCache();
         });

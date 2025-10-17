@@ -12,7 +12,7 @@
             <div class="flex flex-col lg:flex-row gap-2">
                 @can('uploadVersion', $project)
                     <x-button
-                        link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $this->project]) }}"
                         icon="upload"
                         label="Upload Version"
                         class="btn-success"
@@ -52,13 +52,13 @@
             <!-- Navigation Tabs -->
             <x-tabs wire:model="activeTab" class="mb-6">
                 <x-tab name="description" label="Description">
-                    <livewire:project-show-description :project="$project" />
+                    <x-project-show-description :project="$project" />
                 </x-tab>
                 <x-tab name="versions" label="Versions">
-                    <livewire:project-show-versions :project="$project" />
+                    <x-project-show-versions :project="$project" :versions="$versions" />
                 </x-tab>
                 <x-tab name="changelog" label="Changelog">
-                    <livewire:project-show-changelog :project="$project" />
+                    <x-project-show-changelog :versions="$changelogVersions" />
                 </x-tab>
             </x-tabs>
         </div>
