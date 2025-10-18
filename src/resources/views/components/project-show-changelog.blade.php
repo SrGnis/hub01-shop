@@ -27,7 +27,7 @@
                 <div class="pb-6 border-b border-base-content/10 last:border-b-0 last:pb-0">
                     <div class="flex items-center gap-2 mb-2">
                         <h3 class="text-lg font-semibold">{{ $version->name }} - {{ $version->version }}</h3>
-                        <x-badge :value="$version->display_name" class="badge-sm badge-soft" />
+                        <x-badge :value="$version->display_name" class="badge-sm {{ $version->bg_color_class }}" />
                     </div>
                     <div class="text-sm text-base-content/60 mb-3">
                         Released: {{ $version->release_date->format('M d, Y') }}

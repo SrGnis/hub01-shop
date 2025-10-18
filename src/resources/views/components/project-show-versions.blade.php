@@ -41,7 +41,7 @@
                                     <span class="font-semibold truncate">{{ $version->name }}</span>
                                     <div class="flex items-center gap-2">
                                         <span class="text-sm">{{ $version->version }}</span>
-                                        <x-badge :value="$version->display_name" class="badge-sm badge-soft" />
+                                        <x-badge :value="$version->display_name" class="badge-sm {{ $version->bg_color_class }}" />
                                     </div>
                                 </div>
                             </td>
