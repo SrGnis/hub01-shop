@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FileDownloadController;
 use App\Livewire\ProjectSearch;
+use App\Livewire\UserProfile;
 use App\Livewire\ProjectShow;
 use App\Livewire\ProjectVersionShow;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +14,7 @@ Route::get('/', function () {
 });
 
 // // User Profile
-// Route::get('/user/{user}', UserProfile::class)->name('user.profile');
+Route::get('/user/{user}', UserProfile::class)->name('user.profile');
 // Route::get('/user/{user}/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
 
 // // Membership Management
@@ -37,6 +38,6 @@ Route::get('/{projectType}/{project}/version/{version_key}', ProjectVersionShow:
 Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])
     ->name('file.download');
 
-Route::get('/user/{user}', function () {
+Route::get('/user/{user}/edit', function () {
     return view('welcome');
-})->name('user.profile');
+})->name('user.profile.edit');
