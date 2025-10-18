@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\FileDownloadController;
 use App\Livewire\ProjectSearch;
 use App\Livewire\ProjectShow;
+use App\Livewire\ProjectVersionShow;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/admin.php';
@@ -28,17 +30,13 @@ Route::get('/search/{projectType}s', ProjectSearch::class)->name('project-search
 Route::get('/{projectType}/{project}', ProjectShow::class)->name('project.show');
 // Route::get('/{projectType}/{project}/edit', ProjectForm::class)->middleware('verified')->name('project.edit');
 // Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->middleware('verified')->name('project.version.create');
-// Route::get('/{projectType}/{project}/version/{version_key}', ProjectShowVersions::class)->name('project.version.show');
+Route::get('/{projectType}/{project}/version/{version_key}', ProjectVersionShow::class)->name('project.version.show');
 // Route::get('/{projectType}/{project}/version/{version_key}/edit', ProjectVersionForm::class)->middleware('verified')->name('project.version.edit');
 
-// // File Downloads
-// Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])
-//     ->name('file.download');
+// File Downloads
+Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])
+    ->name('file.download');
 
 Route::get('/user/{user}', function () {
     return view('welcome');
 })->name('user.profile');
-
-Route::get('/{projectType}/{project}/version/{version_key}', function () {
-    return view('welcome');
-})->name('project.version.show');

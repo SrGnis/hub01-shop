@@ -264,7 +264,7 @@ class DatabaseSeeder extends Seeder
             ->has(
                 ProjectVersion::factory(2)
                     ->has(
-                        ProjectFile::factory(1),
+                        ProjectFile::factory(5),
                         'files'
                     ),
                 'versions'
