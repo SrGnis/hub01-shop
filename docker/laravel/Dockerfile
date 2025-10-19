@@ -33,6 +33,7 @@ RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stab
 
 # copy files
 COPY src /var/www/laravel
+COPY docker/laravel/vite.config.js /var/www/laravel/vite.config.js
 
 # install dependencies
 RUN composer install --optimize-autoloader --no-interaction --no-dev
