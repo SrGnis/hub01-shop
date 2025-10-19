@@ -1,6 +1,6 @@
 @props(['project'])
 
-<x-card class="!py-3 !px-5">
+<x-card class="!py-3 !px-5" id="{{ $project->id }}" >
     <!-- Mobile Layout (default) -->
     <div class="block lg:hidden">
         <!-- Image with Title, Byline, and Description -->
@@ -122,7 +122,7 @@
             <div class="flex-shrink-0 w-48 flex flex-col justify-evenly text-sm">
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-download" />
-                    <span><span class="font-bold text-xl">
+                    <span>
                         {{ $project->downloads }} downloads
                     </span>
                 </div>

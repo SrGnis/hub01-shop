@@ -55,7 +55,7 @@
                     <x-project-show-description :project="$project" />
                 </x-tab>
                 <x-tab name="versions" label="Versions">
-                    <x-project-show-versions :project="$project" :versions="$versions" />
+                    <x-project-show-versions :project="$project" :versions="$versions" :sort-by="$sortBy" />
                 </x-tab>
                 <x-tab name="changelog" label="Changelog">
                     <x-project-show-changelog :versions="$changelogVersions" />

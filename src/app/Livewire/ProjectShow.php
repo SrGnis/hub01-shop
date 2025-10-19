@@ -22,6 +22,8 @@ class ProjectShow extends Component
     public int $versionsPerPage = 10;
     public int $changelogPerPage = 10;
 
+    public array $sortBy = ['column' => 'release_date', 'direction' => 'desc'];
+
     public function mount($project, ?string $activeTab = null)
     {
         $this->projectSlug = $project;
@@ -52,7 +54,7 @@ class ProjectShow extends Component
     {
         return $this->project->versions()
             ->with('tags.tagGroup')
-            ->orderBy('release_date', 'desc')
+            ->orderBy($this->sortBy['column'], $this->sortBy['direction'])
             ->paginate($this->versionsPerPage, ['*'], 'versionsPage');
     }
 
