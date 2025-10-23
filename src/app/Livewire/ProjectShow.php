@@ -46,14 +46,24 @@ class ProjectShow extends Component
     #[Computed]
     public function project()
     {
-        return Project::where('slug', $this->projectSlug)->firstOrFail();
+        return Project::where('slug', $this->projectSlug)
+            ->with([
+                'projectType',
+                'tags.tagGroup',
+                'owner'
+            ])
+            ->firstOrFail();
     }
 
     #[Computed]
     public function versions()
     {
         return $this->project->versions()
-            ->with('tags.tagGroup')
+            ->with([
+                'tags.tagGroup',
+                'project.projectType',
+                'project.owner'
+            ])
             ->orderBy($this->sortBy['column'], $this->sortBy['direction'])
             ->paginate($this->versionsPerPage, ['*'], 'versionsPage');
     }
