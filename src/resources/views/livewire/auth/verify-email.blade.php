@@ -8,7 +8,7 @@
 
     <div class="text-center">
         <div class="mb-6">
-            <x-icon name="o-envelope" class="w-16 h-16 text-primary mx-auto" />
+            <x-icon name="mail" class="w-16 h-16 text-primary mx-auto" />
         </div>
 
         <p class="text-sm text-base-content/70 mb-6">
@@ -20,7 +20,7 @@
             <x-button 
                 label="Resend Verification Email" 
                 wire:click="resendVerification" 
-                icon="o-paper-airplane" 
+                icon="send" 
                 class="btn-primary w-full" 
                 spinner="resendVerification" 
             />
@@ -30,7 +30,7 @@
                 <x-button 
                     label="Logout" 
                     type="submit" 
-                    icon="o-arrow-right-on-rectangle" 
+                    icon="log-out" 
                     class="btn-outline w-full" 
                 />
             </form>

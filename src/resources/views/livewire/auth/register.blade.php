@@ -7,10 +7,10 @@
     <x-form wire:submit="register">
         {{-- Name Field --}}
         <x-input 
-            label="Full Name" 
+            label="Username" 
             wire:model="name" 
-            icon="o-user" 
-            placeholder="John Doe"
+            icon="user" 
+            placeholder="JohnDoe123"
             required 
         />
 
@@ -18,7 +18,7 @@
         <x-input 
             label="Email" 
             wire:model="email" 
-            icon="o-envelope" 
+            icon="mail" 
             placeholder="your@email.com"
             type="email"
             required 
@@ -60,7 +60,7 @@
             <x-button 
                 label="Create Account" 
                 type="submit" 
-                icon="o-user-plus" 
+                icon="user-plus" 
                 class="btn-primary w-full" 
                 spinner="register" 
             />

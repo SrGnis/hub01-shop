@@ -1,0 +1,103 @@
+/* Welcome page animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.animate-fade-in-delay-1 {
+    animation: fadeIn 0.8s ease-out 0.2s forwards;
+    opacity: 0;
+}
+
+.animate-fade-in-delay-2 {
+    animation: fadeIn 0.8s ease-out 0.4s forwards;
+    opacity: 0;
+}
+
+.animate-fade-in-delay-3 {
+    animation: fadeIn 0.8s ease-out 0.6s forwards;
+    opacity: 0;
+}
+
+/* Hover effects */
+.feature-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2);
+}
+
+/* Pulse animation for CTA button */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+/* Particle animation */
+@keyframes floatParticle {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    5% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    95% { opacity: 0; }
+    100% { transform: translate(100vw, -100vh) rotate(360deg); opacity: 0; }
+}
+
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.particle {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+    border-radius: 50%;
+    opacity: 0;
+    animation: floatParticle linear infinite;
+}
+
+.particle.small { width: 4px; height: 4px; }
+.particle.medium { width: 8px; height: 8px; }
+.particle.large { width: 12px; height: 12px; }
+
+/* Particles starting from bottom edge */
+.particle:nth-child(1) { animation-duration: 15s; animation-delay: -7s; left: 5%; bottom: -10px; }
+.particle:nth-child(2) { animation-duration: 20s; animation-delay: -14s; left: 15%; bottom: -10px; }
+.particle:nth-child(3) { animation-duration: 18s; animation-delay: -3s; left: 25%; bottom: -10px; }
+.particle:nth-child(4) { animation-duration: 22s; animation-delay: -18s; left: 35%; bottom: -10px; }
+.particle:nth-child(5) { animation-duration: 16s; animation-delay: -9s; left: 45%; bottom: -10px; }
+.particle:nth-child(6) { animation-duration: 19s; animation-delay: -12s; left: 8%; bottom: -10px; }
+.particle:nth-child(7) { animation-duration: 21s; animation-delay: -5s; left: 18%; bottom: -10px; }
+.particle:nth-child(8) { animation-duration: 17s; animation-delay: -11s; left: 28%; bottom: -10px; }
+
+/* Particles starting from left edge */
+.particle:nth-child(9) { animation-duration: 23s; animation-delay: -16s; left: -10px; bottom: 15%; }
+.particle:nth-child(10) { animation-duration: 20s; animation-delay: -8s; left: -10px; bottom: 25%; }
+.particle:nth-child(11) { animation-duration: 18s; animation-delay: -13s; left: -10px; bottom: 35%; }
+.particle:nth-child(12) { animation-duration: 19s; animation-delay: -2s; left: -10px; bottom: 45%; }
+.particle:nth-child(13) { animation-duration: 21s; animation-delay: -19s; left: -10px; bottom: 55%; }
+.particle:nth-child(14) { animation-duration: 17s; animation-delay: -6s; left: -10px; bottom: 65%; }
+
+/* Particles starting from bottom-left corner */
+.particle:nth-child(15) { animation-duration: 22s; animation-delay: -10s; left: 2%; bottom: 5%; }
+.particle:nth-child(16) { animation-duration: 16s; animation-delay: -4s; left: 5%; bottom: 2%; }
+.particle:nth-child(17) { animation-duration: 20s; animation-delay: -15s; left: 1%; bottom: 8%; }
+.particle:nth-child(18) { animation-duration: 18s; animation-delay: -1s; left: 3%; bottom: 3%; }
+.particle:nth-child(19) { animation-duration: 19s; animation-delay: -17s; left: -10px; bottom: 10%; }
+.particle:nth-child(20) { animation-duration: 21s; animation-delay: -20s; left: 10%; bottom: -10px; }
+
