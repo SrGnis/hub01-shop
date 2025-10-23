@@ -66,10 +66,16 @@
                     {{-- User Dropdown --}}
                     <x-dropdown>
                         <x-slot:trigger>
-                            <x-button class="btn-ghost btn-sm btn-circle" icon="user" />
+                            <x-avatar
+                                placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
+                                placeholder-text-class="font-bold"
+                                placeholder-bg-class="bg-primary text-primary-content"
+                                class="cursor-pointer"
+                            >
+                            </x-avatar>
                         </x-slot:trigger>
                         
-                        <x-menu-item title="{{ $user->name }}" subtitle="{{ $user->email }}" no-hover />
+                        <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
                         <x-menu-separator />
                         
                         <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">

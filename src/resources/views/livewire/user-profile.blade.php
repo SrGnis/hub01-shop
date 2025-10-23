@@ -112,7 +112,7 @@
     <!-- No Projects Message -->
     @if($this->activeProjects->count() === 0 && $this->deletedProjects->count() === 0)
         <x-card class="text-center py-12">
-            <x-icon name="lucide-package" class="w-16 h-16 mx-auto text-base-content/40 mb-4" />
+            <x-icon name="lucide-package" class="w-16 h-16 mx-auto mb-4" />
             <h3 class="text-lg font-medium mb-2">No projects yet</h3>
             <p class="text-base-content/60">{{ $user->name }} hasn't created or contributed to any projects.</p>
         </x-card>
