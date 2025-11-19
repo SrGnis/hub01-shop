@@ -45,7 +45,7 @@ class Login extends Component
 
         session()->regenerate();
 
-        $this->success('Welcome back!', redirectTo: '/');
+        $this->success('Welcome back!', redirectTo: route('project-search', \App\Models\ProjectType::first()));
     }
 
     protected function ensureIsNotRateLimited(): void

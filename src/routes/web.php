@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\EmailChangeController;
 use App\Http\Controllers\FileDownloadController;
+use App\Http\Controllers\PasswordChangeController;
 use App\Livewire\ProjectSearch;
 use App\Livewire\UserProfile;
 use App\Livewire\UserProfileEdit;
@@ -17,6 +19,17 @@ Route::get('/', function () {
 // User Profile
 Route::get('/user/{user}', UserProfile::class)->name('user.profile');
 Route::get('/profile/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
+
+// Email Change Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/email-change/authorize/{token}', [EmailChangeController::class, 'authorize'])->name('email-change.authorize');
+    Route::get('/email-change/verify/{token}', [EmailChangeController::class, 'verify'])->name('email-change.verify');
+});
+
+// Password Change Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/password-change/verify/{token}', [PasswordChangeController::class, 'verify'])->name('password-change.verify');
+});
 
 // // Membership Management
 // Route::get('/membership/{membership}/accept', MembershipController::class.'@accept')
@@ -38,4 +51,29 @@ Route::get('/{projectType}/{project}/version/{version_key}', ProjectVersionShow:
 // File Downloads
 Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])
     ->name('file.download');
+
+// Test Routes for Flash Messages
+Route::prefix('test/flash')->name('test.flash.')->group(function () {
+    Route::get('/success', function () {
+        return redirect('/search/mods')->with('success', 'This is a success message!');
+    })->name('success');
+
+    Route::get('/error', function () {
+        return redirect('/search/mods')->with('error', 'This is an error message!');
+    })->name('error');
+
+    Route::get('/warning', function () {
+        return redirect('/search/mods')->with('warning', 'This is a warning message!');
+    })->name('warning');
+
+    Route::get('/info', function () {
+        return redirect('/search/mods')->with('info', 'This is an info message!');
+    })->name('info');
+
+    Route::get('/multiple', function () {
+        return redirect('/search/mods')
+            ->with('success', 'Operation completed!')
+            ->with('info', 'Check your email for confirmation.');
+    })->name('multiple');
+});
 
