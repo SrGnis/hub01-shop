@@ -9,6 +9,7 @@
                     placeholder-text-class="text-3xl font-bold"
                     placeholder-bg-class="bg-primary text-primary-content"
                     class="!w-24"
+                    image="{{ $user->getAvatarUrl() }}"
                 >
                     <x-slot:title class="text-3xl !font-bold pl-2">
                         {{ $user->name }}
@@ -34,7 +35,7 @@
                     @auth
                         @if(auth()->id() === $user->id)
                             <x-button
-                                link="{{ route('user.profile.edit', $user) }}"
+                                link="{{ route('user.profile.edit') }}"
                                 icon="lucide-pencil"
                                 class="btn-primary"
                             >

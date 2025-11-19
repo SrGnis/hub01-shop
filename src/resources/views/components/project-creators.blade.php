@@ -11,6 +11,7 @@
                             placeholder-text-class="text-sm font-bold"
                             placeholder-bg-class="bg-primary text-primary-content"
                             class="!w-10"
+                            image="{{ $user->getAvatarUrl() }}"
                         >
                             <x-slot:title class="font-semibold text-sm truncate">
                                 {{ $user->name }}

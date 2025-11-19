@@ -71,6 +71,7 @@
                                 placeholder-text-class="font-bold"
                                 placeholder-bg-class="bg-primary text-primary-content"
                                 class="cursor-pointer"
+                                image="{{ $user->getAvatarUrl() }}"
                             >
                             </x-avatar>
                         </x-slot:trigger>
