@@ -148,4 +148,24 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return null;
     }
+
+    /**
+     * Get the pending email changes for the user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pendingEmailChanges()
+    {
+        return $this->hasMany(PendingEmailChange::class);
+    }
+
+    /**
+     * Get the pending password changes for the user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pendingPasswordChanges()
+    {
+        return $this->hasMany(PendingPasswordChange::class);
+    }
 }

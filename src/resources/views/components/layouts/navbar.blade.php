@@ -28,7 +28,7 @@
                     </div>
                 </a>
             </div>
-            
+
             {{-- Navigation (Center) --}}
             <div class="absolute left-1/2 transform -translate-x-1/2">
                 {{-- Desktop: Horizontal buttons --}}
@@ -40,7 +40,7 @@
                         </a>
                     @endforeach
                 </div>
-                
+
                 {{-- Mobile: Dropdown --}}
                 <div class="md:hidden">
                     <x-dropdown>
@@ -48,18 +48,18 @@
                         <x-slot:trigger>
                             <x-button label="Discover" icon="search" class="btn-ghost btn-sm" />
                         </x-slot:trigger>
-                        
+
                         @foreach ($allProjectTypes as $projectType)
-                            <x-menu-item 
-                                title="{{ $projectType->pluralizedDisplayName() }}" 
+                            <x-menu-item
+                                title="{{ $projectType->pluralizedDisplayName() }}"
                                 icon="{{ $projectType->icon }}"
-                                link="{{ route('project-search', $projectType) }}" 
+                                link="{{ route('project-search', $projectType) }}"
                             />
                         @endforeach
                     </x-dropdown>
                 </div>
             </div>
-            
+
             {{-- Actions (Right) --}}
             <div class="flex-shrink-0">
                 @if($user = auth()->user())
@@ -75,10 +75,10 @@
                             >
                             </x-avatar>
                         </x-slot:trigger>
-                        
+
                         <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
                         <x-menu-separator />
-                        
+
                         <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
                             @csrf
                         </form>
@@ -94,23 +94,32 @@
                         <x-slot:trigger>
                             <x-button label="Account" icon="user-circle" class="btn-ghost btn-sm" responsive />
                         </x-slot:trigger>
-                        
-                        <x-menu-item 
-                            title="Login" 
-                            icon="log-in" 
-                            link="{{ route('login') }}" 
+
+                        <x-menu-item
+                            title="Login"
+                            icon="log-in"
+                            link="{{ route('login') }}"
                         />
-                        <x-menu-item 
-                            title="Register" 
-                            icon="user-plus" 
-                            link="{{ route('register') }}" 
+                        <x-menu-item
+                            title="Register"
+                            icon="user-plus"
+                            link="{{ route('register') }}"
                         />
                     </x-dropdown>
                 @endif
             </div>
         </div>
     </div>
- 
+
+    {{-- Flash Messages --}}
+    @if (session()->has('success') || session()->has('error') || session()->has('warning') || session()->has('info'))
+        <div class="bg-base-200 px-6 py-3">
+            <div class="max-w-screen-2xl mx-auto">
+                <x-flash-messages />
+            </div>
+        </div>
+    @endif
+
     {{-- The main content with `full-width` --}}
     <x-main with-nav full-width>
         {{-- The `$slot` goes here --}}
