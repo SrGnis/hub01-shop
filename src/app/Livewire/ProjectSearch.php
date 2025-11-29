@@ -23,15 +23,16 @@ class ProjectSearch extends Component
     public string $orderBy = 'downloads';
     public string $orderDirection = 'desc';
     public int $resultsPerPage = 10;
+    private ProjectService $projectService;
+
+    public function boot(ProjectService $projectService)
+    {
+        $this->projectService = $projectService;
+    }
 
     public function mount(ProjectType $projectType)
     {
         $this->projectType = $projectType;
-    }
-
-    private function getProjectService(): ProjectService
-    {
-        return app(ProjectService::class);
     }
 
     public function render()
@@ -42,7 +43,7 @@ class ProjectSearch extends Component
     #[Computed]
     public function projects(): LengthAwarePaginator
     {
-        return $this->getProjectService()->searchProjects(
+        return $this->projectService->searchProjects(
             projectType: $this->projectType,
             search: $this->search,
             selectedTags: $this->selectedTags,
@@ -56,31 +57,31 @@ class ProjectSearch extends Component
     #[Computed]
     public function tagGroups(): Collection
     {
-        return $this->getProjectService()->getTagGroups($this->projectType);
+        return $this->projectService->getTagGroups($this->projectType);
     }
 
     #[Computed]
     public function versionTagGroups(): Collection
     {
-        return $this->getProjectService()->getVersionTagGroups($this->projectType);
+        return $this->projectService->getVersionTagGroups($this->projectType);
     }
 
     #[Computed]
     public function orderOptions(): array
     {
-        return $this->getProjectService()->getOrderOptions();
+        return $this->projectService->getOrderOptions();
     }
 
     #[Computed]
     public function directionOptions(): array
     {
-        return $this->getProjectService()->getDirectionOptions();
+        return $this->projectService->getDirectionOptions();
     }
 
     #[Computed]
     public function perPageOptions(): array
     {
-        return $this->getProjectService()->getPerPageOptions();
+        return $this->projectService->getPerPageOptions();
     }
 
     // Event handlers for resetting pagination

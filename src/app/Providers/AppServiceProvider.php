@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\ProjectService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +12,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register services for dependency injection
+        $this->app->singleton(ProjectService::class);
     }
 
     /**
