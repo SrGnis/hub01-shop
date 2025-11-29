@@ -190,6 +190,10 @@ class ProjectService
 
     /**
      * Save or update a project
+     *
+     * @param  Project|null  $project  The project to update, or null for new project
+     * @param  array  $data  The project data
+     * @param  string|null  $logoPath  The new logo path, empty string to remove, null to keep existing
      */
     public function saveProject(
         ?Project $project,
@@ -198,11 +202,15 @@ class ProjectService
     ): Project {
         if ($project && $project->exists) {
             // Update existing project
-            if ($logoPath) {
+            if ($logoPath !== null) {
+                // New logo uploaded or logo removal requested
                 if ($project->logo_path) {
                     Storage::disk('public')->delete($project->logo_path);
                 }
-            }else{
+                // If logoPath is empty string, set to null (removal)
+                $logoPath = $logoPath === '' ? null : $logoPath;
+            } else {
+                // Keep existing logo
                 $logoPath = $project->logo_path;
             }
 

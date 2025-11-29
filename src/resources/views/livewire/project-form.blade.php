@@ -66,8 +66,17 @@
             </div>
 
             <!-- Project Logo -->
-            <x-file wire:model="logo" label="Project Logo" accept="image/*" crop-after-change hint="Recommended: Square image, 512x512px">
-                <img src="{{ $isEditing && $project->logo_path ? Storage::url($project->logo_path) : asset('images/placeholder.png') }}" alt="Project Logo" class="h-32 w-32 object-cover rounded-lg" />
+            <x-file
+                wire:model="logo"
+                label="Project Logo"
+                accept="image/*"
+                crop-after-change
+                hint="Recommended: Square image, 512x512px"
+                :is-image=1
+                :image-url="$isEditing && $project->logo_path ? Storage::url($project->logo_path) : null"
+                :placeholder-url="asset('images/placeholder.png')"
+                remove-method="removeLogo"
+            >
             </x-file>
 
             <!-- Tags -->
