@@ -25,6 +25,7 @@ class ProjectForm extends Component
     public string $summary = '';
     public string $description = '';
     public mixed $logo = null;
+    public bool $shouldRemoveLogo = false;
     public string $website = '';
     public string $issues = '';
     public string $source = '';
@@ -149,6 +150,12 @@ class ProjectForm extends Component
         $this->status = $this->status === 'active' ? 'inactive' : 'active';
     }
 
+    public function removeLogo(): void
+    {
+        $this->logo = null;
+        $this->shouldRemoveLogo = true;
+    }
+
     public function save()
     {
         $this->validate();
@@ -160,6 +167,8 @@ class ProjectForm extends Component
         $logoPath = null;
         if ($this->logo) {
             $logoPath = $this->logo->store('project-logos', 'public');
+        } elseif ($this->shouldRemoveLogo && $this->isEditing) {
+            $logoPath = '';  // Empty string signals removal
         }
 
         $data = [
