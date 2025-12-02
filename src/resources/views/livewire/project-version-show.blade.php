@@ -51,6 +51,7 @@
                                 icon="download"
                                 label="Download {{ $version->files->first()->name }}"
                                 class="w-full btn-primary mb-4"
+                                no-wire-navigate
                             />
                         @else
                             <x-button
@@ -58,6 +59,7 @@
                                 icon="download"
                                 label="Download"
                                 class="w-full btn-primary mb-4"
+                                no-wire-navigate
                             />
                         @endif
                     @endif
@@ -116,6 +118,7 @@
                                         icon="download"
                                         label="Download"
                                         class="btn-primary btn-lg"
+                                        no-wire-navigate
                                     />
                                 @else
                                     <x-button
@@ -123,6 +126,7 @@
                                         icon="download"
                                         label="Download"
                                         class="btn-primary btn-lg"
+                                        no-wire-navigate
                                     />
                                 @endif
                             @else
@@ -162,6 +166,7 @@
                                         icon="download"
                                         label="Download"
                                         class="w-full btn-sm btn-primary"
+                                        no-wire-navigate
                                     />
                                 </div>
                             @endforeach
