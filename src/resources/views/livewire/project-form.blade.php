@@ -19,13 +19,22 @@
 
         <form wire:submit="save" class="space-y-6">
             <!-- Name -->
-            <x-input label="Name" wire:model.live.debounce.500ms="name" placeholder="Project name" required />
+            @if ($isEditing)
+                <x-input label="Name" wire:model="name" placeholder="Project name" required />
+            @else
+                <x-input label="Name" wire:model.live.debounce.500ms="name" placeholder="Project name" required />
+            @endif
 
             <!-- Slug -->
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-sm font-medium">URL Slug</label>
-                    <x-button type="button" wire:click="generateSlug" label="Generate from Name" class="btn-sm" />
+                    <label class="text-sm font-medium">
+                        URL Slug
+                        <span class="text-error">*</span>
+                        <span wire:loading wire:target="name" class="loading loading-spinner w-4 h-4"></span>
+                        <span wire:loading wire:target="slug" class="loading loading-spinner w-4 h-4"></span>
+                    </label>
+                    <x-button spinner type="button" wire:click="generateSlug" label="Generate from Name" class="btn-sm" />
                 </div>
                 <x-input wire:model.live.debounce.500ms="slug" placeholder="project-slug" prefix="{{ route('dummy.project.show', ['projectType' => $projectType, 'project' => null]) }}/" required />
                 @if($isEditing)
@@ -36,7 +45,7 @@
             </div>
 
             <!-- Summary -->
-            <x-textarea label="Summary" wire:model="summary" placeholder="Brief project description" rows="2" required />
+            <x-textarea label="Summary" wire:model="summary" placeholder="Brief project description" rows="2" maxlength="125" hint="Max 125 characters" required />
 
             <!-- Description (Markdown) -->
             <div x-data="{ mode: 'code' }">
@@ -46,19 +55,22 @@
                         <button type="button" @click="mode = 'code'" :class="{ 'join-item btn-active': mode === 'code' }" class="join-item btn btn-sm">
                             <x-icon name="lucide-code" class="w-4 h-4" /> Code
                         </button>
-                        <button type="button" @click="mode = 'preview'" :class="{ 'join-item btn-active': mode === 'preview' }" class="join-item btn btn-sm">
+                        <button type="button" @click="$wire.refreshMarkdown().then(() => mode = 'preview')" :class="{ 'join-item btn-active': mode === 'preview' }" class="join-item btn btn-sm">
                             <x-icon name="lucide-eye" class="w-4 h-4" /> Preview
                         </button>
                     </div>
                 </div>
-                <div x-show="mode === 'code'">
+                <div wire:loading.remove wire:target="refreshMarkdown" x-show="mode === 'code'">
                     <x-code
-                        wire:model.live="description" 
+                        wire:model="description"
                         height="300px"
                         language="markdown"
                         hint="Markdown"
                         wrap=1
                         required />
+                </div>
+                <div wire:loading.flex wire:target="refreshMarkdown" class="bg-base-200 rounded-lg p-4 min-h-[242px] w-full flex items-center justify-center">
+                    <span class="loading loading-spinner w-10 h-10"></span>
                 </div>
                 <div x-show="mode === 'preview'" x-cloak class="bg-base-200 rounded-lg p-4 min-h-[242px]">
                     <x-markdown class="prose prose-invert max-w-none" flavor="github">{{ $description }}</x-markdown>
@@ -88,7 +100,7 @@
                         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
                             @foreach($tagGroup->tags as $tag)
                                 <x-checkbox
-                                    wire:model.live="selectedTags"
+                                    wire:model="selectedTags"
                                     value="{{ $tag->id }}"
                                     class="text-sm"
                                 >
@@ -103,6 +115,7 @@
                         </div>
                     </div>
                 @endforeach
+                @error('selectedTags') <span class="text-error text-sm">{{ $message }}</span> @enderror
             </div>
 
             <!-- Links -->
@@ -114,12 +127,12 @@
 
             <!-- Status -->
             <div>
-                <x-toggle label="{{ $status === 'active' ? 'Active' : 'Inactive' }}" hint="Set a project as inactive to inform users that it is no longer maintained." wire:click="toggleStatus" :checked="$status === 'active'" />
+                <x-custom-toggle hint="Set a project as inactive to inform users that it is no longer maintained." wire:model="status" on-value="active" off-value="inactive" on-label="Active" off-label="Inactive" />
             </div>
 
             <!-- Submit Button -->
             <div class="flex justify-end">
-                <x-button type="submit" label="{{ $isEditing ? 'Save Changes' : 'Create Project' }}" class="btn-primary" />
+                <x-button spinner type="submit" label="{{ $isEditing ? 'Save Changes' : 'Create Project' }}" class="btn-primary" />
             </div>
         </form>
 
@@ -142,24 +155,43 @@
                     </thead>
                     <tbody>
                         @foreach($memberships as $membership)
+                            @php
+                                $isSelf = $membership->user_id === auth()->id();
+                            @endphp
                             <tr>
                                 <td>{{ $membership->user->name }}</td>
-                                <td><span class="badge">{{ ucfirst($membership->role) }}{{ $membership->primary ? ' (Primary)' : '' }}</span></td>
-                                <td><span class="badge">{{ ucfirst($membership->status) }}</span></td>
+                                <td>
+                                    @php
+                                        $role_label = ucfirst($membership->role) . ($membership->primary ? ' (Primary)' : '');
+                                    @endphp
+                                    <x-badge :value="$role_label" class="badge-soft {{ $membership->primary ? 'badge-primary' : '' }}" />
+                                </td>
+                                <td>
+                                    @php
+                                        $status_color = '';
+                                        switch ($membership->status) {
+                                            case 'pending':
+                                                $status_color = 'badge-warning';
+                                                break;
+                                            case 'rejected':
+                                                $status_color = 'badge-error';
+                                                break;
+                                            default:
+                                                $status_color = 'badge-success';
+                                                break;
+                                        }
+                                    @endphp
+                                    <x-badge :value="ucfirst($membership->status)" class="badge-soft {{ $status_color }}" />
+                                </td>
                                 <td>
                                     <div class="flex gap-2">
-                                        @can('removeMember', $project)
-                                            @if(!$membership->primary && $membership->status === 'active')
-                                                <x-button wire:click="setPrimaryMember({{ $membership->id }})" wire:confirm="Set as primary owner?" label="Make Primary" class="btn-sm btn-info" />
-                                            @endif
+                                        @can('setPrimary', $membership)
+                                            <x-button wire:click="setPrimaryMember({{ $membership->id }})" wire:confirm="Set as primary owner?" label="Make Primary" class="btn-sm btn-info" />
                                         @endcan
-                                        @if($membership->user_id === auth()->id() && !$membership->primary)
-                                            <x-button wire:click="removeMember({{ $membership->id }})" wire:confirm="Leave project?" label="Leave" class="btn-sm btn-error" />
-                                        @elseif($membership->user_id !== auth()->id() && (!$membership->primary || $project->memberships()->where('primary', true)->count() > 1))
-                                            @can('removeMember', $project)
-                                                <x-button wire:click="removeMember({{ $membership->id }})" wire:confirm="Remove member?" label="Remove" class="btn-sm btn-error" />
-                                            @endcan
-                                        @endif
+
+                                        @can('delete', $membership)
+                                            <x-button wire:click="removeMember({{ $membership->id }})" wire:confirm="{{ $isSelf ? 'Leave project?' : 'Remove member?' }}" label="{{ $isSelf ? 'Leave' : 'Remove' }}" class="btn-sm btn-error" />
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -167,10 +199,10 @@
                     </tbody>
                 </table>
             </div>
-            <div class="divider my-8"></div>
 
             <!-- Add New Member -->
             @can('addMember', $project)
+                <div class="divider my-8"></div>
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2">Add New Member</h3>
                     <p class="text-sm text-gray-400 mb-4">Only one member can be the primary owner. Non-primary members can leave anytime.</p>
@@ -179,7 +211,7 @@
                         <x-select label="Role" wire:model="newMemberRole" :options="collect($roles)->map(fn($role) => ['id' => $role, 'name' => ucfirst($role)])" />
                     </div>
                     <div class="mt-4 flex justify-end">
-                        <x-button wire:click="addMember" label="Send Invitation" class="btn-primary" />
+                        <x-button spinner wire:click="addMember" label="Send Invitation" class="btn-primary" />
                     </div>
                 </div>
             @endcan
@@ -192,7 +224,7 @@
                 <div class="space-y-4">
                     <x-input label="Confirm by typing project name" wire:model="deleteConfirmation" placeholder="{{ $project->name }}" />
                     <div class="flex justify-end">
-                        <x-button wire:click="deleteProject" wire:confirm="Delete this project?" label="Delete Project" class="btn-error" />
+                        <x-button spinner wire:click="deleteProject" wire:confirm="Delete this project?" label="Delete Project" class="btn-error" />
                     </div>
                 </div>
             @endcan

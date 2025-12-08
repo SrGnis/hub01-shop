@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @mixin IdeHelperProjectVersion
+ */
 class ProjectVersion extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectVersionFactory> */

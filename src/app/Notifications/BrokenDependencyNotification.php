@@ -15,27 +15,25 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $dependentProjectSlug;
+    protected string $dependentProjectSlug;
 
-    protected $dependentProjectName;
+    protected string $dependentProjectName;
 
-    protected $dependentProjectType;
+    protected string $dependentProjectType;
 
-    protected $dependentVersionId;
+    protected ?int $dependentVersionId;
 
-    protected $dependentVersionNumber;
+    protected ?string $dependentVersionNumber;
 
-    protected $deletedProjectSlug;
+    protected string $deletedProjectSlug;
 
-    protected $deletedProjectName;
+    protected string $deletedProjectName;
 
-    protected $deletedVersionNumber;
+    protected ?string $deletedVersionNumber;
 
-    protected $deletedByUserId;
+    protected string $deletedByUserName;
 
-    protected $deletedByUserName;
-
-    protected $isProjectDeleted;
+    protected bool $isProjectDeleted;
 
     /**
      * Create a new notification instance.
@@ -46,12 +44,12 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
         string $deletedProjectSlug,
         string $deletedProjectName,
         ?string $deletedVersionNumber,
-        User $deletedByUser,
+        ?User $deletedByUser,
         bool $isProjectDeleted = false
     ) {
         $this->dependentProjectSlug = $dependentProject->slug;
         $this->dependentProjectName = $dependentProject->name;
-        $this->dependentProjectType = $dependentproject->projectType;
+        $this->dependentProjectType = $dependentProject->projectType;
 
         if ($dependentVersion) {
             $this->dependentVersionId = $dependentVersion->id;
@@ -64,8 +62,7 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
         $this->deletedProjectSlug = $deletedProjectSlug;
         $this->deletedProjectName = $deletedProjectName;
         $this->deletedVersionNumber = $deletedVersionNumber;
-        $this->deletedByUserId = $deletedByUser->id;
-        $this->deletedByUserName = $deletedByUser->name;
+        $this->deletedByUserName = $deletedByUser?->name ?? config('app.name');
         $this->isProjectDeleted = $isProjectDeleted;
 
         Log::info('BrokenDependencyNotification created', [
@@ -76,7 +73,6 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
             'deleted_project_slug' => $this->deletedProjectSlug,
             'deleted_project_name' => $this->deletedProjectName,
             'deleted_version_number' => $this->deletedVersionNumber,
-            'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
             'is_project_deleted' => $this->isProjectDeleted,
         ]);
@@ -150,7 +146,6 @@ class BrokenDependencyNotification extends Notification implements ShouldQueue
             'deleted_project_slug' => $this->deletedProjectSlug,
             'deleted_project_name' => $this->deletedProjectName,
             'deleted_version_number' => $this->deletedVersionNumber,
-            'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
             'is_project_deleted' => $this->isProjectDeleted,
             'type' => 'broken_dependency',

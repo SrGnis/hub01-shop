@@ -4,14 +4,24 @@ namespace App\Livewire;
 
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Services\ProjectService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class UserProfile extends Component
 {
+    use Toast;
+
+    protected ProjectService $projectService;
+
     public User $user;
+
+    public function boot(ProjectService $projectService)
+    {
+        $this->projectService = $projectService;
+    }
 
     public function mount(User $user)
     {
@@ -33,7 +43,7 @@ class UserProfile extends Component
     public function deletedProjects()
     {
         // Only show deleted projects to the authenticated owner
-        if (!auth()->check() || auth()->id() !== $this->user->id) {
+        if (!Auth::check() || Auth::id() !== $this->user->id) {
             return collect();
         }
 
@@ -71,46 +81,31 @@ class UserProfile extends Component
 
         // Authorization: Only the primary owner can restore
         $isPrimaryOwner = $project->memberships()
-            ->where('user_id', auth()->id())
+            ->where('user_id', Auth::id())
             ->where('primary', true)
             ->exists();
 
         if (!$isPrimaryOwner) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'You are not authorized to restore this project.',
-            ]);
+            $this->error('You are not authorized to restore this project.');
 
             return;
         }
 
-        DB::beginTransaction();
-
         try {
-            $project->restore();
-
-            DB::commit();
-
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Project restored successfully!',
-            ]);
+            $this->projectService->restoreProject($project);
+            $this->success('Project restored successfully!');
 
             // Refresh the computed properties
             unset($this->activeProjects);
             unset($this->deletedProjects);
         } catch (\Exception) {
-            DB::rollBack();
-
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Failed to restore project. Please try again.',
-            ]);
+            $this->error('Failed to restore project. Please try again.');
         }
     }
 
     public function render()
     {
+        /** @disregard P1013 */
         return view('livewire.user-profile')
             ->title($this->user->name);
     }

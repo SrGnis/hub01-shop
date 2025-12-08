@@ -36,7 +36,7 @@
         <x-alert
             title="This project is currently inactive"
             description="This project has been marked as inactive by its maintainers. It may not be actively maintained or supported."
-            icon="exclamation-triangle"
+            icon="triangle-alert"
             class="mb-6 alert-warning"
         />
     @endif
