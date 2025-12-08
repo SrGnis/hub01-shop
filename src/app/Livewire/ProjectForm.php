@@ -2,11 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectType;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Mary\Traits\Toast;
@@ -16,8 +18,11 @@ class ProjectForm extends Component
     use WithFileUploads;
     use Toast;
 
+    #[Locked]
     public ProjectType $projectType;
+    #[Locked]
     public ?Project $project = null;
+    #[Locked]
     public bool $isEditing = false;
 
     public string $name = '';
@@ -45,14 +50,21 @@ class ProjectForm extends Component
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'summary' => 'required|string|max:500',
+            'summary' => 'required|string|max:125',
             'description' => 'required|string',
             'logo' => 'nullable|image|max:1024',
             'website' => 'nullable|url|max:255',
             'issues' => 'nullable|url|max:255',
             'source' => 'nullable|url|max:255',
             'status' => 'required|in:active,inactive',
-            'selectedTags' => 'required|array|min:1',
+            'selectedTags' => [
+                'required',
+                'array',
+                'min:1',
+                function ($attribute, $value, $fail) {
+                    $this->validateTagsForProjectType($value, $fail);
+                },
+            ],
         ];
 
         if ($this->isEditing) {
@@ -62,6 +74,26 @@ class ProjectForm extends Component
         }
 
         return $rules;
+    }
+
+    /**
+     * Validate that all selected tags belong to tag groups valid for the current project type.
+     */
+    private function validateTagsForProjectType(array $selectedTagIds, callable $fail): void
+    {
+        if (empty($selectedTagIds)) {
+            return;
+        }
+
+        $invalidTags = \App\Models\ProjectTag::whereIn('id', $selectedTagIds)
+            ->whereDoesntHave('projectTypes', fn ($query) => $query->where('project_type_id', $this->projectType->id))
+            ->pluck('name')
+            ->toArray();
+
+        if (!empty($invalidTags)) {
+            $tagNames = implode(', ', $invalidTags);
+            $fail("The following tags are not allowed for this project type: {$tagNames}.");
+        }
     }
 
     public function boot(ProjectService $projectService)
@@ -74,7 +106,7 @@ class ProjectForm extends Component
         $this->projectType = $projectType;
 
         if (!Auth::check()) {
-            $this->error('Please log in to create a project.', redirectTo: route('login', ['projectType' => $projectType]));
+            $this->error('Please log in to create a project.', redirectTo: route('login'));
         }
 
         if ($project && $project->exists) {
@@ -139,15 +171,13 @@ class ProjectForm extends Component
         $this->validate(['slug' => $slug_rules]);
     }
 
+    // dummy method for attaching the loading state
+    public function refreshMarkdown(): void {}
+
     public function generateSlug(): void
     {
         $this->slug = $this->projectService->generateSlug($this->name, $this->project);
         $this->resetValidation('slug');
-    }
-
-    public function toggleStatus(): void
-    {
-        $this->status = $this->status === 'active' ? 'inactive' : 'active';
     }
 
     public function removeLogo(): void
@@ -187,13 +217,7 @@ class ProjectForm extends Component
             $data['project_type_id'] = $this->projectType->id;
         }
 
-        logger()->info('Saving project', [
-            'project_id' => $this->project?->id,
-            'is_editing' => $this->isEditing,
-            'logo_path' => $logoPath,
-        ]);
-
-        $project = $this->projectService->saveProject($this->project, $data, $logoPath);
+        $project = $this->projectService->saveProject($this->project, Auth::user(), $data, $logoPath);
 
         $message = $this->isEditing ? 'Project updated successfully!' : 'Project created successfully!';
 
@@ -202,7 +226,7 @@ class ProjectForm extends Component
 
     public function addMember()
     {
-        if (!$this->isEditing || !Gate::allows('addMember', $this->project)) {
+        if (!$this->isEditing || Gate::denies('addMember', $this->project)) {
             $this->error('You do not have permission to add members.');
             return;
         }
@@ -226,7 +250,8 @@ class ProjectForm extends Component
 
     public function removeMember($membershipId)
     {
-        if (!$this->isEditing || !Gate::allows('removeMember', $this->project)) {
+        $membership = Membership::findOrFail($membershipId);
+        if (!$this->isEditing || Gate::denies('delete', $membership)) {
             $this->error('You do not have permission to remove members.');
             return;
         }
@@ -248,7 +273,8 @@ class ProjectForm extends Component
 
     public function setPrimaryMember($membershipId)
     {
-        if (!$this->isEditing || !Gate::allows('removeMember', $this->project)) {
+        $membership = Membership::findOrFail($membershipId);
+        if (!$this->isEditing || Gate::denies('setPrimary', $membership)) {
             $this->error('You do not have permission to manage ownership.');
             return;
         }

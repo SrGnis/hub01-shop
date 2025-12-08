@@ -83,17 +83,7 @@ class ProjectPolicy extends BasePolicy
     {
         return $project->users()->where('user_id', $user->id)
             ->wherePivot('status', 'active')
-            ->exists();
-    }
-
-    /**
-     * Determine whether the user can remove members from the project.
-     */
-    public function removeMember(User $user, Project $project): bool
-    {
-        return $project->users()->where('user_id', $user->id)
             ->wherePivot('primary', true)
-            ->wherePivot('status', 'active')
             ->exists();
     }
 

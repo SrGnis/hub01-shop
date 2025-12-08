@@ -19,28 +19,21 @@ class MembershipInvitation extends Notification implements ShouldQueue
      *
      * @var int
      */
-    protected $membership_id;
-
-    /**
-     * The inviter user ID.
-     *
-     * @var int
-     */
-    protected $inviter_id;
+    protected int $membership_id;
 
     /**
      * The project ID.
      *
      * @var int
      */
-    protected $project_id;
+    protected int $project_id;
 
     /**
      * Additional data to store with the notification.
      *
      * @var array
      */
-    protected $data = [];
+    protected array $data = [];
 
     /**
      * Create a new notification instance.
@@ -54,14 +47,13 @@ class MembershipInvitation extends Notification implements ShouldQueue
         ]);
 
         $this->membership_id = $membership->id;
-        $this->inviter_id = $membership->invited_by;
         $this->project_id = $membership->project_id;
 
         $this->data = [
             'membership_role' => $membership->role,
             'project_name' => $membership->project->name,
             'project_summary' => $membership->project->summary,
-            'inviter_name' => $membership->inviter->name,
+            'inviter_name' => $membership->inviter?->name ?? config('app.name'),
         ];
 
         Log::info('MembershipInvitation notification created', [
@@ -88,6 +80,7 @@ class MembershipInvitation extends Notification implements ShouldQueue
         $membership = Membership::find($this->membership_id);
 
         $acceptUrl = URL::signedRoute('membership.accept', ['membership' => $membership->id]);
+        // TODO: Add reject URL
         $rejectUrl = URL::signedRoute('membership.reject', ['membership' => $membership->id]);
 
         return (new MailMessage)
@@ -111,7 +104,6 @@ class MembershipInvitation extends Notification implements ShouldQueue
             'membership_id' => $this->membership_id,
             'project_id' => $this->project_id,
             'project_name' => $this->data['project_name'],
-            'inviter_id' => $this->inviter_id,
             'inviter_name' => $this->data['inviter_name'],
             'role' => $this->data['membership_role'],
             'type' => 'membership_invitation',

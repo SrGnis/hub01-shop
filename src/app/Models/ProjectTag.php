@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @mixin IdeHelperProjectTag
+ */
 class ProjectTag extends Model
 {
     use HasFactory;

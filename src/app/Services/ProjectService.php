@@ -14,14 +14,15 @@ use App\Notifications\MembershipInvitation;
 use App\Notifications\MembershipRemoved;
 use App\Notifications\PrimaryStatusChanged;
 use App\Notifications\ProjectDeleted;
+use App\Notifications\ProjectRestored;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class ProjectService
 {
@@ -192,11 +193,13 @@ class ProjectService
      * Save or update a project
      *
      * @param  Project|null  $project  The project to update, or null for new project
+     * @param  User|null  $user  The user to associate with the new project, not used when updating an existing project
      * @param  array  $data  The project data
      * @param  string|null  $logoPath  The new logo path, empty string to remove, null to keep existing
      */
     public function saveProject(
         ?Project $project,
+        ?User $user,
         array $data,
         ?string $logoPath = null
     ): Project {
@@ -221,6 +224,12 @@ class ProjectService
         }
 
         // Create new project
+
+        // If no user provided, raise error
+        if (! $user) {
+            throw new \Exception('User not provided.');
+        }
+
         $project = Project::create(array_merge($data, ['logo_path' => $logoPath]));
         $project->tags()->attach($data['selectedTags'] ?? []);
 
@@ -229,7 +238,7 @@ class ProjectService
             'role' => 'owner',
             'primary' => true,
         ]);
-        $membership->user()->associate(Auth::user());
+        $membership->user()->associate($user);
         $membership->project()->associate($project);
         $membership->save();
 
@@ -238,6 +247,10 @@ class ProjectService
 
     /**
      * Add a member to a project
+     *
+     * @param  Project  $project  The project to add the member to
+     * @param  string  $userName  The username of the new member
+     * @param  string  $role  The role of the new member
      */
     public function addMember(Project $project, string $userName, string $role): void
     {
@@ -254,7 +267,10 @@ class ProjectService
         ]);
         $membership->user()->associate($user);
         $membership->project()->associate($project);
-        $membership->inviter()->associate(Auth::user());
+        $inviter = Auth::user(); // User who is inviting the new member, null if is a System invitation
+        if ($inviter) {
+            $membership->inviter()->associate($inviter);
+        }
         $membership->save();
 
         $user->notify(new MembershipInvitation($membership));
@@ -262,16 +278,21 @@ class ProjectService
 
     /**
      * Remove a member from a project
+     *
+     * @param  Project  $project  The project to remove the member from
+     * @param  int  $membershipId  The ID of the membership to remove
      */
     public function removeMember(Project $project, int $membershipId): bool
     {
         $membership = Membership::findOrFail($membershipId);
+        $currentUser = Auth::user(); // User who is removing the member, null if is a System removal
+        $isSelfRemoval = $membership->user_id === Auth::id();
 
         if ($membership->project_id !== $project->id) {
             throw new \Exception('Invalid membership.');
         }
 
-        if ($membership->user_id === Auth::id() && $membership->primary) {
+        if ($isSelfRemoval && $membership->primary) {
             throw new \Exception('You cannot remove yourself as the primary owner. Transfer ownership to another member first.');
         }
 
@@ -279,9 +300,7 @@ class ProjectService
             throw new \Exception('You cannot remove the last primary member of the project.');
         }
 
-        $isSelfRemoval = $membership->user_id === Auth::id();
         $removedUser = User::find($membership->user_id);
-        $currentUser = Auth::user();
 
         DB::beginTransaction();
 
@@ -304,6 +323,8 @@ class ProjectService
 
     /**
      * Set a member as primary owner
+     * @param  Project  $project  The project to set the primary member for
+     * @param  int  $membershipId  The ID of the membership to set as primary
      */
     public function setPrimaryMember(Project $project, int $membershipId): void
     {
@@ -321,10 +342,6 @@ class ProjectService
             throw new \Exception('This member is already a primary member.');
         }
 
-        if (!$project->memberships()->where('user_id', Auth::id())->where('primary', true)->exists()) {
-            throw new \Exception('Only primary owners can transfer ownership.');
-        }
-
         DB::beginTransaction();
 
         try {
@@ -336,7 +353,7 @@ class ProjectService
             $membership->update(['primary' => true]);
 
             $newPrimaryUser = User::find($membership->user_id);
-            $currentUser = Auth::user();
+            $currentUser = Auth::user(); // User who is setting the primary member, null if is a System removal
             $projectMembers = $project->active_users()->get();
 
             foreach ($projectMembers as $member) {
@@ -351,7 +368,17 @@ class ProjectService
     }
 
     /**
-     * Delete a project
+     * Delete a project and notify affected parties.
+     *
+     * This method performs the following actions within a database transaction:
+     * 1. Identifies all project versions that depend on this project (or its versions)
+     * 2. Soft-deletes the project
+     * 3. Notifies all active project members about the deletion
+     * 4. Notifies owners of dependent projects about broken dependencies
+     *
+     * @param  Project  $project  The project to delete
+     *
+     * @throws \Exception If the deletion fails (transaction is rolled back)
      */
     public function deleteProject(Project $project): void
     {
@@ -433,6 +460,30 @@ class ProjectService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to delete project: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'user_id' => Auth::id(),
+            ]);
+            throw $e;
+        }
+    }
+
+    public function restoreProject(Project $project): void
+    {
+        DB::beginTransaction();
+
+        try {
+            $project->restore();
+
+            $projectMembers = $project->active_users()->get();
+
+            foreach ($projectMembers as $member) {
+                $member->notify(new ProjectRestored($project, Auth::user()));
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to restore project: ' . $e->getMessage(), [
                 'project_id' => $project->id,
                 'user_id' => Auth::id(),
             ]);

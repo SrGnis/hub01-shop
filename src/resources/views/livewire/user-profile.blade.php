@@ -65,7 +65,7 @@
         <div>
             <h2 class="text-2xl font-bold mb-4">Deleted Projects</h2>
             <p class="text-sm text-base-content/60 mb-4">
-                These projects will be permanently deleted after 14 days. You can restore them before then.
+                These projects will be permanently deleted after 14 days.
             </p>
             <div class="space-y-4">
                 @foreach($this->deletedProjects as $project)
@@ -94,7 +94,7 @@
 
                             <!-- Restore Button -->
                             <div class="flex-shrink-0">
-                                <x-button 
+                                <x-button
                                     wire:click="restoreProject({{ $project->id }})"
                                     icon="lucide-rotate-ccw"
                                     class="btn-success btn-sm"

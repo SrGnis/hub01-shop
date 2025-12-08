@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[ScopedBy(ProjectFullScope::class)]
+/**
+ * @mixin IdeHelperProject
+ */
 class Project extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectFactory> */

@@ -7,6 +7,7 @@ use App\Models\PendingPasswordChange;
 use App\Notifications\AuthorizeEmailChange;
 use App\Notifications\ConfirmPasswordChange;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -71,10 +72,10 @@ class UserAccountSecurity extends Component
 
     public function requestEmailChange()
     {
-        $this->validate([
-            'current_password' => 'required|string',
-            'new_email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
-        ]);
+        $rules = $this->rules();
+        unset($rules['new_password']);
+
+        $this->validate($rules);
 
         if (!Hash::check($this->current_password, Auth::user()->password)) {
             throw ValidationException::withMessages([
@@ -83,7 +84,13 @@ class UserAccountSecurity extends Component
         }
 
         try {
+            DB::beginTransaction();
+
             $user = Auth::user();
+
+            if (!$user) {
+                throw new \Exception('User not found');
+            }
 
             // Cancel any existing pending email changes
             $user->pendingEmailChanges()
@@ -108,10 +115,13 @@ class UserAccountSecurity extends Component
             $this->current_password = '';
             $this->loadPendingEmailChange();
             $this->success('Verification email sent! Check your current email address to authorize the change.');
+            DB::commit();
         } catch (\Exception $e) {
+            DB::rollBack();
             logger()->error('Failed to request email change', ['error' => $e->getMessage()]);
             $this->error('Failed to request email change. Please try again.');
         }
+
     }
 
     public function cancelEmailChange()
@@ -129,10 +139,10 @@ class UserAccountSecurity extends Component
 
     public function requestPasswordChange()
     {
-        $this->validate([
-            'current_password' => 'required|string',
-            'new_password' => ['required', 'string', Password::default(), 'confirmed'],
-        ]);
+        $rules = $this->rules();
+        unset($rules['new_email']);
+
+        $this->validate($rules);
 
         if (!Hash::check($this->current_password, Auth::user()->password)) {
             throw ValidationException::withMessages([
@@ -141,6 +151,8 @@ class UserAccountSecurity extends Component
         }
 
         try {
+            DB::beginTransaction();
+
             $user = Auth::user();
 
             // Cancel any existing pending password changes
@@ -169,7 +181,9 @@ class UserAccountSecurity extends Component
             $this->new_password_confirmation = '';
             $this->loadPendingPasswordChange();
             $this->success('Confirmation email sent! Check your email to confirm the password change.');
+            DB::commit();
         } catch (\Exception $e) {
+            DB::rollBack();
             logger()->error('Failed to request password change', ['error' => $e->getMessage()]);
             $this->error('Failed to request password change. Please try again.');
         }

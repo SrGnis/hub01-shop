@@ -19,51 +19,42 @@ class ProjectDeleted extends Notification implements ShouldQueue
      *
      * @var int
      */
-    protected $projectId;
+    protected int $projectId;
 
     /**
      * The project name.
      *
      * @var string
      */
-    protected $projectName;
+    protected string $projectName;
 
     /**
      * The project type.
      *
      * @var string
      */
-    protected $projectType;
-
-    /**
-     * The user who deleted the project.
-     *
-     * @var int
-     */
-    protected $deletedByUserId;
+    protected string $projectType;
 
     /**
      * The name of the user who deleted the project.
      *
      * @var string
      */
-    protected $deletedByUserName;
+    protected string $deletedByUserName;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Project $project, User $deletedByUser)
+    public function __construct(Project $project, ?User $deletedByUser)
     {
         $this->projectId = $project->id;
         $this->projectName = $project->name;
         $this->projectType = $project->projectType;
-        $this->deletedByUserId = $deletedByUser->id;
-        $this->deletedByUserName = $deletedByUser->name;
+        $this->deletedByUserName = $deletedByUser?->name ?? config('app.name');
 
         Log::info('ProjectDeleted notification created', [
             'project_id' => $this->projectId,
             'project_name' => $this->projectName,
-            'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
         ]);
     }
@@ -102,7 +93,6 @@ class ProjectDeleted extends Notification implements ShouldQueue
             'project_id' => $this->projectId,
             'project_name' => $this->projectName,
             'project_type' => $this->projectType,
-            'deleted_by_user_id' => $this->deletedByUserId,
             'deleted_by_user_name' => $this->deletedByUserName,
             'type' => 'project_deleted',
         ];
