@@ -18,7 +18,7 @@
             <x-input label="Version Name" wire:model="name" required />
 
             <!-- Version Number -->
-            <x-input label="Version Number" wire:model="version_number" placeholder="e.g. 1.0.0" required />
+            <x-input spinner label="Version Number" wire:model.blur="version_number" placeholder="e.g. 1.0.0" required />
 
             <!-- Release Type -->
             <x-select label="Release Type" wire:model="release_type" :options="[
@@ -31,7 +31,7 @@
             <!-- Release Date -->
             <x-datetime label="Release Date" wire:model="release_date" type="date" required />
 
-            <!-- Changelog -->
+            <!-- Changelog (Markdown) -->
             <div x-data="{ mode: 'code' }">
                 <div class="flex justify-between items-center mb-2">
                     <label class="text-sm font-medium">Changelog (Markdown)</label>
@@ -39,19 +39,22 @@
                         <button type="button" @click="mode = 'code'" :class="{ 'join-item btn-active': mode === 'code' }" class="join-item btn btn-sm">
                             <x-icon name="lucide-code" class="w-4 h-4" /> Code
                         </button>
-                        <button type="button" @click="mode = 'preview'" :class="{ 'join-item btn-active': mode === 'preview' }" class="join-item btn btn-sm">
+                        <button type="button" @click="$wire.refreshMarkdown().then(() => mode = 'preview')" :class="{ 'join-item btn-active': mode === 'preview' }" class="join-item btn btn-sm">
                             <x-icon name="lucide-eye" class="w-4 h-4" /> Preview
                         </button>
                     </div>
                 </div>
-                <div x-show="mode === 'code'">
+                <div wire:loading.remove wire:target="refreshMarkdown" x-show="mode === 'code'">
                     <x-code
-                        wire:model.live="changelog"
+                        wire:model="changelog"
                         height="300px"
                         language="markdown"
                         hint="Markdown"
                         wrap=1
                     />
+                </div>
+                <div wire:loading.flex wire:target="refreshMarkdown" class="bg-base-200 rounded-lg p-4 min-h-[242px] w-full flex items-center justify-center">
+                    <span class="loading loading-spinner w-10 h-10"></span>
                 </div>
                 <div x-show="mode === 'preview'" x-cloak class="bg-base-200 rounded-lg p-4 min-h-[242px]">
                     <x-markdown class="prose prose-invert max-w-none" flavor="github">{{ $changelog }}</x-markdown>
@@ -87,44 +90,73 @@
                 @error('selectedTags') <span class="text-error text-sm">{{ $message }}</span> @enderror
             </div>
 
-            <!-- Existing Files (Edit Mode) -->
-            @if($isEditing && count($existingFiles) > 0)
-                <div>
-                    <h3 class="text-lg font-medium mb-2">Existing Files</h3>
-                    <div class="space-y-2">
-                        @foreach($existingFiles as $index => $file)
-                            @if(!isset($file['delete']) || !$file['delete'])
-                                <div class="flex items-center justify-between bg-base-200 p-2 rounded">
-                                    <span class="text-sm truncate">{{ $file['name'] }} ({{ number_format($file['size'] / 1024, 2) }} KB)</span>
-                                    <x-button type="button" wire:click="removeExistingFile({{ $file['id'] }})" icon="lucide-trash-2" class="btn-sm btn-ghost text-error" />
+            <!-- Files Section -->
+            <div>
+                <!-- File Upload -->
+                <x-file
+                    spinner
+                    wire:model="files"
+                    label="{{ $isEditing ? 'Upload Additional Files' : 'Upload Files' }}"
+                    multiple
+                    hint="ZIP or other project files (max 100MB)"
+                    hideProgress
+                />
+
+                <!-- This should hide if there are no existing files and no new files -->
+                @php
+                    $hasVisibleExistingFiles = $isEditing && collect($existingFiles)->contains(fn($file) => !($file['delete'] ?? false));
+                @endphp
+                @if($hasVisibleExistingFiles || count($files) > 0)
+                    <div class="mt-4 bg-base-100 border border-base-300 rounded-lg p-4">
+                        <h3 class="text-lg font-medium mb-4">Project Files</h3>
+
+                        <div class="space-y-4">
+                            <!-- This should hide if I delete all existing files -->
+                            @if($hasVisibleExistingFiles)
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <x-icon name="lucide-file-check" class="w-4 h-4 text-success" />
+                                        <h4 class="text-sm font-medium text-success">Existing Files</h4>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($existingFiles as $index => $file)
+                                            @if(!isset($file['delete']) || !$file['delete'])
+                                                <div class="flex items-center justify-between bg-success/10 border border-success/20 p-3 rounded">
+                                                    <span class="text-sm truncate">{{ $file['name'] }} ({{ number_format($file['size'] / 1024, 2) }} KB)</span>
+                                                    <x-button spinner type="button" wire:click="removeExistingFile({{ $file['id'] }})" icon="trash-2" class="btn-sm btn-ghost text-error" />
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 </div>
                             @endif
-                        @endforeach
-                    </div>
-                </div>
-            @endif
 
-            <!-- Files -->
-            <x-file
-                wire:model="files"
-                label="{{ $isEditing ? 'Upload Additional Files' : 'Upload Files' }}"
-                multiple
-                hint="ZIP or other project files (max 100MB)"
-            />
-            
-            @if(count($files) > 0)
-                <div class="mt-4 space-y-2">
-                    <h4 class="text-sm font-medium">Selected Files:</h4>
-                    <ul class="space-y-1">
-                        @foreach($files as $index => $file)
-                            <li class="flex items-center justify-between bg-base-200 p-2 rounded">
-                                <span class="text-sm truncate">{{ $file->getClientOriginalName() }} ({{ number_format($file->getSize() / 1024, 2) }} KB)</span>
-                                <x-button type="button" wire:click="$set('files.{{ $index }}', null)" icon="lucide-x" class="btn-sm btn-ghost text-error" />
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+                            <!-- Divider between existing and new files -->
+                            @if($hasVisibleExistingFiles && count($files) > 0)
+                                <div class="divider my-2"></div>
+                            @endif
+
+                            <!-- Newly Selected Files -->
+                            @if(count($files) > 0)
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <x-icon name="lucide-file-plus" class="w-4 h-4 text-info" />
+                                        <h4 class="text-sm font-medium text-info">Newly Selected Files</h4>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($files as $index => $file)
+                                            <div class="flex items-center justify-between bg-info/10 border border-info/20 p-3 rounded">
+                                                <span class="text-sm truncate">{{ $file->getClientOriginalName() }} ({{ number_format($file->getSize() / 1024, 2) }} KB)</span>
+                                                <x-button spinner type="button" wire:click="removeNewFile({{ $index }})" icon="trash-2" class="btn-sm btn-ghost text-error" />
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
 
             <!-- Dependencies -->
             <div>
@@ -134,7 +166,7 @@
                         <div class="bg-base-200 p-4 rounded-lg space-y-3">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-medium">Dependency #{{ $index + 1 }}</h4>
-                                <x-button type="button" wire:click="removeDependency({{ $index }})" icon="lucide-trash-2" class="btn-sm btn-ghost text-error" />
+                                <x-button spinner type="button" wire:click="removeDependency({{ $index }})" icon="lucide-trash-2" class="btn-sm btn-ghost text-error" />
                             </div>
 
                             <!-- Dependency Type -->
@@ -150,66 +182,77 @@
                                 ['id' => 'manual', 'name' => 'Manual Entry'],
                             ]" />
 
-                            @if(isset($dependencies[$index]['mode']) && $dependencies[$index]['mode'] === 'linked')
-                                <!-- Project Selection (Linked Mode) -->
-                                <div>
-                                    <x-input
-                                        label="Project Slug"
-                                        wire:model.live.debounce.500ms="dependencies.{{ $index }}.project_slug"
-                                        placeholder="Enter project slug"
-                                    >
-                                        <x-slot:append>
-                                            @if(isset($dependencies[$index]['project_slug']) && !empty($dependencies[$index]['project_slug']) && !$dependencies[$index]['project_id'])
-                                                <x-icon name="lucide-x-circle" class="w-5 h-5 text-error" />
-                                            @elseif($dependencies[$index]['project_id'])
-                                                <x-icon name="lucide-check-circle" class="w-5 h-5 text-success" />
-                                            @endif
-                                        </x-slot:append>
-                                    </x-input>
-                                    @if(isset($dependencies[$index]['project_slug']) && !empty($dependencies[$index]['project_slug']) && !$dependencies[$index]['project_id'])
-                                        <p class="mt-1 text-sm text-error">Project not found</p>
-                                    @endif
-                                </div>
-
-                                <!-- Version Selection (Optional) -->
-                                @if($dependencies[$index]['project_id'])
+                            <div wire:loading.flex wire:target="dependencies.{{ $index }}.mode" class="justify-center">
+                                <span class="loading loading-spinner"></span>
+                            </div>
+                            <div wire:loading.remove wire:target="dependencies.{{ $index }}.mode">
+                                @if(isset($dependencies[$index]['mode']) && $dependencies[$index]['mode'] === 'linked')
+                                    <!-- Project Selection (Linked Mode) -->
                                     <div>
-                                        <x-checkbox label="Specific Version" wire:model.live="dependencies.{{ $index }}.has_specific_version" />
-                                        
-                                        @if($dependencies[$index]['has_specific_version'])
-                                            <x-select
-                                                label="Version"
-                                                wire:model="dependencies.{{ $index }}.version_id"
-                                                :options="$this->getVersionOptions($dependencies[$index]['project_id'])"
-                                                placeholder="Select a version"
-                                            />
+                                        <x-input
+                                            label="Project Slug"
+                                            wire:model.live.debounce.500ms="dependencies.{{ $index }}.project_slug"
+                                            placeholder="Enter project slug"
+                                            required
+                                            spinner
+                                        >
+                                        </x-input>
+                                        @if(isset($dependencies[$index]['project_slug']) && !empty($dependencies[$index]['project_slug']) && !$dependencies[$index]['project_id'])
+                                            <p class="mt-1 text-sm text-error">Project not found</p>
                                         @endif
                                     </div>
-                                @endif
-                            @else
-                                <!-- Manual Entry Mode -->
-                                <x-input
-                                    label="Project Name"
-                                    wire:model="dependencies.{{ $index }}.dependency_name"
-                                    placeholder="Enter project name"
-                                />
 
-                                <div>
-                                    <x-checkbox label="Specific Version" wire:model.live="dependencies.{{ $index }}.has_manual_version" />
-                                    
-                                    @if(isset($dependencies[$index]['has_manual_version']) && $dependencies[$index]['has_manual_version'])
-                                        <x-input
-                                            label="Version"
-                                            wire:model="dependencies.{{ $index }}.dependency_version"
-                                            placeholder="Enter version (e.g. 1.0.0)"
-                                        />
+                                    <!-- Version Selection (Optional) -->
+                                    @if($dependencies[$index]['project_id'])
+                                        <div>
+                                            <x-checkbox label="Specific Version" wire:model.live="dependencies.{{ $index }}.has_specific_version" />
+
+                                            <div wire:loading.flex wire:target="dependencies.{{ $index }}.has_specific_version" class="justify-center">
+                                                <span class="loading loading-spinner"></span>
+                                            </div>
+                                            <div wire:loading.remove wire:target="dependencies.{{ $index }}.has_specific_version">
+                                                @if($dependencies[$index]['has_specific_version'])
+                                                    <x-select
+                                                        label="Version"
+                                                        wire:model="dependencies.{{ $index }}.version_id"
+                                                        :options="$this->getVersionOptions($dependencies[$index]['project_id'])"
+                                                        placeholder="Select a version"
+                                                    />
+                                                @endif
+                                            </div>
+                                        </div>
                                     @endif
-                                </div>
-                            @endif
+                                @else
+                                    <!-- Manual Entry Mode -->
+                                    <x-input
+                                        label="Project Name"
+                                        wire:model="dependencies.{{ $index }}.dependency_name"
+                                        placeholder="Enter project name"
+                                    />
+
+                                    <div>
+                                        <x-checkbox label="Specific Version" wire:model.live="dependencies.{{ $index }}.has_manual_version" />
+
+                                        <div wire:loading.flex wire:target="dependencies.{{ $index }}.has_manual_version" class="justify-center">
+                                            <span class="loading loading-spinner"></span>
+                                        </div>
+
+                                        <div wire:loading.remove wire:target="dependencies.{{ $index }}.has_manual_version">
+                                            @if(isset($dependencies[$index]['has_manual_version']) && $dependencies[$index]['has_manual_version'])
+                                                <x-input
+                                                    label="Version"
+                                                    wire:model="dependencies.{{ $index }}.dependency_version"
+                                                    placeholder="Enter version (e.g. 1.0.0)"
+                                                />
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
 
-                    <x-button type="button" wire:click="addDependency" icon="lucide-plus" label="Add Dependency" class="w-full btn-outline" />
+                    <x-button spinner type="button" wire:click="addDependency" icon="lucide-plus" label="Add Dependency" class="w-full btn-outline" />
                 </div>
             </div>
 
@@ -227,7 +270,7 @@
 
             <form wire:submit.prevent="deleteVersion" class="space-y-4">
                 <x-input label="Type {{ $version->version }} to confirm deletion" wire:model="deleteConfirmation" placeholder="Enter version number to confirm" />
-                
+
                 <div class="flex justify-end">
                     <x-button type="submit" label="Delete Version" icon="lucide-trash-2" class="btn-error" />
                 </div>

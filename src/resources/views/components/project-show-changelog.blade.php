@@ -44,7 +44,7 @@
         </div>
     @else
         <div class="text-center py-12">
-            <x-icon name="file-x" class="w-12 h-12 mx-auto text-base-content/30 mb-2" />
+            <x-icon name="file-x" class="w-12 h-12 mx-auto mb-2" />
             <p class="text-base-content/60">No changelog entries available</p>
         </div>
     @endif

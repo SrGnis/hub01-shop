@@ -26,11 +26,13 @@
                 <!-- Project Tags -->
                 @if($this->tagGroups->count() > 0)
                     <div class="mb-6" x-ref="projectTagsFilter">
-                        <h3 class="font-semibold text-lg mb-4">Project Tags</h3>
+                        <div class="flex items-center justify-center">
+                            <h3 class="font-semibold text-lg mb-4">Project Tags</h3>
+                        </div>
                         @foreach ($this->tagGroups as $tagGroup)
                             <div class="mb-4">
                                 <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
-                                <div class="space-y-2">
+                                <div class="space-y-2 ml-4">
                                     @foreach ($tagGroup->tags as $tag)
                                         <x-checkbox
                                             wire:model.live="selectedTags"
@@ -55,11 +57,13 @@
                 <!-- Version Tags -->
                 @if($this->versionTagGroups->count() > 0)
                     <div class="mb-6" x-ref="versionTagsFilter">
-                        <h3 class="font-semibold text-lg mb-4">Version Tags</h3>
+                        <div class="flex items-center justify-center">
+                            <h3 class="font-semibold text-lg mb-4">Version Tags</h3>
+                        </div>
                         @foreach ($this->versionTagGroups as $tagGroup)
                             <div class="mb-4">
                                 <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
-                                <div class="space-y-2">
+                                <div class="space-y-2 ml-4">
                                     @foreach ($tagGroup->tags as $tag)
                                         <x-checkbox
                                             wire:model.live="selectedVersionTags"
@@ -151,7 +155,7 @@
     <x-mary-modal
         x-show="showMobileFilters"
         title="Filter & Sort Projects"
-        separator 
+        separator
         box-class="max-h-[90vh]"
     >
 
@@ -163,7 +167,7 @@
             </div>
 
             <!-- Project Tags -->
-            <div class="border-b pb-6" x-show="$refs.projectTagsFilter" x-html="$refs.projectTagsFilter ? $refs.projectTagsFilter.innerHTML : ''"></div>
+            <div class="pb-6" x-show="$refs.projectTagsFilter" x-html="$refs.projectTagsFilter ? $refs.projectTagsFilter.innerHTML : ''"></div>
 
             <!-- Version Tags -->
             <div x-show="$refs.versionTagsFilter" x-html="$refs.versionTagsFilter ? $refs.versionTagsFilter.innerHTML : ''"></div>

@@ -7,6 +7,7 @@
             icon="arrow-left"
             label="Back to Projects"
             class="btn-ghost"
+            no-wire-navigate
         />
         @auth
             <div class="flex flex-col lg:flex-row gap-2">
@@ -16,6 +17,7 @@
                         icon="upload"
                         label="Upload Version"
                         class="btn-success"
+                        no-wire-navigate
                     />
                 @endcan
 
@@ -25,6 +27,7 @@
                         icon="pencil"
                         label="Edit Project"
                         class="btn-primary"
+                        no-wire-navigate
                     />
                 @endcan
             </div>

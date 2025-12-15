@@ -15,10 +15,10 @@ enum ReleaseType: string
     public function bgColorClass(): string
     {
         return match ($this) {
-            self::ALPHA => 'bg-red-700',
-            self::BETA => 'bg-amber-700',
-            self::RC => 'bg-blue-700',
-            self::RELEASE => 'bg-green-700',
+            self::ALPHA => 'error',
+            self::BETA => 'warning',
+            self::RC => 'primary',
+            self::RELEASE => 'success',
         };
     }
 

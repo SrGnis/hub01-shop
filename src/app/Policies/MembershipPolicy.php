@@ -91,7 +91,7 @@ class MembershipPolicy
     /**
      * Determine whether the user can set a membership as primary.
      *
-     * Only primary users can set a membership as primary.
+     * Only primary users of the project of the membership can set a membership as primary.
      * Only memberships with status 'active' can be set as primary.
      * Only if the user is not already a primary member.
      *

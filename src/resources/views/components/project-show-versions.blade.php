@@ -36,7 +36,7 @@
                 <span class="font-semibold truncate">{{ $version->name }}</span>
                 <div class="flex items-center gap-2">
                     <span class="text-sm">{{ $version->version }}</span>
-                    <x-badge :value="$version->display_name" class="badge-sm {{ $version->bg_color_class }}" />
+                    <x-badge :value="$version->display_name" class="badge-sm badge-soft badge-{{ $version->bg_color_class }}" />
                 </div>
             </div>
         @endscope
@@ -77,7 +77,7 @@
         @endscope
 
         <x-slot:empty>
-            <x-icon name="file-x" class="w-12 h-12 mx-auto text-base-content/30 mb-2" />
+            <x-icon name="file-x" class="w-12 h-12 mx-auto mb-2" />
             <p class="text-base-content/60">No versions available</p>
         </x-slot:empty>
     </x-table>
