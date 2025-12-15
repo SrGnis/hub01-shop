@@ -39,9 +39,10 @@
                     <!-- Bio Field -->
                     <x-textarea
                         label="Bio"
-                        wire:model.live="bio"
+                        wire:model="bio"
                         placeholder="Tell us about yourself..."
-                        hint="{{ strlen($bio) }} / 125 characters"
+                        :max-length="125"
+                        :alpine-char-count="true"
                         rows="4"
                     />
 

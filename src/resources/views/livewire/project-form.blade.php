@@ -31,8 +31,7 @@
                     <label class="text-sm font-medium">
                         URL Slug
                         <span class="text-error">*</span>
-                        <span wire:loading wire:target="name" class="loading loading-spinner w-4 h-4"></span>
-                        <span wire:loading wire:target="slug" class="loading loading-spinner w-4 h-4"></span>
+                        <span wire:loading wire:target="name, slug" class="loading loading-spinner w-4 h-4"></span>
                     </label>
                     <x-button spinner type="button" wire:click="generateSlug" label="Generate from Name" class="btn-sm" />
                 </div>

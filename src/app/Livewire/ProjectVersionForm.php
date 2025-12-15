@@ -7,6 +7,8 @@ use App\Models\ProjectVersion;
 use App\Services\ProjectVersionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Mary\Traits\Toast;
@@ -25,9 +27,10 @@ class ProjectVersionForm extends Component
     public string $release_type = 'release';
     public $release_date;
     public string $changelog = '';
-    
+
     // File uploads
     public $files = [];
+    #[Locked]
     public $existingFiles = [];
 
     // Dependencies
@@ -70,7 +73,7 @@ class ProjectVersionForm extends Component
                 $this->error('You do not have permission to upload versions.', redirectTo: route('project.show', ['projectType' => $projectType, 'project' => $project]));
                 return;
             }
-            
+
             // Default release date to today
             $this->release_date = now()->format('Y-m-d');
         }
@@ -80,11 +83,9 @@ class ProjectVersionForm extends Component
     {
         $this->name = $this->version->name;
         $this->version_number = $this->version->version;
-        // Handle Enum to string conversion
-        $this->release_type = $this->version->release_type instanceof \App\Enums\ReleaseType 
-            ? $this->version->release_type->value 
-            : (string) $this->version->release_type;
-            
+
+        $this->release_type = $this->version->release_type->value;
+
         $this->release_date = $this->version->release_date->format('Y-m-d');
         $this->changelog = $this->version->changelog ?? '';
 
@@ -224,9 +225,18 @@ class ProjectVersionForm extends Component
         }
     }
 
+    public function removeNewFile($index)
+    {
+        // Remove the file at the specified index and re-index the array
+        if (isset($this->files[$index])) {
+            unset($this->files[$index]);
+            $this->files = array_values($this->files); // Re-index array to avoid gaps
+        }
+    }
+
     public function save()
     {
-        $this->validateForm();
+        $this->validate();
 
         try {
             $versionData = [
@@ -260,7 +270,12 @@ class ProjectVersionForm extends Component
         }
     }
 
-    private function validateForm()
+    /**
+     * Validation rules
+     *
+     * @return array<string, string|array>
+     */
+    protected function rules(): array
     {
         $rules = [
             'name' => 'required|string|max:255',
@@ -270,43 +285,70 @@ class ProjectVersionForm extends Component
             'dependencies' => 'array',
             'dependencies.*.type' => 'required|in:required,optional,embedded',
             'dependencies.*.mode' => 'required|in:linked,manual',
+            'selectedTags' => [
+                'array',
+                function ($attribute, $value, $fail) {
+                    $this->validateTagsForProjectType($value, $fail);
+                },
+            ],
         ];
+
+        $uniqueVersionRule = Rule::unique(ProjectVersion::class, 'version')
+            ->where('project_id', $this->project->id);
+
+        if ($this->isEditing) {
+            $uniqueVersionRule->ignore($this->version);
+        }
 
         $rules['version_number'] = [
             'required',
             'string',
             'max:50',
-            function ($attribute, $value, $fail) {
-                $query = ProjectVersion::where('project_id', $this->project->id)
-                    ->where('version', $value);
-
-                if ($this->isEditing) {
-                    $query->where('id', '!=', $this->version->id);
-                }
-
-                if ($query->exists()) {
-                    $fail('This version number is already used in this project.');
-                }
-            },
+            $uniqueVersionRule,
         ];
 
         $this->addDependencyValidationRules($rules);
         $this->addFileValidationRules($rules);
 
-        $messages = [
-            'dependencies.*.project_id.required' => 'Please enter a valid project slug',
-            'dependencies.*.project_slug.required' => 'The project slug field is required',
-            'dependencies.*.version_id.required' => 'Please select a version',
-            'dependencies.*.dependency_name.required' => 'The project name field is required',
-            'dependencies.*.dependency_name.max' => 'The project name must not exceed 255 characters',
-            'dependencies.*.dependency_version.required' => 'The version field is required',
-            'dependencies.*.dependency_version.max' => 'The version must not exceed 50 characters',
-        ];
 
-        $this->validate($rules, $messages);
+        return $rules;
     }
 
-    private function addDependencyValidationRules(&$rules)
+    /**
+     * Validate that all selected tags belong to tag groups valid for the current project type.
+     */
+    private function validateTagsForProjectType(array $selectedTagIds, callable $fail): void
+    {
+        if (empty($selectedTagIds)) {
+            return;
+        }
+
+        $invalidTags = \App\Models\ProjectVersionTag::whereIn('id', $selectedTagIds)
+            ->whereDoesntHave('projectTypes', fn ($query) => $query->where('project_type_id', $this->project->projectType->id))
+            ->pluck('name')
+            ->toArray();
+
+        if (!empty($invalidTags)) {
+            $tagNames = implode(', ', $invalidTags);
+            $fail("The following tags are not allowed for this project type: {$tagNames}.");
+        }
+    }
+
+    /**
+     * Add dynamic validation rules for dependencies based on their mode.
+     *
+     * For linked dependencies (referencing existing projects in the hub):
+     * - Requires a valid project_id and project_slug
+     * - Optionally requires a specific version_id if has_specific_version is true
+     * - dependency_name and dependency_version are optional (derived from linked project)
+     *
+     * For manual dependencies (external projects not in the hub):
+     * - Requires a dependency_name
+     * - Requires dependency_version only if has_manual_version is true
+     *
+     * @param  array<string, mixed>  $rules  The validation rules array to modify by reference
+     */
+    private function addDependencyValidationRules(array &$rules): void
     {
         foreach ($this->dependencies as $index => $dependency) {
             if ($dependency['mode'] === 'linked') {
@@ -328,7 +370,18 @@ class ProjectVersionForm extends Component
         }
     }
 
-    private function addFileValidationRules(&$rules)
+    /**
+     * Add dynamic validation rules for file uploads.
+     *
+     * Validates that:
+     * - At least one file is uploaded when creating a new version
+     * - Each file does not exceed 100MB (102400 KB)
+     * - File names are unique within the version (no duplicates with existing files)
+     * - File names are unique within the current upload batch
+     *
+     * @param  array<string, mixed>  $rules  The validation rules array to modify by reference
+     */
+    private function addFileValidationRules(array &$rules): void
     {
         if (!$this->isEditing || count($this->files) > 0) {
             $rules['files'] = 'required|array|min:1';
@@ -370,6 +423,29 @@ class ProjectVersionForm extends Component
         }
     }
 
+    /**
+     * Custom validation error messages for dependency fields.
+     *
+     * Provides user-friendly error messages for:
+     * - Invalid or missing project slugs in linked dependencies
+     * - Missing version selection when specific version is required
+     * - Missing or invalid dependency name/version in manual dependencies
+     *
+     * @return array<string, string>  Validation attribute => error message pairs
+     */
+    public function messages(): array
+    {
+        return [
+            'dependencies.*.project_id.required' => 'Please enter a valid project slug',
+            'dependencies.*.project_slug.required' => 'The project slug field is required',
+            'dependencies.*.version_id.required' => 'Please select a version',
+            'dependencies.*.dependency_name.required' => 'The project name field is required',
+            'dependencies.*.dependency_name.max' => 'The project name must not exceed 255 characters',
+            'dependencies.*.dependency_version.required' => 'The version field is required',
+            'dependencies.*.dependency_version.max' => 'The version must not exceed 50 characters',
+        ];
+    }
+
     public function deleteVersion()
     {
         if (!$this->isEditing) {
@@ -398,6 +474,16 @@ class ProjectVersionForm extends Component
             $this->error('Failed to delete version: ' . $e->getMessage());
         }
     }
+
+    public function updatedVersionNumber()
+    {
+        $this->resetValidation('version_number');
+        $version_number_rules = $this->rules()['version_number'];
+        $this->validate(['version_number' => $version_number_rules]);
+    }
+
+    // dummy method for attaching the loading state
+    public function refreshMarkdown(): void {}
 
     public function getAvailableTags()
     {

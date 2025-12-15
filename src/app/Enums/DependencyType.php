@@ -14,9 +14,9 @@ enum DependencyType: string
     public function bgColorClass(): string
     {
         return match ($this) {
-            self::REQUIRED => 'bg-red-700',
-            self::OPTIONAL => 'bg-blue-700',
-            self::EMBEDDED => 'bg-green-700',
+            self::REQUIRED => 'error',
+            self::OPTIONAL => 'primary',
+            self::EMBEDDED => 'success',
         };
     }
 

@@ -38,7 +38,7 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <x-badge :value="ucfirst($type)" class="badge-sm {{ \App\Enums\DependencyType::from($type)->bgColorClass() }}" />
+                                    <x-badge :value="ucfirst($type)" class="badge-sm badge-soft badge-{{ \App\Enums\DependencyType::from($type)->bgColorClass() }}" />
                                 </div>
                             @endforeach
                         </div>

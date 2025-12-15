@@ -20,6 +20,7 @@
                         link="{{ route('project.version.show', ['projectType' => $project->projectType, 'project' => $project, 'version_key' => $version]) }}"
                         icon="download"
                         class="btn-sm btn-primary"
+                        no-wire-navigate
                     />
                 </div>
             @endforeach

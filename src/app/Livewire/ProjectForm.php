@@ -233,7 +233,7 @@ class ProjectForm extends Component
 
         $this->validate([
             'newMemberName' => 'required|string|exists:users,name',
-            'newMemberRole' => 'required|in:owner,contributor,tester,translator',
+            'newMemberRole' => 'required|in:owner,member,contributor,tester,translator',
         ], ['newMemberName.exists' => 'No user found with this name.']);
 
         try {

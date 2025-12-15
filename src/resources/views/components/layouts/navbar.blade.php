@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
-    
+
     {{-- Cropper.js --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
@@ -20,13 +20,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen font-sans antialiased bg-base-200">
- 
+
     {{-- Navbar --}}
     <div class="bg-base-100 border-base-content/10 border-b-[length:var(--border)] sticky top-0 z-10">
         <div class="flex items-center justify-between px-6 py-3 max-w-screen-2xl mx-auto">
             {{-- Brand (Left) --}}
             <div class="flex-shrink-0">
-                <a href="/" class="flex items-center gap-2">
+                <a href="{{ route('project-search', \App\Models\ProjectType::first()) }}" class="flex items-center gap-2">
                     <div class="w-8 h-8">
                         <img src="{{ asset('images/logo.svg') }}" alt="" class="w-full h-full object-contain">
                     </div>
@@ -68,8 +68,18 @@
             </div>
 
             {{-- Actions (Right) --}}
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 flex items-center gap-3">
                 @if($user = auth()->user())
+                    <x-dropdown>
+                        <x-slot:trigger>
+                            <x-button icon="plus" class="btn-circle btn-ghost" />
+                        </x-slot:trigger>
+                        <x-menu class="p-0">
+                            @foreach ($allProjectTypes as $projectType)
+                                <x-menu-item title="New {{ $projectType->display_name }}" icon="{{ $projectType->icon }}" link="{{ route('project.create', $projectType) }}" />
+                            @endforeach
+                        </x-menu>
+                    </x-dropdown>
                     {{-- User Dropdown --}}
                     <x-dropdown>
                         <x-slot:trigger>
@@ -77,23 +87,26 @@
                                 placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
                                 placeholder-text-class="font-bold"
                                 placeholder-bg-class="bg-primary text-primary-content"
-                                class="cursor-pointer"
+                                class="cursor-pointer w-10"
                                 image="{{ $user->getAvatarUrl() }}"
                             >
                             </x-avatar>
                         </x-slot:trigger>
+                        <x-menu class="p-0">
+                            <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
 
-                        <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
-                        <x-menu-separator />
+                            <x-menu-separator />
 
-                        <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
-                            @csrf
-                        </form>
-                        <x-menu-item
-                            title="Logout"
-                            icon="power"
-                            @click.prevent="$refs.logoutForm.submit()"
-                        />
+                            <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
+                                @csrf
+                            </form>
+                            <x-menu-item
+                                title="Logout"
+                                icon="log-out"
+                                icon-classes="text-error"
+                                @click.prevent="$refs.logoutForm.submit()"
+                            />
+                        </x-menu>
                     </x-dropdown>
                 @else
                     {{-- Login & Register Dropdown --}}
@@ -136,7 +149,7 @@
             </div>
         </x-slot:content>
     </x-main>
- 
+
     {{--  TOAST area --}}
     <x-toast />
 </body>

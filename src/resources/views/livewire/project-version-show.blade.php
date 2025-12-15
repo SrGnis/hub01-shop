@@ -195,7 +195,7 @@
                     <!-- Release Type -->
                     <div>
                         <div class="text-xs text-base-content/60 mb-1">Release Type</div>
-                        <x-badge :value="$version->display_name" class="{{ $version->bg_color_class }}" />
+                        <x-badge :value="$version->display_name" class="badge-sm badge-soft badge-{{ $version->bg_color_class }}" />
                     </div>
 
                     <!-- Version Tags -->
@@ -207,7 +207,7 @@
                                         <div class="text-xs font-medium text-base-content/60 mb-1">{{ $groupName ?? 'Other Tags' }}</div>
                                         <div class="flex flex-wrap gap-1">
                                             @foreach ($tags as $tag)
-                                                <div class="badge badge-sm badge-outline gap-1">
+                                                <div class="badge badge-sm badge-soft gap-1">
                                                     <x-icon :name="$tag->icon" class="w-3 h-3" />
                                                     {{ $tag->name }}
                                                 </div>
