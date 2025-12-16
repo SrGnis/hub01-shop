@@ -95,6 +95,10 @@
                         <x-menu class="p-0">
                             <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
 
+                            @if ($user->isAdmin())
+                                <x-menu-item title="Admin" icon="settings" link="{{ route('admin.dashboard') }}" />
+                            @endif
+
                             <x-menu-separator />
 
                             <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">

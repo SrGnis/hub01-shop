@@ -6,8 +6,10 @@ use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectVersion;
 use App\Models\User;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
+#[Layout('components.layouts.admin')]
 class Dashboard extends Component
 {
     public function render()

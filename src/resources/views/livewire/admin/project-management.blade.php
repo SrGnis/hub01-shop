@@ -6,7 +6,7 @@
 
         {{-- Search and Filters --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <x-input placeholder="Search projects by name or slug..." wire:model.live.debounce.300ms="search"
+            <x-input label="Search" placeholder="Search projects by name or slug..." wire:model.live.debounce.300ms="search"
                 icon="lucide-search" clearable />
 
             <x-select label="Filter by Type" wire:model.live="filterType" :options="$projectTypes

@@ -5,10 +5,12 @@ namespace App\Livewire\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
+#[Layout('components.layouts.admin')]
 class UserManagement extends Component
 {
     use WithPagination, Toast;
@@ -60,8 +62,14 @@ class UserManagement extends Component
         $this->showModal = true;
     }
 
-    public function editUser(User $user)
+    public function editUser($user_id)
     {
+        $user = User::find($user_id);
+        if (! $user) {
+            $this->error('User not found.');
+
+            return;
+        }
         $this->userId = $user->id;
         $this->name = $user->name;
         $this->email = $user->email;
@@ -116,8 +124,15 @@ class UserManagement extends Component
         $this->showModal = false;
     }
 
-    public function confirmUserDeletion(User $user)
+    public function confirmUserDeletion($user_id)
     {
+        $user = User::find($user_id);
+        if (! $user) {
+            $this->error('User not found.');
+
+            return;
+        }
+
         $this->confirmingUserDeletion = true;
         $this->userToDelete = $user;
     }
