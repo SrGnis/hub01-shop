@@ -16,6 +16,14 @@ class ProjectVersionShow extends Component
     {
         $this->projectSlug = $project;
         $this->versionKey = $version_key;
+
+        // Check if the project is deactivated
+        if ($this->project->isDeactivated()) {
+            session()->flash('error', 'This project has been deactivated and cannot be viewed.');
+            return redirect()->route('project-search', ['projectType' => $this->project->projectType]);
+
+            return;
+        }
     }
 
     #[Computed]

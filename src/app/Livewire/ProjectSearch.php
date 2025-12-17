@@ -9,10 +9,12 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class ProjectSearch extends Component
 {
     use WithPagination;
+    use Toast;
 
     public ProjectType $projectType;
 

@@ -10,9 +10,18 @@
 </head>
 <body class="min-h-screen font-sans antialiased bg-base-200">
 
+    {{-- Flash Messages --}}
+    @if (session()->has('success') || session()->has('error') || session()->has('warning') || session()->has('info'))
+        <div class="bg-base-200 px-6 py-3">
+            <div class="max-w-screen-2xl mx-auto">
+                <x-flash-messages />
+            </div>
+        </div>
+    @endif
+
     {{-- Main content centered on screen --}}
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
-        
+
         {{-- Logo/Brand --}}
         <div class="mb-6">
             <a href="/" class="text-2xl font-bold text-primary">

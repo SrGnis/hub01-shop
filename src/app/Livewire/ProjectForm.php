@@ -106,22 +106,39 @@ class ProjectForm extends Component
         $this->projectType = $projectType;
 
         if (!Auth::check()) {
-            $this->error('Please log in to create a project.', redirectTo: route('login'));
+            // use normal laravel flash message toast is not working here
+            session()->flash('error', 'Please log in to create a project.');
+            return redirect()->route('login', ['projectType' => $projectType]);
         }
 
         if ($project && $project->exists) {
             $this->project = $project;
             $this->isEditing = true;
 
-            if (!Gate::allows('update', $project)) {
-                $this->error('You do not have permission to edit this project.', redirectTo: route('project.show', ['projectType' => $projectType, 'project' => $project]));
+            // Check if the project is deactivated
+            if ($project->isDeactivated()) {
+
+                session()->flash('error', 'This project has been deactivated and cannot be edited.');
+                return redirect()->route('project-search', ['projectType' => $projectType]);
+
+                return;
+            }
+
+            if (! Gate::allows('update', $project)) {
+
+                session()->flash('error', 'You do not have permission to edit this project.');
+                return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
+
+                return;
             }
 
             $this->project->load(['owner', 'tags.tagGroup', 'memberships.user']);
             $this->loadProjectData();
         } else {
             if (!Gate::allows('create', Project::class)) {
-                $this->error('You do not have permission to create a project.', redirectTo: route('project-search', ['projectType' => $projectType]));
+
+                session()->flash('error', 'You do not have permission to create a project.');
+                return redirect()->route('project-search', ['projectType' => $projectType]);
             }
         }
     }

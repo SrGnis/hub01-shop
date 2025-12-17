@@ -53,14 +53,29 @@ class ProjectVersionForm extends Component
     {
         $this->project = $project;
 
-        if (!Auth::check()) {
-            $this->error('Please log in to upload versions.', redirectTo: route('login', ['projectType' => $projectType]));
+        if (! Auth::check()) {
+            // use normal laravel flash message toast is not working here
+            session()->flash('error', 'Please log in to upload versions.');
+            return redirect()->route('login', ['projectType' => $projectType]);
+
+            return;
+        }
+
+        // Check if the project is deactivated
+        if ($project->isDeactivated()) {
+            // use normal laravel flash message toast is not working here
+            session()->flash('error', 'This project has been deactivated and versions cannot be created or edited.');
+            return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
+
             return;
         }
 
         if ($version_key) {
-            if (!Gate::allows('editVersion', $project)) {
-                $this->error('You do not have permission to edit this project.', redirectTo: route('project.show', ['projectType' => $projectType, 'project' => $project]));
+            if (! Gate::allows('editVersion', $project)) {
+
+                session()->flash('error', 'You do not have permission to edit this project.');
+                return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
+
                 return;
             }
 
@@ -69,8 +84,11 @@ class ProjectVersionForm extends Component
 
             $this->loadVersionData();
         } else {
-            if (!Gate::allows('uploadVersion', $project)) {
-                $this->error('You do not have permission to upload versions.', redirectTo: route('project.show', ['projectType' => $projectType, 'project' => $project]));
+            if (! Gate::allows('uploadVersion', $project)) {
+
+                session()->flash('error', 'You do not have permission to upload versions.');
+                return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
+
                 return;
             }
 

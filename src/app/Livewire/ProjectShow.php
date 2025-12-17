@@ -8,10 +8,12 @@ use App\Models\Project;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class ProjectShow extends Component
 {
     use WithPagination;
+    use Toast;
 
     #[Locked]
     public string $projectSlug;
@@ -27,6 +29,16 @@ class ProjectShow extends Component
     public function mount($project, ?string $activeTab = null)
     {
         $this->projectSlug = $project;
+
+        // Check if the project is deactivated
+        if ($this->project->isDeactivated()) {
+
+            // use normal laravel flash message toast is not working here
+            session()->flash('error', 'This project has been deactivated and cannot be viewed.');
+            return redirect()->route('project-search', ['projectType' => $this->project->projectType]);
+
+            return;
+        }
 
         if ($activeTab && in_array($activeTab, ['description', 'versions', 'changelog'])) {
             $this->activeTab = $activeTab;

@@ -4,10 +4,12 @@ namespace App\Livewire\Admin;
 
 use App\Models\Project;
 use App\Models\ProjectType;
+use App\Notifications\ProjectDeactivated;
+use App\Notifications\ProjectReactivated;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
-use Livewire\Attributes\Layout;
 
 #[Layout('components.layouts.admin')]
 class ProjectManagement extends Component
@@ -73,6 +75,50 @@ class ProjectManagement extends Component
         }
     }
 
+    public function deactivateProject($projectId)
+    {
+        $project = Project::withTrashed()->find($projectId);
+
+        if (! $project) {
+            $this->error('Project not found.');
+
+            return;
+        }
+
+        $project->deactivated_at = now();
+        $project->save();
+
+        $projectMembers = $project->active_users()->get();
+
+        foreach ($projectMembers as $member) {
+            $member->notify(new ProjectDeactivated($project));
+        }
+
+        $this->success('Project deactivated successfully.');
+    }
+
+    public function reactivateProject($projectId)
+    {
+        $project = Project::withTrashed()->find($projectId);
+
+        if (! $project) {
+            $this->error('Project not found.');
+
+            return;
+        }
+
+        $project->deactivated_at = null;
+        $project->save();
+
+        $projectMembers = $project->active_users()->get();
+
+        foreach ($projectMembers as $member) {
+            $member->notify(new ProjectReactivated($project));
+        }
+
+        $this->success('Project reactivated successfully.');
+    }
+
     public function render()
     {
         // Handle sorting
@@ -101,9 +147,16 @@ class ProjectManagement extends Component
         }
 
         if ($this->filterStatus === 'active') {
-            $projectsQuery->whereNull('project.deleted_at')->where('project.status', 'active');
+            $projectsQuery->whereNull('project.deleted_at')
+                ->whereNull('project.deactivated_at')
+                ->where('project.status', 'active');
         } elseif ($this->filterStatus === 'inactive') {
-            $projectsQuery->whereNull('project.deleted_at')->where('project.status', 'inactive');
+            $projectsQuery->whereNull('project.deleted_at')
+                ->whereNull('project.deactivated_at')
+                ->where('project.status', 'inactive');
+        } elseif ($this->filterStatus === 'deactivated') {
+            $projectsQuery->whereNull('project.deleted_at')
+                ->whereNotNull('project.deactivated_at');
         } elseif ($this->filterStatus === 'deleted') {
             $projectsQuery->whereNotNull('project.deleted_at');
         }
@@ -131,7 +184,8 @@ class ProjectManagement extends Component
                     'project.project_type_id',
                     'project.created_at',
                     'project.updated_at',
-                    'project.deleted_at'
+                    'project.deleted_at',
+                    'project.deactivated_at'
                 )
                 ->selectRaw('COALESCE(SUM(project_file.size), 0) as total_size')
                 ->groupBy(
@@ -148,7 +202,8 @@ class ProjectManagement extends Component
                     'project.project_type_id',
                     'project.created_at',
                     'project.updated_at',
-                    'project.deleted_at'
+                    'project.deleted_at',
+                    'project.deactivated_at'
                 )
                 ->orderBy('total_size', $sortDirection);
         } else {

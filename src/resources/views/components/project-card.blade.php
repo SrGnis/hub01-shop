@@ -8,9 +8,15 @@
             <div class="flex-shrink-0 flex items-center">
                 <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                     class="block hover:opacity-80 transition-opacity">
-                    <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
+                    @if($project->isDeactivated())
+                        <div class="w-28 h-28 bg-base-200 rounded-lg flex items-center justify-center">
+                            <x-icon name="lucide-ban" class="w-10 h-10 text-error" />
+                        </div>
+                    @else
+                        <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
                             class="w-28 h-28 object-cover rounded-lg"
                             alt="{{ $project->name }} Logo">
+                    @endif
                 </a>
             </div>
 
@@ -18,7 +24,7 @@
                 <h3 class="text-xl font-bold mb-1">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         class="text-primary hover:text-primary-focus transition-colors">
-                        {{ $project->pretty_name ?? $project->name ?? 'Unnamed Project' }}
+                        {{ $project->pretty_name ?? $project->name ?? 'Unnamed Project' }}{{ $project->isDeactivated() ? ' (Deactivated)' : '' }}
                     </a>
                 </h3>
                 <p class="text-sm mb-2">
@@ -75,9 +81,15 @@
             <div class="flex-shrink-0 flex items-center">
                 <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                     class="block hover:opacity-80 transition-opacity">
+                    @if($project->isDeactivated())
+                        <div class="w-32 h-32 bg-base-200 rounded-lg flex items-center justify-center">
+                            <x-icon name="lucide-ban" class="w-10 h-10 text-error" />
+                        </div>
+                    @else
                     <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
                         class="w-32 h-32 object-cover rounded-lg"
                         alt="{{ $project->name }} Logo">
+                    @endif
                 </a>
             </div>
 
@@ -88,7 +100,7 @@
                     <h3 class="text-xl font-bold mb-1">
                         <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                             class="text-primary hover:text-primary-focus transition-colors">
-                            {{ $project->pretty_name ?? $project->name ?? 'Unnamed Project' }}
+                            {{ $project->pretty_name ?? $project->name ?? 'Unnamed Project' }}{{ $project->isDeactivated() ? ' (Deactivated)' : '' }}
                         </a>
                     </h3>
                     <p class="">

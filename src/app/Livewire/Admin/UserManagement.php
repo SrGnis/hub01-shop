@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin;
 
 use App\Models\User;
+use App\Notifications\UserDeactivated;
+use App\Notifications\UserReactivated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -192,6 +194,9 @@ class UserManagement extends Component
         // Invalidate all user sessions
         DB::table('sessions')->where('user_id', $user->id)->delete();
 
+        // Send notification to the user
+        $user->notify(new UserDeactivated);
+
         $this->success('User deactivated successfully.');
     }
 
@@ -206,6 +211,9 @@ class UserManagement extends Component
 
         $user->deactivated_at = null;
         $user->save();
+
+        // Send notification to the user
+        $user->notify(new UserReactivated);
 
         $this->success('User reactivated successfully.');
     }
