@@ -54,7 +54,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => 'string',
+            'deactivated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if the user is deactivated
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
     }
 
     /**

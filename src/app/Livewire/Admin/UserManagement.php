@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -167,6 +168,46 @@ class UserManagement extends Component
         $this->password = '';
         $this->role = 'user';
         $this->isEditing = false;
+    }
+
+    public function deactivateUser($userId)
+    {
+        $user = User::find($userId);
+        if (! $user) {
+            $this->error('User not found.');
+
+            return;
+        }
+
+        // Don't allow deactivating yourself
+        if ($user->id === Auth::id()) {
+            $this->error('You cannot deactivate your own account.');
+
+            return;
+        }
+
+        $user->deactivated_at = now();
+        $user->save();
+
+        // Invalidate all user sessions
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        $this->success('User deactivated successfully.');
+    }
+
+    public function reactivateUser($userId)
+    {
+        $user = User::find($userId);
+        if (! $user) {
+            $this->error('User not found.');
+
+            return;
+        }
+
+        $user->deactivated_at = null;
+        $user->save();
+
+        $this->success('User reactivated successfully.');
     }
 
     public function render()

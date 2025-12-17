@@ -16,6 +16,7 @@
             ['key' => 'name', 'label' => 'Name'],
             ['key' => 'email', 'label' => 'Email'],
             ['key' => 'role', 'label' => 'Role'],
+            ['key' => 'status', 'label' => 'Status'],
             ['key' => 'created_at', 'label' => 'Created'],
             ['key' => 'actions', 'label' => 'Actions'],
         ]" :rows="$users" :sort-by="$sortBy" with-pagination>
@@ -32,6 +33,14 @@
                 <x-badge :value="ucfirst($user->role)" class="{{ $user->role === 'admin' ? 'badge-primary' : 'badge-ghost' }}" />
             @endscope
 
+            @scope('cell_status', $user)
+                @if ($user->isDeactivated())
+                    <x-badge value="Deactivated" class="badge-error" />
+                @else
+                    <x-badge value="Active" class="badge-success" />
+                @endif
+            @endscope
+
             @scope('cell_created_at', $user)
                 {{ $user->created_at->diffForHumans() }}
             @endscope
@@ -40,6 +49,15 @@
                 <div class="flex gap-2">
                     <x-button icon="lucide-pencil" wire:click="editUser({{ $user->id }})" class="btn-sm btn-ghost"
                         tooltip="Edit user" />
+                    @if ($user->isDeactivated())
+                        <x-button icon="lucide-user-check" wire:click="reactivateUser({{ $user->id }})"
+                            class="btn-sm btn-ghost text-success" tooltip="Reactivate user"
+                            wire:confirm="Are you sure you want to reactivate this user?" />
+                    @else
+                        <x-button icon="lucide-user-x" wire:click="deactivateUser({{ $user->id }})"
+                            class="btn-sm btn-ghost text-warning" tooltip="Deactivate user"
+                            wire:confirm="Are you sure you want to deactivate this user? They will be logged out immediately." />
+                    @endif
                     <x-button icon="lucide-trash-2" wire:click="confirmUserDeletion({{ $user->id }})"
                         class="btn-sm btn-ghost text-error" tooltip="Delete user" />
                 </div>

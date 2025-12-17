@@ -41,6 +41,13 @@ class Login extends Component
             ]);
         }
 
+        // Check if the user is deactivated
+        if (Auth::user()->isDeactivated()) {
+            Auth::logout();
+
+            return $this->redirect(route('account.deactivated'));
+        }
+
         RateLimiter::clear($this->throttleKey());
 
         session()->regenerate();
