@@ -44,7 +44,23 @@ class Project extends Model
         'source',
         'status',
         'project_type_id',
+        'deactivated_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'deactivated_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Check if the project is deactivated
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
+    }
 
     protected $with = [
         'projectType',

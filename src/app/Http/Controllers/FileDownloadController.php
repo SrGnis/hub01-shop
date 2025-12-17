@@ -19,6 +19,10 @@ class FileDownloadController extends Controller
     public function download(ProjectType $projectType, Project $project, $version, $file)
     {
 
+        // Check if the project is deactivated
+        if ($project->isDeactivated()) {
+            abort(404);
+        }
         $version = $project->versions()->where('version', $version)->first();
 
         if ($version->project_id !== $project->id) {

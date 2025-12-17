@@ -31,9 +31,15 @@ class UserProfile extends Component
     #[Computed]
     public function activeProjects()
     {
+        // only show deactivated projects to the authenticated owner
+
         return $this->user->projects()
             ->whereNull('project.deleted_at')
             ->where('membership.status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('project.deactivated_at')
+                    ->orWhere('user_id', Auth::id());
+            })
             ->with(['projectType', 'tags.tagGroup', 'owner'])
             ->orderBy('project.created_at', 'desc')
             ->get();

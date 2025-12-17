@@ -17,6 +17,7 @@
                 ['id' => '', 'name' => 'All'],
                 ['id' => 'active', 'name' => 'Active'],
                 ['id' => 'inactive', 'name' => 'Inactive'],
+                ['id' => 'deactivated', 'name' => 'Deactivated'],
                 ['id' => 'deleted', 'name' => 'Deleted'],
             ]"
                 placeholder="All Statuses" />
@@ -53,6 +54,8 @@
             @scope('cell_status', $project)
                 @if ($project->trashed())
                     <x-badge value="Deleted" class="badge-error" />
+                @elseif($project->isDeactivated())
+                    <x-badge value="Deactivated" class="badge-error" />
                 @elseif($project->status === 'active')
                     <x-badge value="Active" class="badge-success" />
                 @else
@@ -77,9 +80,20 @@
                         <x-button icon="lucide-eye"
                             link="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                             class="btn-sm btn-ghost" tooltip="View project" />
-                        <x-button icon="lucide-pencil"
-                            link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                            class="btn-sm btn-ghost" tooltip="Edit project" />
+                        @if (!$project->isDeactivated())
+                            <x-button icon="lucide-pencil"
+                                link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                                class="btn-sm btn-ghost" tooltip="Edit project" />
+                        @endif
+                        @if ($project->isDeactivated())
+                            <x-button icon="lucide-check-circle" wire:click="reactivateProject({{ $project->id }})"
+                                class="btn-sm btn-ghost text-success" tooltip="Reactivate project"
+                                wire:confirm="Are you sure you want to reactivate this project?" />
+                        @else
+                            <x-button icon="lucide-ban" wire:click="deactivateProject({{ $project->id }})"
+                                class="btn-sm btn-ghost text-warning" tooltip="Deactivate project"
+                                wire:confirm="Are you sure you want to deactivate this project? It will be hidden from search and cannot be edited." />
+                        @endif
                         <x-button icon="lucide-trash-2" wire:click="confirmProjectDeletion({{ $project->id }})"
                             class="btn-sm btn-ghost text-error" tooltip="Delete project" />
                     @endif
