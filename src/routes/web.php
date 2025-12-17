@@ -4,6 +4,7 @@ use App\Http\Controllers\EmailChangeController;
 use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PasswordChangeController;
+use App\Livewire\Auth\AccountDeactivated;
 use App\Livewire\ProjectForm;
 use App\Livewire\ProjectSearch;
 use App\Livewire\UserProfile;
@@ -18,6 +19,11 @@ require __DIR__.'/admin.php';
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Account Deactivated Page
+Route::get('/account/deactivated', AccountDeactivated::class)
+    ->name('account.deactivated')
+    ->withoutMiddleware(\App\Http\Middleware\EnsureUserIsNotDeactivated::class);
 
 // User Profile
 Route::get('/user/{user}', UserProfile::class)->name('user.profile');
