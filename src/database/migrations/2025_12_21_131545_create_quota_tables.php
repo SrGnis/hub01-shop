@@ -15,8 +15,6 @@ return new class extends Migration
         Schema::create('project_type_quota', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_type_id')->constrained('project_type')->onDelete('cascade');
-            $table->unsignedInteger('pending_projects_max')->nullable();
-            $table->unsignedBigInteger('total_storage_max')->nullable();
             $table->unsignedBigInteger('project_storage_max')->nullable();
             $table->unsignedInteger('versions_per_day_max')->nullable();
             $table->unsignedBigInteger('version_size_max')->nullable();
@@ -32,8 +30,6 @@ return new class extends Migration
         Schema::create('project_quota', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained('project')->onDelete('cascade');
-            $table->unsignedInteger('pending_projects_max')->nullable();
-            $table->unsignedBigInteger('total_storage_max')->nullable();
             $table->unsignedBigInteger('project_storage_max')->nullable();
             $table->unsignedInteger('versions_per_day_max')->nullable();
             $table->unsignedBigInteger('version_size_max')->nullable();
@@ -43,6 +39,17 @@ return new class extends Migration
             
             // One quota record per project
             $table->unique('project_id');
+        });
+
+        // Create user_quota table
+        Schema::create('user_quota', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->unsignedBigInteger('total_storage_max')->nullable();
+            $table->timestamps();
+            
+            // One quota record per user
+            $table->unique('user_id');
         });
     }
 
