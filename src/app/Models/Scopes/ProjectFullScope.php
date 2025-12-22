@@ -19,29 +19,12 @@ class ProjectFullScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->withSum('versions as downloads', 'downloads');
-        $builder->withMax('versions as recent_release_date', 'release_date');
+        $builder->withStats();
 
         // Exclude pending projects from public searches
-        // Only show approved projects, or pending/rejected projects if user is owner/admin
-        $user = Auth::user();
-        
-        if (!$user || !$user->isAdmin()) {
-            $builder->where(function ($query) use ($user) {
-                // Always show approved projects
-                $query->where('approval_status', ApprovalStatus::APPROVED);
-                
-                // If user is logged in, also show their own pending/rejected projects
-                if ($user) {
-                    $query->orWhere(function ($subQuery) use ($user) {
-                        $subQuery->whereIn('approval_status', [ApprovalStatus::PENDING, ApprovalStatus::REJECTED])
-                            ->whereHas('owner', function ($ownerQuery) use ($user) {
-                                $ownerQuery->where('user_id', $user->id);
-                            });
-                    });
-                }
-            });
-        }
-        // Admins can see all projects regardless of approval status
+        $builder->approved();
+
+        // Exclude deactivated projects from public searches
+        $builder->whereNull('deactivated_at');
     }
 }

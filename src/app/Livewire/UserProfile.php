@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Project;
+use App\Models\Scopes\ProjectFullScope;
 use App\Models\User;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
@@ -28,23 +29,26 @@ class UserProfile extends Component
         $this->user = $user;
     }
 
+    // TODO: move it for reusing it in API
     #[Computed]
     public function activeProjects()
     {
-        // only show deactivated projects to the authenticated owner
+        $query = $this->user->projects();
 
-        return $this->user->projects()
-            ->whereNull('project.deleted_at')
-            ->where('membership.status', 'active')
-            ->where(function ($query) {
-                $query->whereNull('project.deactivated_at')
-                    ->orWhere('user_id', Auth::id());
-            })
-            ->with(['projectType', 'tags.tagGroup', 'owner'])
-            ->orderBy('project.created_at', 'desc')
-            ->get();
+        // if the user is the owner, remove the excluded projects (pending, deactivated, rejected)
+        if (Auth::check() && Auth::id() === $this->user->id) {
+            $query->withoutGlobalScope(ProjectFullScope::class);
+            $query->withStats();
+        }
+
+        // preloaded relations for performance
+        $query->with(['projectType', 'tags.tagGroup', 'owner'])
+            ->orderBy('project.created_at', 'desc');
+
+        return $query->get();
     }
 
+    // TODO: move it for reusing it in API
     #[Computed]
     public function deletedProjects()
     {
@@ -61,6 +65,7 @@ class UserProfile extends Component
             ->get();
     }
 
+    // TODO: move it for reusing it in API
     #[Computed]
     public function ownedProjectsCount()
     {
@@ -70,6 +75,7 @@ class UserProfile extends Component
             ->count();
     }
 
+    // TODO: move it for reusing it in API
     #[Computed]
     public function contributionsCount()
     {
@@ -81,6 +87,7 @@ class UserProfile extends Component
             ->count();
     }
 
+    // TODO: move it to service
     public function restoreProject($projectId)
     {
         $project = Project::withoutGlobalScopes()->onlyTrashed()->findOrFail($projectId);

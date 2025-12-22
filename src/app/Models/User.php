@@ -86,7 +86,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the projects associated with the user through memberships
-     * This relationship includes soft-deleted projects
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
@@ -94,12 +93,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Project::class, 'membership')
             ->withPivot(['role', 'primary', 'status'])
+            ->wherePivot('status', 'active')
             ->using(Membership::class);
     }
 
     /**
      * Get the projects where the user is the primary owner
-     * This relationship includes soft-deleted projects
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
@@ -107,6 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Project::class, 'membership')
             ->withPivot(['role', 'primary', 'status'])
+            ->wherePivot('status', 'active')
             ->wherePivot('primary', true)
             ->using(Membership::class);
     }
