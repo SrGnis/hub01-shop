@@ -100,6 +100,7 @@
                     <x-menu-item title="List" icon="list" link="{{ route('admin.projects.index') }}" />
                     <x-menu-item title="Approvals" icon="check-circle"
                         link="{{ route('admin.projects.approvals') }}" />
+                    <x-menu-item title="Quotas" icon="lucide-gauge" link="{{ route('admin.quotas') }}" />
                 </x-menu-sub>
 
                 <x-menu-separator />
