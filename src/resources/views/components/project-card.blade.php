@@ -1,6 +1,6 @@
 @props(['project'])
 
-<x-card class="!py-3 !px-5" id="{{ $project->id }}" >
+<x-card class="!py-3 !px-5" id="{{ $project->id }}">
     <!-- Mobile Layout (default) -->
     <div class="block lg:hidden">
         <!-- Image with Title, Byline, and Description -->
@@ -8,14 +8,13 @@
             <div class="flex-shrink-0 flex items-center">
                 <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                     class="block hover:opacity-80 transition-opacity">
-                    @if($project->isDeactivated())
+                    @if ($project->isDeactivated())
                         <div class="w-28 h-28 bg-base-200 rounded-lg flex items-center justify-center">
                             <x-icon name="lucide-ban" class="w-10 h-10 text-error" />
                         </div>
                     @else
                         <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
-                            class="w-28 h-28 object-cover rounded-lg"
-                            alt="{{ $project->name }} Logo">
+                            class="w-28 h-28 object-cover rounded-lg" alt="{{ $project->name }} Logo">
                     @endif
                 </a>
             </div>
@@ -24,11 +23,19 @@
                 <h3 class="text-xl font-bold mb-1">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         class="text-primary hover:text-primary-focus transition-colors">
-                        {{ $project->pretty_name ?? $project->name ?? 'Unnamed Project' }}{{ $project->isDeactivated() ? ' (Deactivated)' : '' }}
+                        {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
+                        @if ($project->isDeactivated())
+                            <x-badge value="Deactivated" class="badge-error" />
+                        @elseif ($project->isPending())
+                            <x-badge value="Pending" class="badge-warning" />
+                        @elseif ($project->isRejected())
+                            <x-badge value="Rejected" class="badge-error" />
+                        @endif
                     </a>
                 </h3>
                 <p class="text-sm mb-2">
-                    by <span class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
+                    by <span
+                        class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
                 </p>
                 <!-- Description now appears next to the image -->
                 <p class="text-sm leading-relaxed">
@@ -38,7 +45,7 @@
         </div>
 
         <!-- Tags -->
-        @if($project->tags->count() > 0)
+        @if ($project->tags->count() > 0)
             <div class="mb-4">
                 <div class="flex flex-wrap gap-2">
                     @foreach ($project->tags as $tag)
@@ -60,7 +67,7 @@
                 </span>
             </div>
 
-            @if($project->recent_release_date)
+            @if ($project->recent_release_date)
                 <div class="flex items-center gap-1">
                     <x-icon name="lucide-calendar" class="w-3 h-3" />
                     <span>Updated {{ \Carbon\Carbon::parse($project->recent_release_date)->diffForHumans() }}</span>
@@ -81,14 +88,13 @@
             <div class="flex-shrink-0 flex items-center">
                 <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                     class="block hover:opacity-80 transition-opacity">
-                    @if($project->isDeactivated())
+                    @if ($project->isDeactivated())
                         <div class="w-32 h-32 bg-base-200 rounded-lg flex items-center justify-center">
                             <x-icon name="lucide-ban" class="w-10 h-10 text-error" />
                         </div>
                     @else
-                    <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
-                        class="w-32 h-32 object-cover rounded-lg"
-                        alt="{{ $project->name }} Logo">
+                        <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
+                            class="w-32 h-32 object-cover rounded-lg" alt="{{ $project->name }} Logo">
                     @endif
                 </a>
             </div>
@@ -100,11 +106,19 @@
                     <h3 class="text-xl font-bold mb-1">
                         <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                             class="text-primary hover:text-primary-focus transition-colors">
-                            {{ $project->pretty_name ?? $project->name ?? 'Unnamed Project' }}{{ $project->isDeactivated() ? ' (Deactivated)' : '' }}
+                            {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
+                            @if ($project->isDeactivated())
+                                <x-badge value="Deactivated" class="badge-error" />
+                            @elseif ($project->isPending())
+                                <x-badge value="Pending" class="badge-warning" />
+                            @elseif ($project->isRejected())
+                                <x-badge value="Rejected" class="badge-error" />
+                            @endif
                         </a>
                     </h3>
                     <p class="">
-                        by <span class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
+                        by <span
+                            class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
                     </p>
                 </div>
 
@@ -116,7 +130,7 @@
                 </div>
 
                 <!-- Tags spanning full width at bottom -->
-                @if($project->tags->count() > 0)
+                @if ($project->tags->count() > 0)
                     <div>
                         <div class="flex flex-wrap gap-4">
                             @foreach ($project->tags as $tag)
@@ -135,16 +149,18 @@
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-download" />
                     <span>
-                        {{ $project->downloads }} downloads
+                        {{ $project->downloads ?? 0 }} downloads
                     </span>
                 </div>
 
-                @if($project->recent_release_date)
-                    <div class="flex items-center gap-2">
-                        <x-icon name="lucide-calendar" />
-                        <span>Updated {{ \Carbon\Carbon::parse($project->recent_release_date)->diffForHumans() }}</span>
-                    </div>
-                @endif
+                @php
+                    $recentReleaseDate = $project->recent_release_date ?? $project->created_at;
+                @endphp
+                <div class="flex items-center gap-2">
+                    <x-icon name="lucide-calendar" />
+                    <span>Updated
+                        {{ \Carbon\Carbon::parse($recentReleaseDate)->diffForHumans() }}</span>
+                </div>
 
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-calendar-plus" />

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ApprovalStatus;
 use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectTag;
@@ -41,6 +42,9 @@ class ProjectFactory extends Factory
             'source' => fake()->url(),
             'status' => fake()->randomElement(['active', 'inactive']),
             'project_type_id' => $projectType->id,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'submitted_at' => now()->subDays(rand(1, 30)),
+            'reviewed_at' => now()->subDays(rand(0, 30)),
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -59,6 +63,38 @@ class ProjectFactory extends Factory
             $membership->user()->associate($user);
             $membership->project()->associate($project);
             $membership->save();
+        });
+    }
+
+    /**
+     * Indicate that the project is pending approval.
+     */
+    public function pending(): static
+    {
+        return $this->state(function () {
+            return [
+                'approval_status' => ApprovalStatus::PENDING,
+                'submitted_at' => now(),
+                'reviewed_at' => null,
+                'reviewed_by' => null,
+                'rejection_reason' => null,
+            ];
+        });
+    }
+
+    /**
+     * Indicate that the project was rejected.
+     */
+    public function rejected(?string $reason = null): static
+    {
+        return $this->state(function () use ($reason) {
+            return [
+                'approval_status' => ApprovalStatus::REJECTED,
+                'submitted_at' => now()->subDays(rand(1, 7)),
+                'reviewed_at' => now()->subDays(rand(0, 3)),
+                'reviewed_by' => User::where('role', 'admin')->inRandomOrder()->first()?->id,
+                'rejection_reason' => $reason ?? fake()->sentence(),
+            ];
         });
     }
 

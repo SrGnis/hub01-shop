@@ -49,20 +49,17 @@
             <x-menu activate-by-route>
 
                 {{-- User --}}
-                @if($user = auth()->user())
+                @if ($user = auth()->user())
                     <x-menu-separator />
                     <x-dropdown>
                         <x-slot:trigger>
                             <a>
                                 <x-list-item :item="$user" no-separator class="-mx-2 !-my-2 rounded">
                                     <x-slot:avatar>
-                                        <x-avatar
-                                            placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
+                                        <x-avatar placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
                                             placeholder-text-class="font-bold"
                                             placeholder-bg-class="bg-primary text-primary-content"
-                                            class="cursor-pointer w-10"
-                                            image="{{ $user->getAvatarUrl() }}"
-                                        >
+                                            class="cursor-pointer w-10" image="{{ $user->getAvatarUrl() }}">
                                         </x-avatar>
                                     </x-slot:avatar>
                                     <x-slot:value>
@@ -71,7 +68,8 @@
                                     <x-slot:sub-value>
                                         {{ $user->email }}
                                     </x-slot:sub-value>
-                                    <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
+                                    <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm"
+                                        class="hidden">
                                         @csrf
                                     </form>
                                 </x-list-item>
@@ -85,12 +83,8 @@
                             <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
                                 @csrf
                             </form>
-                            <x-menu-item
-                                title="Logout"
-                                icon="log-out"
-                                icon-classes="text-error"
-                                @click.prevent="$refs.logoutForm.submit()"
-                            />
+                            <x-menu-item title="Logout" icon="log-out" icon-classes="text-error"
+                                @click.prevent="$refs.logoutForm.submit()" />
                         </x-menu>
                     </x-dropdown>
 
@@ -102,7 +96,11 @@
 
                 <x-menu-title class="hidden-when-collapsed" title="Management" />
                 <x-menu-item title="Users" icon="lucide-users" link="{{ route('admin.users') }}" />
-                <x-menu-item title="Projects" icon="lucide-package" link="{{ route('admin.projects') }}" />
+                <x-menu-sub title="Projects" icon="lucide-package" open>
+                    <x-menu-item title="List" icon="list" link="{{ route('admin.projects.index') }}" />
+                    <x-menu-item title="Approvals" icon="check-circle"
+                        link="{{ route('admin.projects.approvals') }}" />
+                </x-menu-sub>
 
                 <x-menu-separator />
 
@@ -121,4 +119,5 @@
     {{-- Toast --}}
     <x-toast />
 </body>
+
 </html>

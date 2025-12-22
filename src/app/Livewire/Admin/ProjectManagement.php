@@ -26,6 +26,8 @@ class ProjectManagement extends Component
 
     public $filterStatus = '';
 
+    public $filterApprovalStatus = '';
+
     // Confirmation
     public $confirmingProjectDeletion = false;
 
@@ -42,6 +44,11 @@ class ProjectManagement extends Component
     }
 
     public function updatingFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterApprovalStatus()
     {
         $this->resetPage();
     }
@@ -159,6 +166,15 @@ class ProjectManagement extends Component
                 ->whereNotNull('project.deactivated_at');
         } elseif ($this->filterStatus === 'deleted') {
             $projectsQuery->whereNotNull('project.deleted_at');
+        }
+
+        // Filter by approval status
+        if ($this->filterApprovalStatus === 'pending') {
+            $projectsQuery->where('project.approval_status', 'pending');
+        } elseif ($this->filterApprovalStatus === 'approved') {
+            $projectsQuery->where('project.approval_status', 'approved');
+        } elseif ($this->filterApprovalStatus === 'rejected') {
+            $projectsQuery->where('project.approval_status', 'rejected');
         }
 
         if ($sortColumn === 'type') {

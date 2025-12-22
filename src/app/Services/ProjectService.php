@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ApprovalStatus;
 use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectTag;
@@ -13,8 +14,12 @@ use App\Notifications\BrokenDependencyNotification;
 use App\Notifications\MembershipInvitation;
 use App\Notifications\MembershipRemoved;
 use App\Notifications\PrimaryStatusChanged;
+use App\Notifications\ProjectApprovalRequested;
+use App\Notifications\ProjectApproved;
 use App\Notifications\ProjectDeleted;
+use App\Notifications\ProjectRejected;
 use App\Notifications\ProjectRestored;
+use App\Notifications\ProjectSubmittedForReview;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -26,6 +31,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ProjectService
 {
+    protected ProjectQuotaService $quotaService;
+
+    public function __construct(ProjectQuotaService $quotaService)
+    {
+        $this->quotaService = $quotaService;
+    }
     /**
      * Search and filter projects based on criteria
      */
@@ -231,7 +242,17 @@ class ProjectService
             throw new \Exception('User not provided.');
         }
 
-        $project = Project::create(array_merge($data, ['logo_path' => $logoPath]));
+        // Validate quota before creating project
+        $this->quotaService->validateProjectCreation($user);
+
+        // Set project to pending approval status by default
+        $projectData = array_merge($data, [
+            'logo_path' => $logoPath,
+            'approval_status' => ApprovalStatus::PENDING,
+            'submitted_at' => now(),
+        ]);
+
+        $project = Project::create($projectData);
         $project->tags()->attach($data['selectedTags'] ?? []);
 
         // Create owner membership
@@ -242,6 +263,15 @@ class ProjectService
         $membership->user()->associate($user);
         $membership->project()->associate($project);
         $membership->save();
+
+        // Notify user that project was submitted
+        $user->notify(new ProjectSubmittedForReview($project));
+
+        // Notify all admins about the new project pending approval
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new ProjectApprovalRequested($project, $user));
+        }
 
         return $project;
     }
@@ -487,6 +517,80 @@ class ProjectService
             Log::error('Failed to restore project: ' . $e->getMessage(), [
                 'project_id' => $project->id,
                 'user_id' => Auth::id(),
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Submit a project for review (resubmission after rejection)
+     */
+    public function submitProjectForReview(Project $project): void
+    {
+        $project->submit();
+
+        // Get project owner
+        $owner = $project->owner->first();
+        if ($owner) {
+            $owner->notify(new ProjectSubmittedForReview($project));
+        }
+
+        // Notify admins about resubmission
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new ProjectApprovalRequested($project, $owner));
+        }
+    }
+
+    /**
+     * Approve a project
+     */
+    public function approveProject(Project $project, User $admin): void
+    {
+        DB::beginTransaction();
+
+        try {
+            $project->approve($admin);
+
+            // Notify project owner
+            $owner = $project->owner->first();
+            if ($owner) {
+                $owner->notify(new ProjectApproved($project, $admin));
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to approve project: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'admin_id' => $admin->id,
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Reject a project with a reason
+     */
+    public function rejectProject(Project $project, User $admin, string $reason): void
+    {
+        DB::beginTransaction();
+
+        try {
+            $project->reject($admin, $reason);
+
+            // Notify project owner
+            $owner = $project->owner->first();
+            if ($owner) {
+                $owner->notify(new ProjectRejected($project, $admin, $reason));
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to reject project: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'admin_id' => $admin->id,
             ]);
             throw $e;
         }

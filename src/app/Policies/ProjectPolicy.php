@@ -28,6 +28,8 @@ class ProjectPolicy extends BasePolicy
      */
     public function create(User $user): bool
     {
+        // Only check if the user has verified their email
+        // Quota validation is business logic and should be done in the service layer
         return $user->hasVerifiedEmail();
     }
 
@@ -44,9 +46,36 @@ class ProjectPolicy extends BasePolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $project->users()->where('user_id', $user->id)
+        // Admins can always update
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Users can only update their own projects if they are active members
+        $isActiveMember = $project->users()->where('user_id', $user->id)
             ->wherePivot('status', 'active')
             ->exists();
+
+        if (!$isActiveMember) {
+            return false;
+        }
+
+        // Users can edit rejected projects for resubmission
+        if ($project->isRejected()) {
+            return $project->owner->contains($user);
+        }
+
+        // Users can edit approved projects
+        if ($project->isApproved()) {
+            return true;
+        }
+
+        // Users cannot edit pending projects unless they are the owner (for fixes before approval)
+        if ($project->isPending()) {
+            return $project->owner->contains($user);
+        }
+
+        return false;
     }
 
     /**
@@ -103,5 +132,29 @@ class ProjectPolicy extends BasePolicy
     public function editVersion(User $user, Project $project): bool
     {
         return $this->uploadVersion($user, $project);
+    }
+
+    /**
+     * Determine whether the user (admin) can approve a project.
+     */
+    public function approve(User $user, Project $project): bool
+    {
+        return $user->isAdmin() && $project->isPending();
+    }
+
+    /**
+     * Determine whether the user (admin) can reject a project.
+     */
+    public function reject(User $user, Project $project): bool
+    {
+        return $user->isAdmin() && $project->isPending();
+    }
+
+    /**
+     * Determine whether the user can resubmit a rejected project.
+     */
+    public function resubmit(User $user, Project $project): bool
+    {
+        return $project->isRejected() && $project->owner->contains($user);
     }
 }

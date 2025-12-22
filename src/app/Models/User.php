@@ -180,4 +180,15 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(PendingPasswordChange::class);
     }
+
+    /**
+     * Get the projects reviewed by this user (admin)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function reviewedProjects()
+    {
+        return $this->hasMany(Project::class, 'reviewed_by');
+    }
+
 }
