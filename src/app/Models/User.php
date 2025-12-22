@@ -141,6 +141,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return Membership::where('invited_by', $this->id)->pending()->get();
     }
 
+    public function quota()
+    {
+        return $this->hasOne(UserQuota::class);
+    }
+
     /**
      * Check if the user is an admin
      */

@@ -14,8 +14,6 @@ class ProjectQuota extends Model
 
     protected $fillable = [
         'project_id',
-        'pending_projects_max',
-        'total_storage_max',
         'project_storage_max',
         'versions_per_day_max',
         'version_size_max',
@@ -24,8 +22,6 @@ class ProjectQuota extends Model
     ];
 
     protected $casts = [
-        'pending_projects_max' => 'integer',
-        'total_storage_max' => 'integer',
         'project_storage_max' => 'integer',
         'versions_per_day_max' => 'integer',
         'version_size_max' => 'integer',

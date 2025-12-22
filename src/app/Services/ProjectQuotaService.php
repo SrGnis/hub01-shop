@@ -148,6 +148,17 @@ class ProjectQuotaService
             }
         }
 
+        // Apply user-specific overrides from database if available (highest priority)
+        if ($user) {
+            $user->load('quota');
+            if ($user->quota) {
+                $userQuota = $user->quota->toArray();
+                // Filter out null values and non-quota fields
+                unset($userQuota['id'], $userQuota['user_id'], $userQuota['created_at'], $userQuota['updated_at']);
+                $limits = array_merge($limits, array_filter($userQuota, fn($val) => !is_null($val)));
+            }
+        }
+
         return $limits;
     }
 
