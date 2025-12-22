@@ -35,15 +35,8 @@ class UserProfile extends Component
     {
         $query = $this->user->projects();
 
-        // if the user is the owner, remove the excluded projects (pending, deactivated, rejected)
-        if (Auth::check() && Auth::id() === $this->user->id) {
-            $query->withoutGlobalScope(ProjectFullScope::class);
-            $query->withStats();
-        }
-
-        // preloaded relations for performance
-        $query->with(['projectType', 'tags.tagGroup', 'owner'])
-            ->orderBy('project.created_at', 'desc');
+        $query->accessScope();
+        $query->orderBy('project.created_at', 'desc');
 
         return $query->get();
     }
@@ -59,8 +52,7 @@ class UserProfile extends Component
 
         return $this->user->projects()
             ->onlyTrashed()
-            ->where('membership.status', 'active')
-            ->with(['projectType', 'tags.tagGroup', 'owner'])
+            ->accessScope()
             ->orderBy('project.deleted_at', 'desc')
             ->get();
     }

@@ -44,15 +44,6 @@ return new class extends Migration
             // One quota record per project
             $table->unique('project_id');
         });
-
-        // Drop the old JSON columns
-        Schema::table('project_type', function (Blueprint $table) {
-            $table->dropColumn('quota_overrides');
-        });
-
-        Schema::table('project', function (Blueprint $table) {
-            $table->dropColumn('quota_overrides');
-        });
     }
 
     /**
@@ -60,15 +51,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Add back JSON columns
-        Schema::table('project_type', function (Blueprint $table) {
-            $table->json('quota_overrides')->nullable();
-        });
-
-        Schema::table('project', function (Blueprint $table) {
-            $table->json('quota_overrides')->nullable();
-        });
-
         // Drop the quota tables
         Schema::dropIfExists('project_quota');
         Schema::dropIfExists('project_type_quota');

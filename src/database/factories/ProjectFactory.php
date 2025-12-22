@@ -67,6 +67,22 @@ class ProjectFactory extends Factory
     }
 
     /**
+     * Indicate that the project is draft.
+     */
+    public function draft(): static
+    {
+        return $this->state(function () {
+            return [
+                'approval_status' => ApprovalStatus::DRAFT,
+                'submitted_at' => null,
+                'reviewed_at' => null,
+                'reviewed_by' => null,
+                'rejection_reason' => null,
+            ];
+        });
+    }
+
+    /**
      * Indicate that the project is pending approval.
      */
     public function pending(): static

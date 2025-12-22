@@ -60,8 +60,8 @@ class ProjectPolicy extends BasePolicy
             return false;
         }
 
-        // Users can edit rejected projects for resubmission
-        if ($project->isRejected()) {
+        // Users can edit rejected or draft projects
+        if ($project->isRejected() || $project->isDraft()) {
             return $project->owner->contains($user);
         }
 
@@ -110,7 +110,7 @@ class ProjectPolicy extends BasePolicy
      */
     public function addMember(User $user, Project $project): bool
     {
-        return $project->users()->where('user_id', $user->id)
+        return $project->isApproved() && $project->users()->where('user_id', $user->id)
             ->wherePivot('status', 'active')
             ->wherePivot('primary', true)
             ->exists();
@@ -121,7 +121,7 @@ class ProjectPolicy extends BasePolicy
      */
     public function uploadVersion(User $user, Project $project): bool
     {
-        return $project->users()->where('user_id', $user->id)
+        return $project->isApproved() && $project->users()->where('user_id', $user->id)
             ->wherePivot('status', 'active')
             ->exists();
     }
@@ -131,7 +131,7 @@ class ProjectPolicy extends BasePolicy
      */
     public function editVersion(User $user, Project $project): bool
     {
-        return $this->uploadVersion($user, $project);
+        return $project->isApproved() && $this->uploadVersion($user, $project);
     }
 
     /**

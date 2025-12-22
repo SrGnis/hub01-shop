@@ -28,6 +28,13 @@
             icon="clock" class="mb-6 alert-warning" />
     @endif
 
+    {{-- Draft Project Notice --}}
+    @if ($project->isDraft())
+        <x-alert title="This project is a draft"
+            description="This project is currently a draft. Only the owner can see it, you can submit it for review in the project settings."
+            icon="clock" class="mb-6 alert-info" />
+    @endif
+
     {{-- Rejected Project Notice --}}
     @if ($project->isRejected())
         <x-alert title="This project was rejected"
