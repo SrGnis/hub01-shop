@@ -30,6 +30,8 @@
                             <x-badge value="Pending" class="badge-warning" />
                         @elseif ($project->isRejected())
                             <x-badge value="Rejected" class="badge-error" />
+                        @elseif ($project->isDraft())
+                            <x-badge value="Draft" class="badge-info" />
                         @endif
                     </a>
                 </h3>
@@ -107,12 +109,12 @@
                         <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                             class="text-primary hover:text-primary-focus transition-colors">
                             {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
+                            @if (!$project->isApproved())
+                                <x-badge value="{{ $project->approval_status->label() }}"
+                                    class="badge-{{ $project->approval_status->color() }}" />
+                            @endif
                             @if ($project->isDeactivated())
                                 <x-badge value="Deactivated" class="badge-error" />
-                            @elseif ($project->isPending())
-                                <x-badge value="Pending" class="badge-warning" />
-                            @elseif ($project->isRejected())
-                                <x-badge value="Rejected" class="badge-error" />
                             @endif
                         </a>
                     </h3>

@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use App\Models\Project;
+use App\Models\Scopes\ProjectFullScope;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -36,8 +37,6 @@ class ProjectShow extends Component
             // use normal laravel flash message toast is not working here
             session()->flash('error', 'This project has been deactivated and cannot be viewed.');
             return redirect()->route('project-search', ['projectType' => $this->project->projectType]);
-
-            return;
         }
 
         if ($activeTab && in_array($activeTab, ['description', 'versions', 'changelog'])) {
@@ -58,12 +57,8 @@ class ProjectShow extends Component
     #[Computed]
     public function project()
     {
-        return Project::where('slug', $this->projectSlug)
-            ->with([
-                'projectType',
-                'tags.tagGroup',
-                'owner'
-            ])
+        /** @disregard P1006, P1005 */
+        return Project::accessScope()->where('slug', $this->projectSlug)
             ->firstOrFail();
     }
 

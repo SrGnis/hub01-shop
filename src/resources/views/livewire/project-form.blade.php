@@ -21,11 +21,19 @@
 
         {{-- Approval Status Banner (for editing) --}}
         @if ($isEditing)
-            @if ($approvalStatus === \App\Enums\ApprovalStatus::PENDING)
+            @if ($approvalStatus === \App\Enums\ApprovalStatus::DRAFT)
+                <x-alert icon="lucide-file-edit" class="alert-info mb-6">
+                    <div>
+                        <div class="font-semibold">Project Draft</div>
+                        <p class="text-sm mt-1">Your project is saved as a draft. When you're ready, click "Send to
+                            Review" below to submit it for admin approval.</p>
+                    </div>
+                </x-alert>
+            @elseif ($approvalStatus === \App\Enums\ApprovalStatus::PENDING)
                 <x-alert icon="lucide-clock" class="alert-warning mb-6">
                     <div>
                         <div class="font-semibold">Project Under Review</div>
-                        <p class="text-sm mt-1">Your project is currently pending admin approval. You can make edits,
+                        <p class="text-sm mt-1">Your project is currently pending admin approval. You cannot make edits,
                             but it won't be visible to the public until approved.</p>
                     </div>
                 </x-alert>
@@ -34,9 +42,9 @@
                     <div>
                         <div class="font-semibold">Project Rejected</div>
                         <p class="text-sm mt-1">Your project was rejected by an admin. Please review the feedback below,
-                            make the necessary changes, and save to resubmit for review.</p>
+                            make the necessary changes, and click "Send to Review" to resubmit.</p>
                         @if ($rejectionReason)
-                            <div class="mt-3 p-3 bg-base-300 rounded-lg">
+                            <div class="mt-3 p-3 rounded-lg">
                                 <div class="text-xs font-semibold mb-1">Admin Feedback:</div>
                                 <div class="text-sm">{{ $rejectionReason }}</div>
                             </div>
@@ -161,7 +169,11 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-3">
+                @if ($isEditing && ($isDraft || $isRejected))
+                    <x-button spinner wire:click="sendToReview" label="Send to Review" class="btn-success"
+                        icon="lucide-send" />
+                @endif
                 <x-button spinner type="submit" label="{{ $isEditing ? 'Save Changes' : 'Create Project' }}"
                     class="btn-primary" />
             </div>

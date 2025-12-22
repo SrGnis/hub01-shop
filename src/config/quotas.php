@@ -20,21 +20,4 @@ return [
     'version_size_max' => env('QUOTA_VERSION_SIZE_MAX', 104857600), // 100MB in bytes
     'files_per_version_max' => env('QUOTA_FILES_PER_VERSION_MAX', 5),
     'file_size_max' => env('QUOTA_FILE_SIZE_MAX', 104857600), // 100MB in bytes
-
-    /*
-    |--------------------------------------------------------------------------
-    | Project Type Overrides
-    |--------------------------------------------------------------------------
-    |
-    | Define quota overrides for specific project types.
-    | Format: 'project_type_value' => ['quota_key' => value, ...]
-    |
-    */
-
-    'project_type_overrides' => [
-        // Example:
-        // 'mod' => [
-        //     'project_storage_max' => 1073741824, // 1GB for mods
-        // ],
-    ],
 ];

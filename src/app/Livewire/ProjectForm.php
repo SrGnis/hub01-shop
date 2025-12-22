@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Membership;
 use App\Models\Project;
+use App\Models\ProjectTag;
 use App\Models\ProjectType;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
@@ -85,7 +86,7 @@ class ProjectForm extends Component
             return;
         }
 
-        $invalidTags = \App\Models\ProjectTag::whereIn('id', $selectedTagIds)
+        $invalidTags = ProjectTag::whereIn('id', $selectedTagIds)
             ->whereDoesntHave('projectTypes', fn ($query) => $query->where('project_type_id', $this->projectType->id))
             ->pluck('name')
             ->toArray();
@@ -173,7 +174,8 @@ class ProjectForm extends Component
             'roles' => $roles,
             'approvalStatus' => $this->isEditing ? $this->project->approval_status : null,
             'rejectionReason' => $this->isEditing ? $this->project->rejection_reason : null,
-            'canResubmit' => $this->isEditing && Gate::allows('resubmit', $this->project),
+            'isDraft' => $this->isEditing && $this->project->isDraft(),
+            'isRejected' => $this->isEditing && $this->project->isRejected(),
         ]);
     }
 
@@ -207,48 +209,83 @@ class ProjectForm extends Component
         $this->shouldRemoveLogo = true;
     }
 
+    public function sendToReview()
+    {
+        if (!$this->isEditing) {
+            $this->error('Only existing projects can be submitted for review.');
+            return;
+        }
+
+        if (!Gate::allows('update', $this->project)) {
+            $this->error('You do not have permission to submit this project for review.');
+            return;
+        }
+
+        if (!$this->project->isDraft() && !$this->project->isRejected()) {
+            $this->error('Only draft or rejected projects can be submitted for review.');
+            return;
+        }
+
+        try {
+            $this->projectService->submitProjectForReview($this->project);
+            $this->project->refresh();
+
+            $this->success('Project submitted for review!', redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
+        } catch (\Exception $e) {
+            logger()->error("Failed to submit project for review: " . $e->getMessage());
+            $this->error("Failed to submit project for review");
+        }
+    }
+
     public function save()
     {
         $this->validate();
-
+        
         if ($this->isEditing && !Gate::allows('update', $this->project)) {
             $this->error('You do not have permission to edit this project.', redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
         }
+        
+        try {
+            $logoPath = null;
+            if ($this->logo) {
+                $logoPath = $this->logo->store('project-logos', 'public');
+            } elseif ($this->shouldRemoveLogo && $this->isEditing) {
+                $logoPath = '';  // Empty string signals removal
+            }
 
-        $logoPath = null;
-        if ($this->logo) {
-            $logoPath = $this->logo->store('project-logos', 'public');
-        } elseif ($this->shouldRemoveLogo && $this->isEditing) {
-            $logoPath = '';  // Empty string signals removal
+            $data = [
+                'name' => $this->name,
+                'slug' => $this->slug,
+                'summary' => $this->summary,
+                'description' => $this->description,
+                'website' => $this->website,
+                'issues' => $this->issues,
+                'source' => $this->source,
+                'status' => $this->status,
+                'selectedTags' => $this->selectedTags,
+            ];
+
+            if (!$this->isEditing) {
+                $data['project_type_id'] = $this->projectType->id;
+            }
+
+            $project = $this->projectService->saveProject($this->project, Auth::user(), $data, $logoPath);
+
+            // Determine success message based on auto-approve setting
+            if ($this->isEditing) {
+                $message = 'Project updated successfully!';
+            } else {
+                $autoApprove = config('projects.auto_approve', false);
+                $message = $autoApprove 
+                    ? 'Project created and approved!' 
+                    : 'Project created as draft!';
+            }
+
+            $this->success($message, redirectTo: route('project.show', ['projectType' => $project->projectType, 'project' => $project]));
+        } catch (\Exception $e) {
+            logger()->error("Failed to save project: " . $e->getMessage());
+            $this->error("Failed to save project");
         }
-
-        $data = [
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'summary' => $this->summary,
-            'description' => $this->description,
-            'website' => $this->website,
-            'issues' => $this->issues,
-            'source' => $this->source,
-            'status' => $this->status,
-            'selectedTags' => $this->selectedTags,
-        ];
-
-        if (!$this->isEditing) {
-            $data['project_type_id'] = $this->projectType->id;
-        }
-
-        $project = $this->projectService->saveProject($this->project, Auth::user(), $data, $logoPath);
-
-        // Handle resubmission for rejected projects
-        if ($this->isEditing && $this->project->wasChanged('approval_status') && $this->project->isRejected()) {
-            $this->projectService->submitProjectForReview($project);
-            $message = 'Project updated and resubmitted for review!';
-        } else {
-            $message = $this->isEditing ? 'Project updated successfully!' : 'Project created and submitted for review!';
-        }
-
-        $this->success($message, redirectTo: route('project.show', ['projectType' => $project->projectType, 'project' => $project]));
     }
 
     public function addMember()
@@ -271,7 +308,8 @@ class ProjectForm extends Component
             $this->project->load('memberships.user');
             $this->success('Invitation sent successfully!');
         } catch (\Exception $e) {
-            $this->addError('newMemberName', $e->getMessage());
+            logger()->error("Failed to add member: " . $e->getMessage());
+            $this->addError('newMemberName', 'Failed to add member');
         }
     }
 
@@ -294,7 +332,8 @@ class ProjectForm extends Component
             $this->project->load('memberships.user');
             $this->success('Member removed successfully!');
         } catch (\Exception $e) {
-            $this->error($e->getMessage());
+            logger()->error("Failed to remove member: " . $e->getMessage());
+            $this->error("Failed to remove member");
         }
     }
 
@@ -312,7 +351,8 @@ class ProjectForm extends Component
             $this->project->load('memberships.user');
             $this->success('Member set as primary successfully!');
         } catch (\Exception $e) {
-            $this->error($e->getMessage());
+            logger()->error("Failed to set member as primary: " . $e->getMessage());
+            $this->error("Failed to set member as primary");
         }
     }
 
@@ -333,7 +373,8 @@ class ProjectForm extends Component
 
             $this->success('Project deleted successfully. Members can still see it for 14 days.', redirectTo: route('project-search', ['projectType' => $projectType]));
         } catch (\Exception $e) {
-            $this->error('Failed to delete project: ' . $e->getMessage());
+            logger()->error("Failed to delete project: " . $e->getMessage());
+            $this->error('Failed to delete project');
         }
     }
 }

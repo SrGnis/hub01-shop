@@ -49,7 +49,9 @@ class ProjectService
         string $orderDirection = 'desc',
         int $resultsPerPage = 10
     ): LengthAwarePaginator {
-        $projects = Project::where('name', 'like', '%' . $search . '%')
+        /** @disregard P1006, P1005 */
+        $projects = Project::globalSearchScope()
+            ->where('name', 'like', '%' . $search . '%')
             ->where('project_type_id', $projectType->id);
 
         // Filter by project tags
@@ -216,6 +218,12 @@ class ProjectService
     ): Project {
         if ($project && $project->exists) {
             // Update existing project
+
+            // If the project is pending approval, do not update
+            if ($project->approval_status === ApprovalStatus::PENDING) {
+                throw new \Exception('Project is pending approval, cannot update.');
+            }
+
             if ($logoPath !== null) {
                 // New logo uploaded or logo removal requested
                 if ($project->logo_path) {
@@ -244,12 +252,25 @@ class ProjectService
         // Validate quota before creating project
         $this->quotaService->validateProjectCreation($user);
 
-        // Set project to pending approval status by default
-        $projectData = array_merge($data, [
-            'logo_path' => $logoPath,
-            'approval_status' => ApprovalStatus::PENDING,
-            'submitted_at' => now(),
-        ]);
+        // Check if auto-approve is enabled
+        $autoApprove = config('projects.auto_approve', false);
+
+        if ($autoApprove) {
+            // Auto-approve: Set project to approved status immediately
+            $projectData = array_merge($data, [
+                'logo_path' => $logoPath,
+                'approval_status' => ApprovalStatus::APPROVED,
+                'submitted_at' => now(),
+                'reviewed_at' => now(),
+                'reviewed_by' => null, // No admin review needed
+            ]);
+        } else {
+            // Normal flow: Set project to draft status (user will explicitly submit for review)
+            $projectData = array_merge($data, [
+                'logo_path' => $logoPath,
+                'approval_status' => ApprovalStatus::DRAFT,
+            ]);
+        }
 
         $project = Project::create($projectData);
         $project->tags()->attach($data['selectedTags'] ?? []);
@@ -262,15 +283,6 @@ class ProjectService
         $membership->user()->associate($user);
         $membership->project()->associate($project);
         $membership->save();
-
-        // Notify user that project was submitted
-        $user->notify(new ProjectSubmittedForReview($project));
-
-        // Notify all admins about the new project pending approval
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new ProjectApprovalRequested($project, $user));
-        }
 
         return $project;
     }
@@ -522,7 +534,7 @@ class ProjectService
     }
 
     /**
-     * Submit a project for review (resubmission after rejection)
+     * Submit a project for review (initial submission from draft or resubmission after rejection)
      */
     public function submitProjectForReview(Project $project): void
     {
@@ -534,7 +546,7 @@ class ProjectService
             $owner->notify(new ProjectSubmittedForReview($project));
         }
 
-        // Notify admins about resubmission
+        // Notify admins about submission
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
             $admin->notify(new ProjectApprovalRequested($project, $owner));
