@@ -75,8 +75,8 @@
                     @endforeach
                 </ul>
                 <x-slot:actions>
-                    <x-button link="{{ route('admin.projects') }}" label="View all projects" icon="lucide-arrow-right"
-                        class="btn-sm btn-ghost" />
+                    <x-button link="{{ route('admin.projects.index') }}" label="View all projects"
+                        icon="lucide-arrow-right" class="btn-sm btn-ghost" />
                 </x-slot:actions>
             </x-card>
         </div>

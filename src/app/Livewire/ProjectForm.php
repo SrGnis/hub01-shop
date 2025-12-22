@@ -140,6 +140,7 @@ class ProjectForm extends Component
                 session()->flash('error', 'You do not have permission to create a project.');
                 return redirect()->route('project-search', ['projectType' => $projectType]);
             }
+
         }
     }
 
@@ -170,6 +171,9 @@ class ProjectForm extends Component
             'tagGroups' => $tagGroups,
             'memberships' => $memberships,
             'roles' => $roles,
+            'approvalStatus' => $this->isEditing ? $this->project->approval_status : null,
+            'rejectionReason' => $this->isEditing ? $this->project->rejection_reason : null,
+            'canResubmit' => $this->isEditing && Gate::allows('resubmit', $this->project),
         ]);
     }
 
@@ -236,7 +240,13 @@ class ProjectForm extends Component
 
         $project = $this->projectService->saveProject($this->project, Auth::user(), $data, $logoPath);
 
-        $message = $this->isEditing ? 'Project updated successfully!' : 'Project created successfully!';
+        // Handle resubmission for rejected projects
+        if ($this->isEditing && $this->project->wasChanged('approval_status') && $this->project->isRejected()) {
+            $this->projectService->submitProjectForReview($project);
+            $message = 'Project updated and resubmitted for review!';
+        } else {
+            $message = $this->isEditing ? 'Project updated successfully!' : 'Project created and submitted for review!';
+        }
 
         $this->success($message, redirectTo: route('project.show', ['projectType' => $project->projectType, 'project' => $project]));
     }

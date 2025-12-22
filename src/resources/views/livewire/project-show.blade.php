@@ -2,46 +2,44 @@
 
     <!-- Back Button and Actions -->
     <div class="mb-6 flex justify-between items-center flex-wrap gap-4">
-        <x-button
-            link="{{ route('project-search', ['projectType' => $project->projectType]) }}"
-            icon="arrow-left"
-            label="Back to Projects"
-            class="btn-ghost"
-            no-wire-navigate
-        />
+        <x-button link="{{ route('project-search', ['projectType' => $project->projectType]) }}" icon="arrow-left"
+            label="Back to Projects" class="btn-ghost" no-wire-navigate />
         @auth
             <div class="flex flex-col lg:flex-row gap-2">
                 @can('uploadVersion', $project)
                     <x-button
                         link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $this->project]) }}"
-                        icon="upload"
-                        label="Upload Version"
-                        class="btn-success"
-                        no-wire-navigate
-                    />
+                        icon="upload" label="Upload Version" class="btn-success" no-wire-navigate />
                 @endcan
 
                 @can('update', $project)
                     <x-button
                         link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
-                        label="Edit Project"
-                        class="btn-primary"
-                        no-wire-navigate
-                    />
+                        icon="pencil" label="Edit Project" class="btn-primary" no-wire-navigate />
                 @endcan
             </div>
         @endauth
     </div>
 
-    <!-- Inactive Project Notice -->
-    @if($project->status === 'inactive')
-        <x-alert
-            title="This project is currently inactive"
+    {{-- Pending Approval Notice --}}
+    @if ($project->isPending())
+        <x-alert title="This project is under review"
+            description="This project is currently pending admin approval. Only the owner can see it, and it cannot be edited until the review is complete."
+            icon="clock" class="mb-6 alert-warning" />
+    @endif
+
+    {{-- Rejected Project Notice --}}
+    @if ($project->isRejected())
+        <x-alert title="This project was rejected"
+            description="This project was rejected by an admin. {{ $project->rejection_reason ?: 'Please contact an administrator for more information.' }}"
+            icon="x-circle" class="mb-6 alert-error" />
+    @endif
+
+    {{-- Inactive Project Notice --}}
+    @if ($project->status === 'inactive')
+        <x-alert title="This project is currently inactive"
             description="This project has been marked as inactive by its maintainers. It may not be actively maintained or supported."
-            icon="triangle-alert"
-            class="mb-6 alert-warning"
-        />
+            icon="triangle-alert" class="mb-6 alert-warning" />
     @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -79,4 +77,3 @@
         </div>
     </div>
 </div>
-
