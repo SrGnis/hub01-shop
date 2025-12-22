@@ -50,8 +50,7 @@ class ProjectService
         int $resultsPerPage = 10
     ): LengthAwarePaginator {
         $projects = Project::where('name', 'like', '%' . $search . '%')
-            ->where('project_type_id', $projectType->id)
-            ->whereNull('deactivated_at');
+            ->where('project_type_id', $projectType->id);
 
         // Filter by project tags
         if (count($selectedTags)) {

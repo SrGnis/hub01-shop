@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\ApprovalStatus;
 use App\Models\Scopes\ProjectFullScope;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -180,27 +182,49 @@ class Project extends Model
     }
 
     /**
+     * Scope query with stats
+     */
+    #[Scope]
+    public function withStats(Builder $query): void
+    {
+        $query->withSum('versions as downloads', 'downloads');
+        $query->withMax('versions as recent_release_date', 'release_date');
+    }
+
+    /**
+     * Scope query to deactivated projects
+     */
+    #[Scope]
+    public function deactivated(Builder $query): void
+    {
+        $query->whereNotNull('deactivated_at');
+    }
+
+    /**
      * Scope query to pending projects
      */
-    public function scopePending($query)
+    #[Scope]
+    public function pending(Builder $query): void
     {
-        return $query->where('approval_status', ApprovalStatus::PENDING);
+        $query->where('approval_status', ApprovalStatus::PENDING);
     }
 
     /**
      * Scope query to approved projects
      */
-    public function scopeApproved($query)
+    #[Scope]
+    public function approved(Builder $query): void
     {
-        return $query->where('approval_status', ApprovalStatus::APPROVED);
+        $query->where('approval_status', ApprovalStatus::APPROVED);
     }
 
     /**
      * Scope query to rejected projects
      */
-    public function scopeRejected($query)
+    #[Scope]
+    public function rejected(Builder $query): void
     {
-        return $query->where('approval_status', ApprovalStatus::REJECTED);
+        $query->where('approval_status', ApprovalStatus::REJECTED);
     }
 
     /**
