@@ -1,173 +1,264 @@
 @startuml Hub01 Shop
-skinparam linetype ortho
 
-entity "user" {
-  *id : int <<PK>>
+' Colors
+!define USER_COLOR #E1F5FE
+!define PROJECT_COLOR #E8F5E9
+!define VERSION_COLOR #F3E5F5
+!define QUOTA_COLOR #FFFDE7
+!define SYSTEM_COLOR #F5F5F5
+
+entity "users" USER_COLOR {
+  *id : bigint <<PK>>
   ---
-  *name : string
-  *email : string
-  *password : string
-  bio : text
+  *name : varchar(25)
+  *email : varchar(255)
   email_verified_at : timestamp
-  remember_token : string
+  *password : varchar(255)
+  two_factor_secret : text
+  two_factor_recovery_codes : text
+  two_factor_confirmed_at : timestamp
+  bio : varchar(125)
+  *role : enum(user, admin)
+  avatar : varchar(255)
+  remember_token : varchar(100)
+  deactivated_at : timestamp
   timestamps : timestamps
 }
 
-entity "password_reset_tokens" {
-  email : string <<PK>>
+entity "password_reset_tokens" USER_COLOR {
+  *email : varchar(255) <<PK>>
   ---
-  token : string
+  *token : varchar(255)
   created_at : timestamp
 }
 
-entity "verification_tokens" {
-  email : string <<PK>>
+entity "pending_email_changes" USER_COLOR {
+  *id : bigint <<PK>>
   ---
-  token : string
-  created_at : timestamp
+  *user_id : bigint <<FK>>
+  *old_email : varchar(255)
+  *new_email : varchar(255)
+  *authorization_token : varchar(255)
+  verification_token : varchar(255)
+  *status : enum(pending_authorization, pending_verification, completed)
+  *authorization_expires_at : timestamp
+  verification_expires_at : timestamp
+  authorized_at : timestamp
+  verified_at : timestamp
+  timestamps : timestamps
 }
 
-entity "sessions" {
-  *id : string <<PK>>
+entity "pending_password_changes" USER_COLOR {
+  *id : bigint <<PK>>
   ---
-  *user_id : int <<FK>>
-  ip_address : string
+  *user_id : bigint <<FK>>
+  *hashed_password : varchar(255)
+  *verification_token : varchar(255)
+  *status : enum(pending_verification, completed)
+  *expires_at : timestamp
+  verified_at : timestamp
+  timestamps : timestamps
+}
+
+entity "sessions" SYSTEM_COLOR {
+  *id : varchar(255) <<PK>>
+  ---
+  user_id : bigint <<FK>>
+  ip_address : varchar(45)
   user_agent : text
-  payload : text
-  last_activity : int
+  *payload : longtext
+  *last_activity : int
 }
 
-entity "project" {
-  *id : int <<PK>>
+entity "project" PROJECT_COLOR {
+  *id : bigint <<PK>>
   ---
-  *name : string
-  summary : text
-  description : text
-  website : string
-  issues : string
-  source : string
-  *status : enum
-  *project_type_id : int <<FK>>
+  *name : varchar(255)
+  *slug : varchar(255)
+  *summary : text
+  *description : text
+  logo_path : varchar(255)
+  website : varchar(255)
+  issues : varchar(255)
+  source : varchar(255)
+  *status : enum(active, inactive)
+  *approval_status : enum(draft, pending, approved, rejected)
+  rejection_reason : text
+  submitted_at : timestamp
+  reviewed_at : timestamp
+  reviewed_by : bigint <<FK>>
+  deactivated_at : timestamp
+  *project_type_id : bigint <<FK>>
+  deleted_at : timestamp
   timestamps : timestamps
 }
 
-entity "project_type" {
-  *id : int <<PK>>
+entity "project_type" PROJECT_COLOR {
+  *id : bigint <<PK>>
   ---
-  *value : string
-  *display_name : string
-  *icon : string
+  *value : varchar(255)
+  *display_name : varchar(255)
+  *icon : varchar(255)
   timestamps : timestamps
 }
 
-entity "membership" {
-  *id : int <<PK>>
+entity "membership" PROJECT_COLOR {
+  *id : bigint <<PK>>
   ---
-  *role : string
-  *primary : boolean
-  *user_id : int <<FK>>
-  *project_id : int <<FK>>
+  *role : varchar(255)
+  *primary : tinyint(1)
+  *status : enum(active, pending, rejected)
+  invited_by : bigint <<FK>>
+  *user_id : bigint <<FK>>
+  *project_id : bigint <<FK>>
   timestamps : timestamps
 }
-package project_tags <<Frame>> {
-  
-  entity "project_tag_group" {
-    *id : int <<PK>>
-    ---
-    *name : string
-    timestamps : timestamps
-  }
 
-  entity "project_tag" {
-    *id : int <<PK>>
-    ---
-    *name : string
-    icon : string
-    project_tag_group_id : int <<FK>>
-    timestamps : timestamps
-  }
 
+entity "project_tag_group" PROJECT_COLOR {
+*id : bigint <<PK>>
+---
+*name : varchar(255)
+timestamps : timestamps
 }
-  
-entity "project_version" {
-  *id : int <<PK>>
+
+entity "project_tag" PROJECT_COLOR {
+*id : bigint <<PK>>
+---
+*name : varchar(255)
+*icon : varchar(255)
+project_tag_group_id : bigint <<FK>>
+timestamps : timestamps
+}
+
+entity "project_version" VERSION_COLOR {
+  *id : bigint <<PK>>
   ---
-  *name : string
-  *version : string
+  *name : varchar(255)
+  *version : varchar(255)
   changelog : text
-  *release_type : enum
+  *release_type : enum(alpha, beta, rc, release)
   *release_date : date
-  *downloads : int
-  *project_id : int <<FK>>
+  *downloads : int(10)
+  *project_id : bigint <<FK>>
   timestamps : timestamps
 }
 
-package project_version_tags <<Frame>> {
 
-  entity "project_version_tag_group" {
-    *id : int <<PK>>
-    ---
-    *name : string
-    timestamps : timestamps
-  }
-
-  entity "project_version_tag" {
-    *id : int <<PK>>
-    ---
-    *name : string
-    icon : string
-    project_version_tag_group_id : int <<FK>>
-    timestamps : timestamps
-  }
-
-}
-
-entity "project_version_dependency" {
-  *id : int <<PK>>
+entity "project_version_tag_group" VERSION_COLOR {
+  *id : bigint <<PK>>
   ---
-  *project_version_id : int <<FK>>
-  *dependency_project_version_id : int <<FK>>
-  *dependency_project_id : int <<FK>>
-  *dependency_type : enum
+  *name : varchar(255)
   timestamps : timestamps
 }
 
-entity "project_file" {
-  *id : int <<PK>>
+entity "project_version_tag" VERSION_COLOR {
+  *id : bigint <<PK>>
   ---
-  *project_version_id : int <<FK>>
-  *path : string
-  *name : string
-  *size : int
+  *name : varchar(255)
+  *icon : varchar(255)
+  project_version_tag_group_id : bigint <<FK>>
   timestamps : timestamps
 }
 
-user ||-o{ sessions
+entity "project_version_dependency" VERSION_COLOR {
+  *id : bigint <<PK>>
+  ---
+  *project_version_id : bigint <<FK>>
+  dependency_project_version_id : bigint <<FK>>
+  dependency_project_id : bigint <<FK>>
+  *dependency_type : enum(required, optional, embedded)
+  dependency_name : varchar(255)
+  dependency_version : varchar(255)
+  timestamps : timestamps
+}
 
-user }o--o{ project 
-(user, project) .. membership
+entity "project_file" VERSION_COLOR {
+  *id : bigint <<PK>>
+  ---
+  *name : varchar(255)
+  *path : varchar(255)
+  *size : int(10)
+  *project_version_id : bigint <<FK>>
+  timestamps : timestamps
+}
 
+
+entity "project_quota" QUOTA_COLOR {
+  *id : bigint <<PK>>
+  ---
+  *project_id : bigint <<FK>>
+  project_storage_max : bigint
+  versions_per_day_max : int
+  version_size_max : bigint
+  files_per_version_max : int
+  file_size_max : bigint
+  timestamps : timestamps
+}
+
+entity "project_type_quota" QUOTA_COLOR {
+  *id : bigint <<PK>>
+  ---
+  *project_type_id : bigint <<FK>>
+  project_storage_max : bigint
+  versions_per_day_max : int
+  version_size_max : bigint
+  files_per_version_max : int
+  file_size_max : bigint
+  timestamps : timestamps
+}
+
+entity "user_quota" QUOTA_COLOR {
+  *id : bigint <<PK>>
+  ---
+  *user_id : bigint <<FK>>
+  total_storage_max : bigint
+  timestamps : timestamps
+}
+
+
+entity "notifications" USER_COLOR {
+  *id : uuid <<PK>>
+  ---
+  *type : varchar(255)
+  *notifiable_type : varchar(255)
+  *notifiable_id : bigint
+  *data : text
+  read_at : timestamp
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+users ||--o{ sessions
+users ||--o{ membership : "invited user"
+users ||--o{ pending_email_changes
+users ||--o{ pending_password_changes
+users ||--o{ project : "reviewed_by"
+users ||--o{ notifications : "notifiable"
+users ||--o| user_quota
+
+membership }o--|| project
 project ||--o{ project_version
-project }o--|| project_type
+project ||--o| project_quota
+project }|--|| project_type
+
+membership }o--o| users : "invited_by"
+
 project_version ||--o{ project_file
-project_version ||--o{ project_version_dependency
-project_version_dependency }o--o| project_version
-project_version_dependency }o--o| project
+project_version ||-o{ project_version_dependency : "dependent version"
+project_version_dependency }o-o| project_version : "dependency version"
+project |o--o{ project_version_dependency : "dependency project"
 
+project_tag_group ||--o{ project_tag
+project_version_tag_group ||--o{ project_version_tag
 
-project_tag }o--|| project_tag_group
+project_type ||--o| project_type_quota
+project_type }o--o{ project_tag_group : "allowed tag groups"
+project_type }o--o{ project_tag : "allowed tags"
+project_type }o--o{ project_version_tag_group : "allowed version tag groups"
+project_type }o--o{ project_version_tag : "allowed version tags"
 
-project_type }o--o{ project_tag_group
+project }o--o{ project_tag
+project_version }o--o{ project_version_tag
 
-project }o--o{  project_tag
-
-project_type }o--o{ project_tag
-
-
-project_version_tag }o--|| project_version_tag_group
-
-project_type }o--o{ project_version_tag_group
-
-project_version }o--o{  project_version_tag
-
-project_type }o--o{ project_version_tag
+@enduml
