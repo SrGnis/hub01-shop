@@ -4,12 +4,9 @@ namespace App\Livewire;
 
 use App\Models\PendingEmailChange;
 use App\Models\PendingPasswordChange;
-use App\Notifications\AuthorizeEmailChange;
-use App\Notifications\ConfirmPasswordChange;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -27,6 +24,13 @@ class UserAccountSecurity extends Component
     public bool $show_email_form = false;
     public ?PendingEmailChange $pending_email_change = null;
     public ?PendingPasswordChange $pending_password_change = null;
+
+    private UserService $userService;
+
+    public function boot(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
 
     public function mount()
     {
@@ -84,40 +88,13 @@ class UserAccountSecurity extends Component
         }
 
         try {
-            DB::beginTransaction();
-
-            $user = Auth::user();
-
-            if (!$user) {
-                throw new \Exception('User not found');
-            }
-
-            // Cancel any existing pending email changes
-            $user->pendingEmailChanges()
-                ->whereIn('status', ['pending_authorization', 'pending_verification'])
-                ->delete();
-
-            // Create new pending email change
-            $authorizationToken = Str::random(64);
-            $pendingChange = PendingEmailChange::create([
-                'user_id' => $user->id,
-                'old_email' => $user->email,
-                'new_email' => $this->new_email,
-                'authorization_token' => $authorizationToken,
-                'status' => 'pending_authorization',
-                'authorization_expires_at' => now()->addHour(),
-            ]);
-
-            // Send authorization email to current email
-            $user->notify(new AuthorizeEmailChange($pendingChange));
+            $this->userService->requestEmailChange(Auth::user(), $this->new_email);
 
             $this->show_email_form = false;
             $this->current_password = '';
             $this->loadPendingEmailChange();
             $this->success('Verification email sent! Check your current email address to authorize the change.');
-            DB::commit();
         } catch (\Exception $e) {
-            DB::rollBack();
             logger()->error('Failed to request email change', ['error' => $e->getMessage()]);
             $this->error('Failed to request email change. Please try again.');
         }
@@ -128,7 +105,7 @@ class UserAccountSecurity extends Component
     {
         try {
             if ($this->pending_email_change) {
-                $this->pending_email_change->delete();
+                $this->userService->cancelEmailChange($this->pending_email_change);
                 $this->loadPendingEmailChange();
                 $this->success('Email change cancelled.');
             }
@@ -151,29 +128,7 @@ class UserAccountSecurity extends Component
         }
 
         try {
-            DB::beginTransaction();
-
-            $user = Auth::user();
-
-            // Cancel any existing pending password changes
-            $user->pendingPasswordChanges()
-                ->where('status', 'pending_verification')
-                ->delete();
-
-            // Create new pending password change
-            $verificationToken = Str::random(64);
-            $hashedPassword = Hash::make($this->new_password);
-
-            $pendingChange = PendingPasswordChange::create([
-                'user_id' => $user->id,
-                'hashed_password' => $hashedPassword,
-                'verification_token' => $verificationToken,
-                'status' => 'pending_verification',
-                'expires_at' => now()->addHour(),
-            ]);
-
-            // Send confirmation email
-            $user->notify(new ConfirmPasswordChange($pendingChange));
+            $this->userService->requestPasswordChange(Auth::user(), $this->new_password);
 
             $this->show_password_form = false;
             $this->current_password = '';
@@ -181,9 +136,7 @@ class UserAccountSecurity extends Component
             $this->new_password_confirmation = '';
             $this->loadPendingPasswordChange();
             $this->success('Confirmation email sent! Check your email to confirm the password change.');
-            DB::commit();
         } catch (\Exception $e) {
-            DB::rollBack();
             logger()->error('Failed to request password change', ['error' => $e->getMessage()]);
             $this->error('Failed to request password change. Please try again.');
         }
@@ -193,7 +146,7 @@ class UserAccountSecurity extends Component
     {
         try {
             if ($this->pending_password_change) {
-                $this->pending_password_change->delete();
+                $this->userService->cancelPasswordChange($this->pending_password_change);
                 $this->loadPendingPasswordChange();
                 $this->success('Password change cancelled.');
             }

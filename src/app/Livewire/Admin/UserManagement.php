@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\User;
 use App\Notifications\UserDeactivated;
 use App\Notifications\UserReactivated;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -51,7 +52,12 @@ class UserManagement extends Component
         'role' => 'required|in:user,admin',
     ];
 
+    private UserService $userService;
 
+    public function boot(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
 
     public function updatingSearch()
     {
@@ -98,29 +104,24 @@ class UserManagement extends Component
             ]);
         }
 
-        if ($this->isEditing) {
-            $user = User::find($this->userId);
-            $user->name = $this->name;
-            $user->email = $this->email;
-            $user->role = $this->role;
-
-            if (! empty($this->password)) {
-                $user->password = Hash::make($this->password);
-            }
-
-            $user->save();
-
-            $this->success('User updated successfully.');
-        } else {
-            User::create([
+        try {
+            $data = [
                 'name' => $this->name,
                 'email' => $this->email,
-                'password' => Hash::make($this->password),
                 'role' => $this->role,
-                'email_verified_at' => now(),
-            ]);
+                'password' => $this->password,
+            ];
 
-            $this->success('User created successfully.');
+            if ($this->isEditing) {
+                $user = User::findOrFail($this->userId);
+                $this->userService->update($user, $data);
+                $this->success('User updated successfully.');
+            } else {
+                $this->userService->create($data);
+                $this->success('User created successfully.');
+            }
+        } catch (\Exception $e) {
+            $this->error('Failed to save user: ' . $e->getMessage());
         }
 
         $this->resetForm();
@@ -154,7 +155,7 @@ class UserManagement extends Component
                 return;
             }
 
-            $user->delete();
+            $this->userService->delete($user);
             $this->success('User deleted successfully.');
         }
 
@@ -188,15 +189,7 @@ class UserManagement extends Component
             return;
         }
 
-        $user->deactivated_at = now();
-        $user->save();
-
-        // Invalidate all user sessions
-        DB::table('sessions')->where('user_id', $user->id)->delete();
-
-        // Send notification to the user
-        $user->notify(new UserDeactivated);
-
+        $this->userService->deactivate($user);
         $this->success('User deactivated successfully.');
     }
 
@@ -209,19 +202,14 @@ class UserManagement extends Component
             return;
         }
 
-        $user->deactivated_at = null;
-        $user->save();
-
-        // Send notification to the user
-        $user->notify(new UserReactivated);
-
+        $this->userService->reactivate($user);
         $this->success('User reactivated successfully.');
     }
 
     public function render()
     {
-        $users = User::where('name', 'like', '%'.$this->search.'%')
-            ->orWhere('email', 'like', '%'.$this->search.'%')
+        /** @disregard P1006, P1005 */
+        $users = User::searchScope($this->search)
             ->orderBy($this->sortBy['column'], $this->sortBy['direction'])
             ->paginate($this->perPage);
 

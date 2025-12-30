@@ -18,7 +18,7 @@ require __DIR__.'/admin.php';
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 // Account Deactivated Page
 Route::get('/account/deactivated', AccountDeactivated::class)
