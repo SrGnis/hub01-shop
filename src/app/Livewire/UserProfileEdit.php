@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,6 +19,13 @@ class UserProfileEdit extends Component
 
     public string $bio = '';
     public $avatar;
+
+    private UserService $userService;
+
+    public function boot(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
 
     public function mount()
     {
@@ -46,14 +54,7 @@ class UserProfileEdit extends Component
         $this->validate();
 
         try {
-            $data = ['bio' => $this->bio];
-
-            if ($this->avatar) {
-                $path = $this->avatar->store('avatars', 'public');
-                $data['avatar'] = $path;
-            }
-
-            $this->user->update($data);
+            $this->userService->updateProfile($this->user, ['bio' => $this->bio], $this->avatar);
 
             $this->success('Profile updated successfully!');
         } catch (\Exception) {
