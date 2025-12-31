@@ -41,6 +41,8 @@ class ProjectShow extends Component
 
         if ($activeTab && in_array($activeTab, ['description', 'versions', 'changelog'])) {
             $this->activeTab = $activeTab;
+        }else{
+            $this->activeTab = 'description';
         }
     }
 
