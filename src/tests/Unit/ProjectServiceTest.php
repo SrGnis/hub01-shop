@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Project\Services;
+namespace Tests\Unit;
 
 use App\Models\Membership;
 use App\Models\Project;
@@ -11,8 +11,6 @@ use App\Models\User;
 use App\Services\ProjectService;
 use App\Services\ProjectQuotaService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
