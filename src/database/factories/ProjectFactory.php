@@ -67,6 +67,22 @@ class ProjectFactory extends Factory
     }
 
     /**
+     * Add a member to the project.
+     */
+    public function member(User $user): static
+    {
+        return $this->afterCreating(function (Project $project) use ($user) {
+            $membership = new Membership([
+                'role' => 'member',
+                'primary' => false,
+            ]);
+            $membership->user()->associate($user);
+            $membership->project()->associate($project);
+            $membership->save();
+        });
+    }
+
+    /**
      * Indicate that the project is draft.
      */
     public function draft(): static
