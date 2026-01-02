@@ -64,7 +64,7 @@
             <!-- Version Tags -->
             <div>
                 <label class="text-sm font-medium mb-2 block">Tags</label>
-                @foreach($availableTagGroups as $tagGroup)
+                @foreach($this->availableTagGroups as $tagGroup)
                     <div class="mb-4">
                         <h3 class="font-semibold mb-2">{{ $tagGroup->name }}</h3>
                         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">

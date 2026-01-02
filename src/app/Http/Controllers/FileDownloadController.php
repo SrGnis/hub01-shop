@@ -21,12 +21,13 @@ class FileDownloadController extends Controller
 
         // Check if the project is deactivated
         if ($project->isDeactivated()) {
-            abort(404);
+            abort(404, 'Project not found');
         }
+
         $version = $project->versions()->where('version', $version)->first();
 
-        if ($version->project_id !== $project->id) {
-            abort(404);
+        if (! $version) {
+            abort(404, 'Version not found');
         }
 
         $fileModel = $version->files()->where('name', $file)->first();

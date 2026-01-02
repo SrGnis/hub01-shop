@@ -37,7 +37,7 @@ class ProjectSearchTest extends TestCase
     public function test_search_filters_projects_by_name()
     {
         $user = User::factory()->create();
-        
+
         // Create projects with different names
         $project1 = Project::factory()->owner($user)->create(['name' => 'Amazing Project', 'project_type_id' => $this->projectType->id]);
         $project2 = Project::factory()->owner($user)->create(['name' => 'Another Cool Thing', 'project_type_id' => $this->projectType->id]);
@@ -54,18 +54,18 @@ class ProjectSearchTest extends TestCase
     public function test_filter_by_project_tags()
     {
         $user = User::factory()->create();
-        
+
         // Create a tag for this project type
         $tag1 = ProjectTag::factory()->create();
         $tag1->projectTypes()->attach($this->projectType);
-        
+
         $tag2 = ProjectTag::factory()->create();
         $tag2->projectTypes()->attach($this->projectType);
 
         // Create projects with different tags
         $project1 = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
         $project1->tags()->attach($tag1);
-        
+
         $project2 = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
         $project2->tags()->attach($tag2);
 
@@ -79,7 +79,7 @@ class ProjectSearchTest extends TestCase
     public function test_filter_by_version_tags()
     {
         $user = User::factory()->create();
-        
+
         // Create version tags
         $versionTag = ProjectVersionTag::factory()->create();
         $versionTag->projectTypes()->attach($this->projectType);
@@ -108,7 +108,7 @@ class ProjectSearchTest extends TestCase
     public function test_order_by_name()
     {
         $user = User::factory()->create();
-        
+
         $projectA = Project::factory()->owner($user)->create([
             'name' => 'Alpha Project',
             'project_type_id' => $this->projectType->id
@@ -131,7 +131,7 @@ class ProjectSearchTest extends TestCase
     public function test_order_by_downloads()
     {
         $user = User::factory()->create();
-        
+
         $projectLow = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
         $versionLow = $projectLow->versions()->create([
             'name' => 'Low Downloads Version',
@@ -162,7 +162,7 @@ class ProjectSearchTest extends TestCase
     public function test_pagination_resets_on_search_change()
     {
         $user = User::factory()->create();
-        
+
         // Create 15 projects to trigger pagination
         for ($i = 0; $i < 15; $i++) {
             Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
@@ -194,7 +194,7 @@ class ProjectSearchTest extends TestCase
     public function test_results_per_page_options()
     {
         $user = User::factory()->create();
-        
+
         // Create 30 projects
         for ($i = 0; $i < 30; $i++) {
             Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
@@ -211,17 +211,20 @@ class ProjectSearchTest extends TestCase
     public function test_only_approved_projects_are_shown()
     {
         $user = User::factory()->create();
-        
+
         $approvedProject = Project::factory()->owner($user)->create([
-            'project_type_id' => $this->projectType->id
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Approved Project',
         ]);
-        
+
         $draftProject = Project::factory()->owner($user)->draft()->create([
-            'project_type_id' => $this->projectType->id
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Draft Project',
         ]);
-        
+
         $pendingProject = Project::factory()->owner($user)->pending()->create([
-            'project_type_id' => $this->projectType->id
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Pending Project',
         ]);
 
         Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
@@ -234,11 +237,11 @@ class ProjectSearchTest extends TestCase
     public function test_deactivated_projects_are_hidden()
     {
         $user = User::factory()->create();
-        
+
         $activeProject = Project::factory()->owner($user)->create([
             'project_type_id' => $this->projectType->id
         ]);
-        
+
         $deactivatedProject = Project::factory()->owner($user)->create([
             'project_type_id' => $this->projectType->id,
             'deactivated_at' => now()
@@ -254,13 +257,15 @@ class ProjectSearchTest extends TestCase
     {
         $user = User::factory()->create();
         $otherProjectType = ProjectType::factory()->create();
-        
+
         $correctTypeProject = Project::factory()->owner($user)->create([
-            'project_type_id' => $this->projectType->id
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Correct Type Project',
         ]);
-        
+
         $wrongTypeProject = Project::factory()->owner($user)->create([
-            'project_type_id' => $otherProjectType->id
+            'project_type_id' => $otherProjectType->id,
+            'name' => 'Wrong Type Project',
         ]);
 
         Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
