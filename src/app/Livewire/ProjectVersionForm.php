@@ -8,6 +8,7 @@ use App\Services\ProjectVersionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -503,12 +504,14 @@ class ProjectVersionForm extends Component
     // dummy method for attaching the loading state
     public function refreshMarkdown(): void {}
 
-    public function getAvailableTags()
+    #[Computed]
+    public function availableTags()
     {
         return $this->projectVersionService->getAvailableTags($this->project->projectType);
     }
 
-    public function getAvailableTagGroups()
+    #[Computed]
+    public function availableTagGroups()
     {
         return $this->projectVersionService->getAvailableTagGroups($this->project->projectType);
     }
@@ -516,8 +519,6 @@ class ProjectVersionForm extends Component
     public function render()
     {
         return view('livewire.project-version-form', [
-            'availableTags' => $this->getAvailableTags(),
-            'availableTagGroups' => $this->getAvailableTagGroups(),
         ]);
     }
 }

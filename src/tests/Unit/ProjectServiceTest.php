@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\ProjectService;
 use App\Services\ProjectQuotaService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -29,7 +30,7 @@ class ProjectServiceTest extends TestCase
         parent::setUp();
         Storage::fake('public');
         Notification::fake();
-        
+
         $quotaService = $this->app->make(ProjectQuotaService::class);
         $this->projectService = new ProjectService($quotaService);
         $this->projectType = ProjectType::factory()->create();
@@ -62,13 +63,13 @@ class ProjectServiceTest extends TestCase
     {
         $tag1 = ProjectTag::factory()->create();
         $tag1->projectTypes()->attach($this->projectType);
-        
+
         $tag2 = ProjectTag::factory()->create();
         $tag2->projectTypes()->attach($this->projectType);
 
         $project1 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
         $project1->tags()->attach($tag1);
-        
+
         $project2 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
         $project2->tags()->attach($tag2);
 
@@ -175,7 +176,7 @@ class ProjectServiceTest extends TestCase
     public function test_create_project_in_draft_mode()
     {
         Config::set('projects.auto_approve', false);
-        
+
         $tag = ProjectTag::factory()->create();
         $tag->projectTypes()->attach($this->projectType);
 
@@ -213,7 +214,7 @@ class ProjectServiceTest extends TestCase
     public function test_create_project_with_auto_approve()
     {
         Config::set('projects.auto_approve', true);
-        
+
         $tag = ProjectTag::factory()->create();
         $tag->projectTypes()->attach($this->projectType);
 
@@ -269,7 +270,7 @@ class ProjectServiceTest extends TestCase
     public function test_cannot_update_pending_project()
     {
         $this->expectException(\Exception::class);
-        
+
         $project = Project::factory()->owner($this->user)->pending()->create();
 
         $data = [
@@ -356,7 +357,7 @@ class ProjectServiceTest extends TestCase
     public function test_cannot_add_existing_member()
     {
         $this->expectException(\Exception::class);
-        
+
         $project = Project::factory()->owner($this->user)->create();
 
         $this->projectService->addMember($project, $this->user->name, 'contributor');
@@ -367,7 +368,7 @@ class ProjectServiceTest extends TestCase
     {
         $project = Project::factory()->owner($this->user)->create();
         $member = User::factory()->create();
-        
+
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
@@ -390,7 +391,7 @@ class ProjectServiceTest extends TestCase
     public function test_cannot_remove_yourself_as_primary_owner()
     {
         $this->expectException(\Exception::class);
-        
+
         $project = Project::factory()->owner($this->user)->create();
         $membership = $project->memberships()->where('user_id', $this->user->id)->first();
 
@@ -403,7 +404,7 @@ class ProjectServiceTest extends TestCase
     {
         $project = Project::factory()->owner($this->user)->create();
         $newOwner = User::factory()->create();
-        
+
         $membership = new Membership([
             'role' => 'owner',
             'primary' => false,
@@ -430,10 +431,10 @@ class ProjectServiceTest extends TestCase
     public function test_cannot_set_pending_member_as_primary()
     {
         $this->expectException(\Exception::class);
-        
+
         $project = Project::factory()->owner($this->user)->create();
         $newOwner = User::factory()->create();
-        
+
         $membership = new Membership([
             'role' => 'owner',
             'primary' => false,
@@ -517,7 +518,7 @@ class ProjectServiceTest extends TestCase
 
         $this->assertIsArray($options);
         $this->assertGreaterThan(0, count($options));
-        
+
         $optionIds = array_column($options, 'id');
         $this->assertContains('name', $optionIds);
         $this->assertContains('downloads', $optionIds);
@@ -532,7 +533,7 @@ class ProjectServiceTest extends TestCase
 
         $this->assertIsArray($options);
         $this->assertEquals(2, count($options));
-        
+
         $optionIds = array_column($options, 'id');
         $this->assertContains('asc', $optionIds);
         $this->assertContains('desc', $optionIds);
@@ -545,7 +546,7 @@ class ProjectServiceTest extends TestCase
 
         $this->assertIsArray($options);
         $this->assertGreaterThan(0, count($options));
-        
+
         $optionIds = array_column($options, 'id');
         $this->assertContains(10, $optionIds);
         $this->assertContains(25, $optionIds);
@@ -602,7 +603,7 @@ class ProjectServiceTest extends TestCase
         $project = Project::factory()->owner($this->user)->create([
             'logo_path' => 'project-logos/old-logo.png'
         ]);
-        
+
         Storage::disk('public')->put('project-logos/old-logo.png', 'fake content');
 
         $data = [

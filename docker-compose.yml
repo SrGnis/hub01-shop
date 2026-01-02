@@ -11,7 +11,6 @@ services:
       - MARIADB_USER=${DB_USERNAME}
       - MARIADB_DATABASE=${DB_DATABASE}
       - MARIADB_PASSWORD=${DB_PASSWORD}
-      - MARIADB_RANDOM_ROOT_PASSWORD=1
     healthcheck:
     # https://mariadb.com/kb/en/using-healthcheck-sh/
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
