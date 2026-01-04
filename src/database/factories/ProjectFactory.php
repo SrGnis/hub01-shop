@@ -305,7 +305,7 @@ class ProjectFactory extends Factory
             $polygonColor = imagecolorallocate($image, $polyR, $polyG, $polyB);
 
             // Draw the polygon
-            imagefilledpolygon($image, $vertices, $numVertices, $polygonColor);
+            imagefilledpolygon($image, $vertices, $polygonColor);
 
             // Add a bright border to the polygon for better visibility on dark backgrounds
             // Use a brighter version of the polygon color or white for the border
@@ -313,7 +313,7 @@ class ProjectFactory extends Factory
             $borderG = min(255, $polyG + 70);
             $borderB = min(255, $polyB + 70);
             $borderColor = imagecolorallocate($image, $borderR, $borderG, $borderB);
-            imagepolygon($image, $vertices, $numVertices, $borderColor);
+            imagepolygon($image, $vertices, $borderColor);
 
             // Add some decorative elements
             $decorationType = rand(0, 3);
@@ -357,8 +357,8 @@ class ProjectFactory extends Factory
                         $innerVertices[] = (int) $y;
                     }
 
-                    imagefilledpolygon($image, $innerVertices, $numVertices, $accentColor);
-                    imagepolygon($image, $innerVertices, $numVertices, $borderColor);
+                    imagefilledpolygon($image, $innerVertices, $accentColor);
+                    imagepolygon($image, $innerVertices, $borderColor);
                     break;
 
                 case 3:
@@ -379,7 +379,6 @@ class ProjectFactory extends Factory
             // Save the image
             $filePath = $fullPath.'/'.$filename;
             imagepng($image, $filePath);
-            imagedestroy($image);
 
             // Return the relative path for storage in the database
             return $directory.'/'.$filename;

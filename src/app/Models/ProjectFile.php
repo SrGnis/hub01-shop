@@ -27,6 +27,16 @@ class ProjectFile extends Model
         'size',
     ];
 
+    public static function getDisk(): string
+    {
+        return config('projects.files-disk');
+    }
+
+    public static function getDirectory(): string
+    {
+        return config('projects.files-directory');
+    }
+
     /**
      * Get the route key for the model.
      *

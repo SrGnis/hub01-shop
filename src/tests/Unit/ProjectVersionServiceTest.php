@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionTag;
@@ -161,8 +162,8 @@ class ProjectVersionServiceTest extends TestCase
             'size' => 2048,
         ]);
 
-        Storage::put($file1->path, 'content1');
-        Storage::put($file2->path, 'content2');
+        Storage::disk(ProjectFile::getDisk())->put($file1->path, 'content1');
+        Storage::disk(ProjectFile::getDisk())->put($file2->path, 'content2');
 
         $existingFiles = [
             ['id' => $file1->id, 'name' => 'file1.zip', 'delete' => true],
@@ -191,7 +192,7 @@ class ProjectVersionServiceTest extends TestCase
 
         $this->assertDatabaseMissing('project_file', ['id' => $file1->id]);
         $this->assertDatabaseHas('project_file', ['id' => $file2->id]);
-        Storage::assertMissing($file1->path);
+        Storage::disk(ProjectFile::getDisk())->assertMissing($file1->path);
     }
 
     #[Test]
@@ -642,16 +643,16 @@ class ProjectVersionServiceTest extends TestCase
             'size' => 2048,
         ]);
 
-        Storage::put($file1->path, 'content1');
-        Storage::put($file2->path, 'content2');
+        Storage::disk(ProjectFile::getDisk())->put($file1->path, 'content1');
+        Storage::disk(ProjectFile::getDisk())->put($file2->path, 'content2');
 
         Auth::login($this->user);
         $this->projectVersionService->deleteVersion($version, $this->project);
 
         $this->assertDatabaseMissing('project_file', ['id' => $file1->id]);
         $this->assertDatabaseMissing('project_file', ['id' => $file2->id]);
-        Storage::assertMissing($file1->path);
-        Storage::assertMissing($file2->path);
+        Storage::disk(ProjectFile::getDisk())->assertMissing($file1->path);
+        Storage::disk(ProjectFile::getDisk())->assertMissing($file2->path);
     }
 
     #[Test]

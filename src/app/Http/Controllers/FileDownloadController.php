@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -42,7 +43,7 @@ class FileDownloadController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::download(
+        return Storage::disk(ProjectFile::getDisk())->download(
             $fileModel->path,
             $fileModel->name,
             ['Content-Type' => 'application/octet-stream']

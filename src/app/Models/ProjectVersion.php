@@ -72,8 +72,10 @@ class ProjectVersion extends Model
         });
 
         static::deleting(function ($projectVersion) {
-
-            $projectVersion->project->clearRecentVersionsCache();
+            // Only clear cache if project exists (not orphaned)
+            if ($projectVersion->project) {
+                $projectVersion->project->clearRecentVersionsCache();
+            }
         });
     }
 
