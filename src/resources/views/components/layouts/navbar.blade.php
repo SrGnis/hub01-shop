@@ -19,7 +19,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen font-sans antialiased bg-base-200">
+<body class="min-h-screen flex flex-col font-sans antialiased bg-base-200">
 
     {{-- Navbar --}}
     <div class="bg-base-100 border-base-content/10 border-b-[length:var(--border)] sticky top-0 z-10">
