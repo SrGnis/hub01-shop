@@ -1,14 +1,14 @@
 # Hub01 Shop
 
-A Cataclysm: Dark Days Ahead mod repository and management platform.
+A Cataclysm Games mod repository and management platform.
 
 ## About Hub01 Shop
 
-Hub01 Shop is a web application designed to serve as a centralized repository for Cataclysm: Dark Days Ahead (CDDA) mods. It provides a platform for mod creators to share their work and for players to discover, download, and manage mods for their CDDA game.
+Hub01 Shop is a web application designed to serve as a centralized repository for Cataclysm Games mods. It provides a platform for mod creators to share their work and for players to discover, download, and manage mods for their CDDA game.
 
 ### Key Features
 
--   **Mod Repository**: Browse, search, and download mods for Cataclysm: Dark Days Ahead
+-   **Mod Repository**: Browse, search, and download mods for Cataclysm Games
 -   **Version Management**: Track different versions of mods with changelog support
 -   **User Accounts**: Register, login, and manage your profile
 -   **Project Management**: Create and manage your mod projects
