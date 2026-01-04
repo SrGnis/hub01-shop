@@ -1,4 +1,6 @@
 <div x-data="{ showFilesModal: false }" x-ref="filesContainer">
+    <livewire:report-abuse />
+
     <!-- Back Button and Actions -->
     <div class="mb-6 flex justify-between items-center flex-wrap gap-4">
         <x-button
@@ -7,16 +9,30 @@
             label="Back to Project"
             class="btn-ghost"
         />
-        @auth
-            @can('editVersion', $project)
-                <x-button
-                    link="{{ route('project.version.edit', ['projectType' => $project->projectType, 'project' => $project, 'version_key' => $version]) }}"
-                    icon="pencil"
-                    label="Edit Version"
-                    class="btn-primary"
+        <div class="flex flex-col lg:flex-row gap-2">
+            @auth
+                @can('editVersion', $project)
+                    <x-button
+                        link="{{ route('project.version.edit', ['projectType' => $project->projectType, 'project' => $project, 'version_key' => $version]) }}"
+                        icon="pencil"
+                        label="Edit Version"
+                        class="btn-primary"
+                    />
+                @endcan
+            @endauth
+            <x-dropdown right>
+                <x-slot:trigger>
+                    <x-button icon="ellipsis" class="btn-ghost" />
+                </x-slot:trigger>
+
+                <x-menu-item
+                    title="Report"
+                    class="text-error"
+                    icon="flag"
+                    @click="$dispatch('open-report-modal', { itemId: {{ $version->id }}, itemType: 'App\\\\Models\\\\ProjectVersion', itemName: '{{ addslashes($version->name) }} - {{ addslashes($version->version) }}' })"
                 />
-            @endcan
-        @endauth
+            </x-dropdown>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -30,8 +46,8 @@
                     <div class="flex gap-4 mb-4">
                         <div class="flex-shrink-0">
                             <img src="{{ $project->getLogoUrl() }}"
-                                 class="w-28 h-28 object-cover rounded-lg"
-                                 alt="{{ $project->name }} Logo">
+                                class="w-28 h-28 object-cover rounded-lg"
+                                alt="{{ $project->name }} Logo">
                         </div>
                         <div class="flex-grow min-w-0">
                             <h1 class="text-xl font-bold mb-1">{{ $project->name }}</h1>

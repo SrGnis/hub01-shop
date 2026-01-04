@@ -80,3 +80,11 @@
 .mary-table-pagination button {
     @apply cursor-pointer
 }
+
+table.with-dropdown {
+    @apply !static
+}
+
+table.with-dropdown details.dropdown {
+    @apply !static
+}
