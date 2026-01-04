@@ -1,14 +1,13 @@
 {
     "terminal.integrated.profiles.linux": {
-      "BashWithStartup": {
-        "path": "bash",
-        "args": [
-          "--init-file",
-          "./.terminal_startup.sh"
-        ]
-      }
+        "BashWithStartup": {
+            "path": "bash",
+            "args": ["--init-file", "./.terminal_startup.sh"]
+        }
     },
     "terminal.integrated.defaultProfile.linux": "BashWithStartup",
     "markdown.preview.scrollPreviewWithEditor": false,
-    "markdown.preview.scrollEditorWithPreview": false
+    "markdown.preview.scrollEditorWithPreview": false,
+    "intelephense.codeLens.implementations.enable": false,
+    "intelephense.environment.documentRoot": "src/public"
 }

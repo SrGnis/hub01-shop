@@ -2,20 +2,27 @@
 
 namespace App\Models;
 
+use App\Enums\ApprovalStatus;
 use App\Models\Scopes\ProjectFullScope;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-#[ScopedBy(ProjectFullScope::class)]
+/**
+ * @mixin IdeHelperProject
+ */
 class Project extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectFactory> */
@@ -41,7 +48,31 @@ class Project extends Model
         'source',
         'status',
         'project_type_id',
+        'deactivated_at',
+        'approval_status',
+        'rejection_reason',
+        'submitted_at',
+        'reviewed_at',
+        'reviewed_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'deactivated_at' => 'datetime',
+            'approval_status' => ApprovalStatus::class,
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Check if the project is deactivated
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
+    }
 
     protected $with = [
         'projectType',
@@ -132,6 +163,203 @@ class Project extends Model
             ->withPivot(['role', 'primary', 'status'])
             ->wherePivot('primary', true)
             ->using(Membership::class);
+    }
+
+    /**
+     * Get the admin who reviewed this project
+     */
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Get the quota overrides for this project
+     */
+    public function quota(): HasOne
+    {
+        return $this->hasOne(ProjectQuota::class);
+    }
+
+    /**
+     * Scope query to global search restrictions
+     */
+    #[Scope]
+    protected function globalSearchScope(Builder $query): void
+    {
+        $query->withStats();
+        $query->withRelations();
+
+        // Exclude draft and pending projects from public searches
+        $query->approved();
+
+        // Exclude deactivated projects from public searches
+        $query->whereNull('deactivated_at');
+    }
+
+    /**
+     * Scope query to user based access restrictions
+     */
+    #[Scope]
+    protected function accessScope(Builder $query): void
+    {
+        $query->withStats();
+        $query->withRelations();
+
+        $user = Auth::user();
+
+        // Return only approved projects and non-deactivated projects by default
+        // If the user is a member of the project, no restrictions apply
+        if ($user) {
+            $query->where(function (Builder $query) use ($user) {
+                // Show approved and non-deactivated projects to everyone
+                $query->where(function (Builder $query) {
+                    $query->approved()
+                        ->whereNull('deactivated_at');
+                })
+                // OR show projects where the user is a member (regardless of status)
+                ->orWhereHas('memberships', function (Builder $query) use ($user) {
+                    $query->where('user_id', $user->id);
+                });
+            });
+        } else {
+            // Guest users only see approved and non-deactivated projects
+            $query->approved()
+                ->whereNull('deactivated_at');
+        }
+    }
+    /**
+     * Scope query with stats
+     */
+    #[Scope]
+    protected function withStats(Builder $query): void
+    {
+        $query->withSum('versions as downloads', 'downloads');
+        $query->withMax('versions as recent_release_date', 'release_date');
+    }
+
+    /**
+     * Scope query to include relations 
+     */
+    #[Scope]
+    protected function withRelations(Builder $query): void
+    {
+        $query->with([
+            'projectType',
+            'tags.tagGroup',
+            'owner',
+        ]);
+    }
+
+    /**
+     * Scope query to deactivated projects
+     */
+    #[Scope]
+    protected function deactivated(Builder $query): void
+    {
+        $query->whereNotNull('deactivated_at');
+    }
+
+    /**
+     * Scope query to draft projects
+     */
+    #[Scope]
+    protected function draft(Builder $query): void
+    {
+        $query->where('approval_status', ApprovalStatus::DRAFT);
+    }
+
+    /**
+     * Scope query to pending projects
+     */
+    #[Scope]
+    protected function pending(Builder $query): void
+    {
+        $query->where('approval_status', ApprovalStatus::PENDING);
+    }
+
+    /**
+     * Scope query to approved projects
+     */
+    #[Scope]
+    protected function approved(Builder $query): void
+    {
+        $query->where('approval_status', ApprovalStatus::APPROVED);
+    }
+
+    /**
+     * Scope query to rejected projects
+     */
+    #[Scope]
+    protected function rejected(Builder $query): void
+    {
+        $query->where('approval_status', ApprovalStatus::REJECTED);
+    }
+
+    /**
+     * Check if the project is in draft status
+     */
+    public function isDraft(): bool
+    {
+        return $this->approval_status === ApprovalStatus::DRAFT;
+    }
+
+    /**
+     * Check if the project is pending approval
+     */
+    public function isPending(): bool
+    {
+        return $this->approval_status === ApprovalStatus::PENDING;
+    }
+
+    /**
+     * Check if the project is approved
+     */
+    public function isApproved(): bool
+    {
+        return $this->approval_status === ApprovalStatus::APPROVED;
+    }
+
+    /**
+     * Check if the project is rejected
+     */
+    public function isRejected(): bool
+    {
+        return $this->approval_status === ApprovalStatus::REJECTED;
+    }
+
+    /**
+     * Submit the project for review
+     */
+    public function submit(): void
+    {
+        $this->submitted_at = now();
+        $this->approval_status = ApprovalStatus::PENDING;
+        $this->save();
+    }
+
+    /**
+     * Approve the project
+     */
+    public function approve(User $admin): void
+    {
+        $this->approval_status = ApprovalStatus::APPROVED;
+        $this->reviewed_at = now();
+        $this->reviewed_by = $admin->id;
+        $this->rejection_reason = null;
+        $this->save();
+    }
+
+    /**
+     * Reject the project with a reason
+     */
+    public function reject(User $admin, string $reason): void
+    {
+        $this->approval_status = ApprovalStatus::REJECTED;
+        $this->reviewed_at = now();
+        $this->reviewed_by = $admin->id;
+        $this->rejection_reason = $reason;
+        $this->save();
     }
 
     /**

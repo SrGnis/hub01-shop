@@ -9,7 +9,7 @@
         <x-input 
             label="Email" 
             wire:model="email" 
-            icon="o-envelope" 
+            icon="mail" 
             placeholder="your@email.com"
             type="email"
             required 
@@ -42,7 +42,7 @@
             <x-button 
                 label="Sign In" 
                 type="submit" 
-                icon="o-arrow-right-on-rectangle" 
+                icon="log-in" 
                 class="btn-primary w-full" 
                 spinner="login" 
             />

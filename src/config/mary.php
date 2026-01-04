@@ -101,6 +101,10 @@ return [
             'plus-circle' => 'circle-plus',
             'backspace' => 'delete',
             'bars-3-bottom-right' => 'menu',
+            'information-circle' => 'info',
+            'check-circle' => 'check-circle',
+            'warning-triangle' => 'warning-triangle',
+            
         ],
     ],
 

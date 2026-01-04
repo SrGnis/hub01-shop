@@ -16,7 +16,7 @@
             <x-input 
                 label="Recovery Code" 
                 wire:model="recovery_code" 
-                icon="o-key" 
+                icon="key-round" 
                 placeholder="Enter recovery code"
                 hint="Use one of your emergency recovery codes"
                 required 
@@ -26,7 +26,7 @@
             <x-input 
                 label="Authentication Code" 
                 wire:model="code" 
-                icon="o-device-phone-mobile" 
+                icon="phone" 
                 placeholder="000000"
                 hint="Enter the 6-digit code from your authenticator app"
                 maxlength="6"
@@ -54,7 +54,7 @@
             <x-button 
                 label="Verify" 
                 type="submit" 
-                icon="o-shield-check" 
+                icon="shield-check" 
                 class="btn-primary w-full" 
                 spinner="authenticate" 
             />
@@ -64,7 +64,7 @@
     {{-- Back to Login Link --}}
     <div class="mt-6 text-center">
         <a href="{{ route('login') }}" class="text-sm text-primary hover:text-primary-focus flex items-center justify-center gap-2">
-            <x-icon name="o-arrow-left" class="w-4 h-4" />
+            <x-icon name="arrow-left" class="w-4 h-4" />
             Back to Login
         </a>
     </div>

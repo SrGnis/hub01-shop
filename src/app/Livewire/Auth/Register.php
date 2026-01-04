@@ -19,29 +19,36 @@ class Register extends Component
 {
     use Toast;
 
-    #[Rule('required|string|max:255')]
     public string $name = '';
 
-    #[Rule('required|string|email|max:255|unique:users')]
     public string $email = '';
 
-    #[Rule('required|string|confirmed')]
     public string $password = '';
 
-    #[Rule('required|string')]
     public string $password_confirmation = '';
 
-    #[Rule('accepted')]
     public bool $terms = false;
 
-    public function register()
+    protected function rules(): array
     {
-        $this->validate([
-            'name' => 'required|string|max:255',
+        return [
+            'name' => 'required|string|max:255|unique:users|regex:/^[A-Za-z0-9\.\-_]+$/',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'string', Password::default(), 'confirmed'],
             'terms' => 'accepted',
-        ]);
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'name.regex' => 'The username can only contain letters, numbers, dots, underscores, and hyphens.',
+        ];
+    }
+
+    public function register()
+    {
+        $this->validate();
 
         $user = User::create([
             'name' => $this->name,

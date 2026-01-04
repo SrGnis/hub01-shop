@@ -14,7 +14,7 @@
         <x-input 
             label="Email" 
             wire:model="email" 
-            icon="o-envelope" 
+            icon="mail" 
             type="email"
             readonly
             class="bg-base-200"
@@ -42,7 +42,7 @@
             <x-button 
                 label="Reset Password" 
                 type="submit" 
-                icon="o-key" 
+                icon="key-round" 
                 class="btn-primary w-full" 
                 spinner="resetPassword" 
             />
@@ -52,7 +52,7 @@
     {{-- Back to Login Link --}}
     <div class="mt-6 text-center">
         <a href="{{ route('login') }}" class="text-sm text-primary hover:text-primary-focus flex items-center justify-center gap-2">
-            <x-icon name="o-arrow-left" class="w-4 h-4" />
+            <x-icon name="arrow-left" class="w-4 h-4" />
             Back to Login
         </a>
     </div>

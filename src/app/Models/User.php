@@ -3,15 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
+/**
+ * @mixin IdeHelperUser
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'bio',
         'role',
+        'avatar',
+        'unverified_deletion_warning_sent_at',
     ];
 
     /**
@@ -49,7 +57,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => 'string',
+            'deactivated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if the user is deactivated
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
     }
 
     /**
@@ -72,7 +89,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the projects associated with the user through memberships
-     * This relationship includes soft-deleted projects
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
@@ -80,12 +96,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Project::class, 'membership')
             ->withPivot(['role', 'primary', 'status'])
+            ->wherePivot('status', 'active')
             ->using(Membership::class);
     }
 
     /**
      * Get the projects where the user is the primary owner
-     * This relationship includes soft-deleted projects
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
@@ -93,6 +109,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Project::class, 'membership')
             ->withPivot(['role', 'primary', 'status'])
+            ->wherePivot('status', 'active')
             ->wherePivot('primary', true)
             ->using(Membership::class);
     }
@@ -127,11 +144,70 @@ class User extends Authenticatable implements MustVerifyEmail
         return Membership::where('invited_by', $this->id)->pending()->get();
     }
 
+    public function quota()
+    {
+        return $this->hasOne(UserQuota::class);
+    }
+
     /**
      * Check if the user is an admin
      */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Get the avatar URL for the user
+     */
+    public function getAvatarUrl(): ?string
+    {
+        if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
+            return asset('storage/'.$this->avatar);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the pending email changes for the user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pendingEmailChanges()
+    {
+        return $this->hasMany(PendingEmailChange::class);
+    }
+
+    /**
+     * Get the pending password changes for the user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pendingPasswordChanges()
+    {
+        return $this->hasMany(PendingPasswordChange::class);
+    }
+
+    /**
+     * Get the projects reviewed by this user (admin)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function reviewedProjects()
+    {
+        return $this->hasMany(Project::class, 'reviewed_by');
+    }
+
+    /**
+     * Scope a query to only include users matching the search term.
+     */
+    #[Scope]
+    protected function searchScope($query, $term): void
+    {
+        $query->where(function ($query) use ($term) {
+            $query->where('name', 'like', '%' . $term . '%')
+                ->orWhere('email', 'like', '%' . $term . '%');
+        });
     }
 }

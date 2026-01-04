@@ -18,61 +18,53 @@ class MembershipRemoved extends Notification implements ShouldQueue
      *
      * @var int
      */
-    protected $projectId;
+    protected int $projectId;
 
     /**
      * The project name.
      *
      * @var string
      */
-    protected $projectName;
+    protected string $projectName;
 
     /**
      * The removed user ID.
      *
      * @var int
      */
-    protected $removedUserId;
+    protected int $removedUserId;
 
     /**
      * The removed user name.
      *
      * @var string
      */
-    protected $removedUserName;
-
-    /**
-     * The user who performed the removal.
-     *
-     * @var int
-     */
-    protected $removedByUserId;
+    protected string $removedUserName;
 
     /**
      * The user who performed the removal name.
      *
      * @var string
      */
-    protected $removedByUserName;
+    protected string $removedByUserName;
 
     /**
      * Whether the user removed themselves.
      *
      * @var bool
      */
-    protected $isSelfRemoval;
+    protected bool $isSelfRemoval;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Project $project, User $removedUser, User $removedByUser, bool $isSelfRemoval = false)
+    public function __construct(Project $project, User $removedUser, ?User $removedByUser, bool $isSelfRemoval = false)
     {
         $this->projectId = $project->id;
         $this->projectName = $project->name;
         $this->removedUserId = $removedUser->id;
         $this->removedUserName = $removedUser->name;
-        $this->removedByUserId = $removedByUser->id;
-        $this->removedByUserName = $removedByUser->name;
+        $this->removedByUserName = $removedByUser?->name ?? config('app.name');
         $this->isSelfRemoval = $isSelfRemoval;
     }
 
@@ -122,7 +114,6 @@ class MembershipRemoved extends Notification implements ShouldQueue
             'project_name' => $this->projectName,
             'removed_user_id' => $this->removedUserId,
             'removed_user_name' => $this->removedUserName,
-            'removed_by_user_id' => $this->removedByUserId,
             'removed_by_user_name' => $this->removedByUserName,
             'is_self_removal' => $this->isSelfRemoval,
             'type' => 'membership_removed',

@@ -10,7 +10,7 @@
         {{-- Success State --}}
         <div class="text-center">
             <div class="mb-4">
-                <x-icon name="o-check-circle" class="w-16 h-16 text-success mx-auto" />
+                <x-icon name="circle-check" class="w-16 h-16 text-success mx-auto" />
             </div>
             <h3 class="text-lg font-semibold text-base-content mb-2">Email Sent!</h3>
             <p class="text-sm text-base-content/70 mb-6">
@@ -21,7 +21,7 @@
                 <x-button 
                     label="Back to Login" 
                     link="{{ route('login') }}" 
-                    icon="o-arrow-left" 
+                    icon="arrow-left" 
                     class="btn-primary w-full" 
                 />
                 <x-button 
@@ -38,7 +38,7 @@
             <x-input 
                 label="Email" 
                 wire:model="email" 
-                icon="o-envelope" 
+                icon="mail" 
                 placeholder="your@email.com"
                 type="email"
                 hint="Enter the email address associated with your account"
@@ -50,7 +50,7 @@
                 <x-button 
                     label="Send Reset Link" 
                     type="submit" 
-                    icon="o-paper-airplane" 
+                    icon="send" 
                     class="btn-primary w-full" 
                     spinner="sendResetLink" 
                 />
@@ -60,7 +60,7 @@
         {{-- Back to Login Link --}}
         <div class="mt-6 text-center">
             <a href="{{ route('login') }}" class="text-sm text-primary hover:text-primary-focus flex items-center justify-center gap-2">
-                <x-icon name="o-arrow-left" class="w-4 h-4" />
+                <x-icon name="arrow-left" class="w-4 h-4" />
                 Back to Login
             </a>
         </div>

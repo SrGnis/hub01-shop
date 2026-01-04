@@ -20,13 +20,14 @@
                         link="{{ route('project.version.show', ['projectType' => $project->projectType, 'project' => $project, 'version_key' => $version]) }}"
                         icon="download"
                         class="btn-sm btn-primary"
+                        no-wire-navigate
                     />
                 </div>
             @endforeach
         </div>
     @else
         <div class="text-center py-8">
-            <x-icon name="file-x" class="w-12 h-12 mx-auto text-base-content/30 mb-2" />
+            <x-icon name="file-x" class="w-12 h-12 mx-auto mb-2" />
             <p class="text-base-content/60">No versions available</p>
         </div>
     @endif
