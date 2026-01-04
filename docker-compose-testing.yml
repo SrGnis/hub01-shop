@@ -1,11 +1,15 @@
 services:
   db:
-    extends: 
+    extends:
       file: ./docker-compose.yml
       service: db
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_ROOT_HOST=%
 
   redis:
-    extends: 
+    extends:
       file: ./docker-compose.yml
       service: redis
 
@@ -30,8 +34,8 @@ services:
         condition: service_started
 
   mailpit:
-    image: 'axllent/mailpit:latest'
-    
+    image: "axllent/mailpit:latest"
+
 volumes:
   db_data:
   redis_data:
