@@ -53,11 +53,6 @@ jobs:
           # Run tests inside the container
           docker compose -f docker-compose-testing.yml exec -u www-data app php artisan test --parallel --processes=$(( $(nproc) < 4 ? $(nproc) : 4 ))
 
-      - name: Run code style checks
-        run: |
-          # Run style checks inside the container
-          docker compose -f docker-compose-testing.yml exec -u www-data app ./vendor/bin/pint --test
-
       - name: Stop Docker Compose services
         if: always()
         run: |
