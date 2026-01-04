@@ -42,7 +42,7 @@ jobs:
 
       - name: Start Docker Compose services
         run: |
-          docker compose -f docker-compose-testing.yml up -d db redis
+          docker compose -f docker-compose-testing.yml up -d db redis mailpit
 
       - name: Start app container
         run: |
