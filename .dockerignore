@@ -47,7 +47,6 @@ src/public/css
 src/public/js
 
 # Testing
-src/phpunit.xml
 src/.phpunit.result.cache
 src/coverage
 

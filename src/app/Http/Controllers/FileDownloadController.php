@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -19,10 +20,15 @@ class FileDownloadController extends Controller
     public function download(ProjectType $projectType, Project $project, $version, $file)
     {
 
+        // Check if the project is deactivated
+        if ($project->isDeactivated()) {
+            abort(404, 'Project not found');
+        }
+
         $version = $project->versions()->where('version', $version)->first();
 
-        if ($version->project_id !== $project->id) {
-            abort(404);
+        if (! $version) {
+            abort(404, 'Version not found');
         }
 
         $fileModel = $version->files()->where('name', $file)->first();
@@ -37,7 +43,7 @@ class FileDownloadController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::download(
+        return Storage::disk(ProjectFile::getDisk())->download(
             $fileModel->path,
             $fileModel->name,
             ['Content-Type' => 'application/octet-stream']

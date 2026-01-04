@@ -1,76 +1,76 @@
 services:
-  # ==========================================================================================
-  # Database
-  # ==========================================================================================
-  db:
-    # https://github.com/docker-library/docs/blob/master/mariadb/README.md
-    image: mariadb:10
-    restart: always
-    # https://mariadb.com/kb/en/mariadb-server-docker-official-image-environment-variables/
-    environment:
-      - MARIADB_USER=${DB_USERNAME}
-      - MARIADB_DATABASE=${DB_DATABASE}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
-      - MARIADB_RANDOM_ROOT_PASSWORD=1
-    healthcheck:
-    # https://mariadb.com/kb/en/using-healthcheck-sh/
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    volumes:
-    # https://github.com/docker-library/docs/blob/master/mariadb/README.md#where-to-store-data
-      - db_data:/var/lib/mysql
-      - ./docker/mariadb/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/mariadb/sql:/docker-entrypoint-initdb.d
+    # ==========================================================================================
+    # Database
+    # ==========================================================================================
+    db:
+        # https://github.com/docker-library/docs/blob/master/mariadb/README.md
+        image: mariadb:10
+        restart: always
+        # https://mariadb.com/kb/en/mariadb-server-docker-official-image-environment-variables/
+        environment:
+            - MARIADB_USER=${DB_USERNAME}
+            - MARIADB_DATABASE=${DB_DATABASE}
+            - MARIADB_PASSWORD=${DB_PASSWORD}
+            - MARIADB_RANDOM_ROOT_PASSWORD=1
+        healthcheck:
+            # https://mariadb.com/kb/en/using-healthcheck-sh/
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        volumes:
+            # https://github.com/docker-library/docs/blob/master/mariadb/README.md#where-to-store-data
+            - db_data:/var/lib/mysql
+            - ./docker/mariadb/my.cnf:/etc/mysql/conf.d/my.cnf
+            - ./docker/mariadb/sql:/docker-entrypoint-initdb.d
 
-  # ==========================================================================================
-  # Redis
-  # ==========================================================================================
-  redis:
-    image: redis:latest
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
+    # ==========================================================================================
+    # Redis
+    # ==========================================================================================
+    redis:
+        image: redis:latest
+        command: redis-server --appendonly yes
+        volumes:
+            - redis_data:/data
 
-  # ==========================================================================================
-  # Application
-  # ==========================================================================================
-  app:
-    image: ${APP_IMAGE:-hub01_shop_app}
-    build:
-      context: ./
-      dockerfile: ./docker/laravel/Dockerfile
-    ports:
-      - ${APP_PORT:-80}:80
-    volumes:
-      - app_data:/var/www/laravel/storage
-      - .env:/var/www/laravel/.env:ro
-      - ./docker/laravel/config/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/up"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-      redis:
-        condition: service_started
+    # ==========================================================================================
+    # Application
+    # ==========================================================================================
+    app:
+        image: ${APP_IMAGE:-hub01_shop_app}
+        build:
+            context: ./
+            dockerfile: ./docker/laravel/Dockerfile
+        ports:
+            - ${APP_PORT:-80}:80
+        volumes:
+            - app_data:/var/www/laravel/storage
+            - .env:/var/www/laravel/.env:ro
+            - ./docker/laravel/config/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
+        restart: always
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost/up"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+            start_period: 30s
+        depends_on:
+            db:
+                condition: service_healthy
+                restart: true
+            redis:
+                condition: service_started
 
-  # ==========================================================================================
-  # Adminer
-  # ==========================================================================================
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
+    # ==========================================================================================
+    # Adminer
+    # ==========================================================================================
+    adminer:
+        image: adminer
+        ports:
+            - 8080:8080
 
 volumes:
-  app_data:
-  db_data:
-  redis_data:
+    app_data:
+    db_data:
+    redis_data:

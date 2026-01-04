@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @mixin IdeHelperProjectVersionDependency
+ */
 class ProjectVersionDependency extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectVersionDependencyFactory> */

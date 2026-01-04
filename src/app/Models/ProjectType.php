@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @mixin IdeHelperProjectType
+ */
 class ProjectType extends Model
 {
     use HasFactory;
@@ -45,6 +49,14 @@ class ProjectType extends Model
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    /**
+     * Get the quota overrides for this project type
+     */
+    public function quota(): HasOne
+    {
+        return $this->hasOne(ProjectTypeQuota::class);
     }
 
     /**

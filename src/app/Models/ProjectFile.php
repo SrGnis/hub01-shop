@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @mixin IdeHelperProjectFile
+ */
 class ProjectFile extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectFileFactory> */
@@ -23,6 +26,16 @@ class ProjectFile extends Model
         'path',
         'size',
     ];
+
+    public static function getDisk(): string
+    {
+        return config('projects.files-disk');
+    }
+
+    public static function getDirectory(): string
+    {
+        return config('projects.files-directory');
+    }
 
     /**
      * Get the route key for the model.

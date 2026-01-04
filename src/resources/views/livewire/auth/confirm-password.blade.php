@@ -21,7 +21,7 @@
             <x-button 
                 label="Confirm" 
                 type="submit" 
-                icon="o-shield-check" 
+                icon="shield-check" 
                 class="btn-primary w-full" 
                 spinner="confirmPassword" 
             />
@@ -31,7 +31,7 @@
     {{-- Cancel Link --}}
     <div class="mt-6 text-center">
         <a href="/" class="text-sm text-primary hover:text-primary-focus flex items-center justify-center gap-2">
-            <x-icon name="o-arrow-left" class="w-4 h-4" />
+            <x-icon name="arrow-left" class="w-4 h-4" />
             Cancel
         </a>
     </div>

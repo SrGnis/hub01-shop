@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Livewire\Attributes\Layout;
@@ -34,6 +36,12 @@ class ResetPassword extends Component
     {
         $this->token = $token ?? request('token', '');
         $this->email = $email ?? request('email', '');
+
+        // if no token, no email, user doesn't exist, or token is invalid, redirect to login
+        if (!$this->token || !$this->email || User::where('email', $this->email)->doesntExist() || !Password::tokenExists(User::where('email', $this->email)->first(), $this->token)) {
+            Session::flash('error', 'Invalid password reset link.');
+            return redirect()->route('login');
+        }
     }
 
     public function resetPassword()

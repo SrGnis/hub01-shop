@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @mixin IdeHelperProjectVersion
+ */
 class ProjectVersion extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectVersionFactory> */
@@ -55,13 +58,6 @@ class ProjectVersion extends Model
     protected static function booted()
     {
         static::updated(function ($projectVersion) {
-            if ($projectVersion->isDirty('downloads')) {
-                $projectVersion->project->clearDownloadsCache();
-            }
-
-            if ($projectVersion->isDirty('release_date') || $projectVersion->isDirty('release_type')) {
-                $projectVersion->project->clearRecentReleaseDateCache();
-            }
 
             $projectVersion->project->clearRecentVersionsCache();
 
@@ -70,20 +66,16 @@ class ProjectVersion extends Model
 
         static::created(function ($projectVersion) {
 
-            $projectVersion->project->clearRecentReleaseDateCache();
-
             $projectVersion->project->clearRecentVersionsCache();
 
             $projectVersion->clearTagGroupCaches();
         });
 
         static::deleting(function ($projectVersion) {
-
-            $projectVersion->project->clearRecentReleaseDateCache();
-
-            $projectVersion->project->clearDownloadsCache();
-
-            $projectVersion->project->clearRecentVersionsCache();
+            // Only clear cache if project exists (not orphaned)
+            if ($projectVersion->project) {
+                $projectVersion->project->clearRecentVersionsCache();
+            }
         });
     }
 

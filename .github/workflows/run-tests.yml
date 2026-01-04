@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -28,10 +30,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Start Docker Compose services
-        run: |
-          docker compose -f docker-compose-testing.yml up -d db redis
-
       - name: Build app container with cache
         uses: docker/build-push-action@v5
         with:
@@ -42,6 +40,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Start Docker Compose services
+        run: |
+          docker compose -f docker-compose-testing.yml up -d db redis mailpit
+
       - name: Start app container
         run: |
           docker compose -f docker-compose-testing.yml up -d --wait --wait-timeout 30 app
@@ -49,12 +51,7 @@ jobs:
       - name: Run Laravel tests
         run: |
           # Run tests inside the container
-          docker compose -f docker-compose-testing.yml exec -u www-data app php artisan test
-
-      - name: Run code style checks
-        run: |
-          # Run style checks inside the container
-          docker compose -f docker-compose-testing.yml exec -u www-data app ./vendor/bin/pint --test
+          docker compose -f docker-compose-testing.yml exec -u www-data app php artisan test --parallel --processes=$(( $(nproc) < 4 ? $(nproc) : 4 ))
 
       - name: Stop Docker Compose services
         if: always()

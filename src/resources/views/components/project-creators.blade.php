@@ -4,26 +4,28 @@
     @if($project->users->count() > 0)
         <div class="space-y-3">
             @foreach($project->active_users as $user)
-                <div class="flex items-center gap-3 pb-3 border-b border-base-content/10 last:border-b-0 last:pb-0">
-                    <a href="{{ route('user.profile', $user) }}" class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-sm font-bold text-primary-content hover:opacity-80 transition-opacity">
-                            {{ strtoupper(substr($user->name, 0, 1)) }}
-                        </div>
-                    </a>
-                    <div class="flex-grow min-w-0">
-                        <div class="font-semibold text-sm truncate">
-                            <a href="{{ route('user.profile', $user) }}" class="hover:text-primary transition-colors">
+                <a href="{{ route('user.profile', $user) }}" class="block pb-3 border-b border-base-content/10 last:border-b-0 last:pb-0 hover:bg-base-200/50 -mx-2 px-2 py-2 rounded transition-colors">
+                    <div class="flex items-center justify-between gap-3">
+                        <x-avatar
+                            placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
+                            placeholder-text-class="text-sm font-bold"
+                            placeholder-bg-class="bg-primary text-primary-content"
+                            class="!w-10"
+                            image="{{ $user->getAvatarUrl() }}"
+                        >
+                            <x-slot:title class="font-semibold text-sm truncate">
                                 {{ $user->name }}
-                            </a>
-                        </div>
-                        <div class="text-xs text-base-content/60">
-                            {{ ucfirst($user->pivot->role) }}
-                        </div>
+                            </x-slot:title>
+                            <x-slot:subtitle class="text-xs text-base-content/60">
+                                {{ ucfirst($user->pivot->role) }}
+                            </x-slot:subtitle>
+                        </x-avatar>
+
+                        @if($user->pivot->primary)
+                            <x-badge value="Primary" class="badge-primary badge-sm" />
+                        @endif
                     </div>
-                    @if($user->pivot->primary)
-                        <x-badge value="Primary" class="badge-primary badge-sm" />
-                    @endif
-                </div>
+                </a>
             @endforeach
         </div>
     @else

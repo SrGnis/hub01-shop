@@ -31,6 +31,7 @@ class MembershipFactory extends Factory
             'project_id' => Project::factory(),
             'role' => $this->faker->randomElement(['owner', 'contributor', 'tester', 'translator']),
             'primary' => false,
+            'status' => 'active',
         ];
     }
 

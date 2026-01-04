@@ -1,18 +1,22 @@
 services:
   db:
-    extends: 
+    extends:
       file: ./docker-compose.yml
       service: db
+    environment:
+      - MARIADB_RANDOM_ROOT_PASSWORD=
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_ROOT_HOST=%
     ports:
       - 13306:3306
 
   redis:
-    extends: 
+    extends:
       file: ./docker-compose.yml
       service: redis
 
   app:
-    extends: 
+    extends:
       file: ./docker-compose.yml
       service: app
     image: hub01_shop_app_dev
@@ -42,16 +46,16 @@ services:
   # Mailpit
   # ==========================================================================================
   mailpit:
-    image: 'axllent/mailpit:latest'
+    image: "axllent/mailpit:latest"
     ports:
-        - '1025:1025'
-        - '8025:8025'
+      - "1025:1025"
+      - "8025:8025"
 
   adminer:
-    extends: 
+    extends:
       file: ./docker-compose.yml
       service: adminer
-    
+
 volumes:
   db_data:
   redis_data:

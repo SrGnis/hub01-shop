@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Services\PageService;
+use App\Services\ProjectQuotaService;
+use App\Services\ProjectService;
+use App\Services\ProjectVersionService;
+use App\Services\UserService;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +18,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register services for dependency injection
+
+        $this->app->singleton(UserService::class);
+        $this->app->singleton(ProjectService::class);
+        $this->app->singleton(ProjectVersionService::class);
+        $this->app->singleton(ProjectQuotaService::class);
+        $this->app->singleton(PageService::class);
     }
 
     /**
@@ -19,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Relation::morphMap([
+            'project' => 'App\Models\Project',
+            'project_type' => 'App\Models\ProjectType',
+        ]);
     }
 }

@@ -19,51 +19,43 @@ class ProjectRestored extends Notification implements ShouldQueue
      *
      * @var string
      */
-    protected $projectSlug;
+    protected string $projectSlug;
 
     /**
      * The project name.
      *
      * @var string
      */
-    protected $projectName;
+    protected string $projectName;
 
     /**
      * The project type.
      *
      * @var string
      */
-    protected $projectType;
-
-    /**
-     * The user who restored the project.
-     *
-     * @var int
-     */
-    protected $restoredByUserId;
+    protected string $projectType;
 
     /**
      * The name of the user who restored the project.
      *
      * @var string
      */
-    protected $restoredByUserName;
+    protected ?string $restoredByUserName;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Project $project, User $restoredByUser)
+    public function __construct(Project $project, ?User $restoredByUser)
     {
         $this->projectSlug = $project->slug;
         $this->projectName = $project->name;
-        $this->projectType = $project->projectType;
-        $this->restoredByUserId = $restoredByUser->id;
-        $this->restoredByUserName = $restoredByUser->name;
+        $this->projectType = $project->projectType->value;
+        $this->restoredByUserName = $restoredByUser?->name ?? config('app.name');
 
         Log::info('ProjectRestored notification created', [
             'project_' => $this->projectSlug,
             'project_name' => $this->projectName,
-            'restored_by_user_id' => $this->restoredByUserId,
+            'project_type' => $this->projectType,
             'restored_by_user_name' => $this->restoredByUserName,
         ]);
     }
@@ -105,7 +97,6 @@ class ProjectRestored extends Notification implements ShouldQueue
             'project_id' => $this->projectSlug,
             'project_name' => $this->projectName,
             'project_type' => $this->projectType,
-            'restored_by_user_id' => $this->restoredByUserId,
             'restored_by_user_name' => $this->restoredByUserName,
             'type' => 'project_restored',
         ];
