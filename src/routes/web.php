@@ -5,6 +5,7 @@ use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Livewire\Auth\AccountDeactivated;
+use App\Livewire\Page;
 use App\Livewire\ProjectForm;
 use App\Livewire\ProjectSearch;
 use App\Livewire\UserProfile;
@@ -19,6 +20,10 @@ require __DIR__.'/admin.php';
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
+
+// Dynamic Pages
+Route::get('/pages/{pageName}', Page::class)
+    ->name('page.show');
 
 // Account Deactivated Page
 Route::get('/account/deactivated', AccountDeactivated::class)

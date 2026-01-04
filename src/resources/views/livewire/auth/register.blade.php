@@ -6,63 +6,63 @@
 
     <x-form wire:submit="register">
         {{-- Name Field --}}
-        <x-input 
-            label="Username" 
-            wire:model="name" 
-            icon="user" 
+        <x-input
+            label="Username"
+            wire:model="name"
+            icon="user"
             placeholder="JohnDoe123"
-            required 
+            required
         />
 
         {{-- Email Field --}}
-        <x-input 
-            label="Email" 
-            wire:model="email" 
-            icon="mail" 
+        <x-input
+            label="Email"
+            wire:model="email"
+            icon="mail"
             placeholder="your@email.com"
             type="email"
-            required 
+            required
         />
 
         {{-- Password Field --}}
-        <x-password 
-            label="Password" 
-            wire:model="password" 
+        <x-password
+            label="Password"
+            wire:model="password"
             placeholder="Create a strong password"
             hint="Must be at least 8 characters"
-            required 
+            required
         />
 
         {{-- Password Confirmation Field --}}
-        <x-password 
-            label="Confirm Password" 
-            wire:model="password_confirmation" 
+        <x-password
+            label="Confirm Password"
+            wire:model="password_confirmation"
             placeholder="Confirm your password"
-            required 
+            required
         />
 
         {{-- Terms and Conditions --}}
-        <x-checkbox 
-            label="I agree to the Terms of Service and Privacy Policy" 
-            wire:model="terms" 
+        <x-checkbox
+            label="I agree to the Terms of Service and Privacy Policy"
+            wire:model="terms"
             required
         >
             <x-slot:label>
-                I agree to the 
-                <a href="#" class="text-primary hover:text-primary-focus">Terms of Service</a> 
-                and 
-                <a href="#" class="text-primary hover:text-primary-focus">Privacy Policy</a>
+                I agree to the
+                <a href="{{ route('page.show', 'terms-of-service') }}" class="text-primary hover:text-primary-focus">Terms of Service</a>
+                and
+                <a href="{{ route('page.show', 'privacy-policy') }}" class="text-primary hover:text-primary-focus">Privacy Policy</a>
             </x-slot:label>
         </x-checkbox>
 
         {{-- Submit Button --}}
         <x-slot:actions>
-            <x-button 
-                label="Create Account" 
-                type="submit" 
-                icon="user-plus" 
-                class="btn-primary w-full" 
-                spinner="register" 
+            <x-button
+                label="Create Account"
+                type="submit"
+                icon="user-plus"
+                class="btn-primary w-full"
+                spinner="register"
             />
         </x-slot:actions>
     </x-form>
