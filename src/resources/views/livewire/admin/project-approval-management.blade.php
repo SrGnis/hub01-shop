@@ -1,4 +1,4 @@
-<div class="w-full lg:w-10/12 m-auto py-6">
+<div class="w-full m-auto py-6">
     <x-card>
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Project Approval Management</h1>

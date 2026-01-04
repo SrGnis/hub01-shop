@@ -1,7 +1,9 @@
 <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <livewire:report-abuse />
+
     <!-- User Profile Header -->
     <x-card class="mb-6">
-        <div class="flex flex-col md:flex-row gap-6 items-start">
+        <div class="flex flex-col-reverse md:flex-row items-end md:items-center">
             <!-- User Avatar with Info -->
             <div class="w-full md:max-w-2xl">
                 <x-avatar placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
@@ -38,6 +40,18 @@
                             </x-button>
                         @endif
                     @endauth
+                    <x-dropdown right>
+                        <x-slot:trigger>
+                            <x-button icon="ellipsis" class="btn-ghost" />
+                        </x-slot:trigger>
+
+                        <x-menu-item
+                            title="Report"
+                            class="text-error"
+                            icon="flag"
+                            @click="$dispatch('open-report-modal', { itemId: {{ $user->id }}, itemType: 'App\\\\Models\\\\User', itemName: '{{ addslashes($user->name) }}' })"
+                        />
+                    </x-dropdown>
                 </div>
             </div>
         </div>

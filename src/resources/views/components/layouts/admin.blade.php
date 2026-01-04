@@ -102,6 +102,7 @@
                         link="{{ route('admin.projects.approvals') }}" />
                     <x-menu-item title="Quotas" icon="lucide-gauge" link="{{ route('admin.quotas') }}" />
                 </x-menu-sub>
+                <x-menu-item title="Abuse Reports" icon="lucide-flag" link="{{ route('admin.abuse-reports') }}" />
 
                 <x-menu-separator />
 
