@@ -1,0 +1,3 @@
+[submodule "src/lib/mary"]
+	path = src/lib/mary
+	url = https://github.com/SrGnis/mary
