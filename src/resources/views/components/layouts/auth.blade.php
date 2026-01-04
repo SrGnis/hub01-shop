@@ -23,9 +23,14 @@
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
 
         {{-- Logo/Brand --}}
-        <div class="mb-6">
-            <a href="/" class="text-2xl font-bold text-primary">
-                {{ config('app.name') }}
+        <div class="my-6">
+            <a href="{{ route('project-search', \App\Models\ProjectType::first()) }}" class="flex items-center gap-2">
+                <div class="w-10 h-10">
+                    <img src="{{ asset('images/logo.svg') }}" alt="" class="w-full h-full object-contain">
+                </div>
+                <div class="hidden md:block text-2xl font-bold text-primary">
+                    {{ config('app.name') }}
+                </div>
             </a>
         </div>
 
@@ -33,22 +38,15 @@
         <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-base-100 shadow-md overflow-hidden sm:rounded-lg">
             {{ $slot }}
         </div>
+    </div>
 
-        {{-- Footer Links --}}
-        <div class="mt-6 text-center">
-            <div class="flex justify-center space-x-4 text-sm text-base-content/70">
-                <a href="/" class="hover:text-primary transition-colors">
-                    Home
-                </a>
-                <span>•</span>
-                <a href="#" class="hover:text-primary transition-colors">
-                    Help
-                </a>
-                <span>•</span>
-                <a href="#" class="hover:text-primary transition-colors">
-                    Privacy
-                </a>
-            </div>
+    {{-- Footer --}}
+    <div class="footer p-5 bg-neutral text-neutral-content mt-auto">
+        <div class="mx-auto">
+            <x-footer-links />
+        </div>
+        <div class="mx-auto">
+            &copy; {{config('app.name')}} {{ date('Y') }}
         </div>
     </div>
 

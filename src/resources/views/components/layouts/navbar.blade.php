@@ -154,7 +154,17 @@
         </x-slot:content>
     </x-main>
 
+
     {{--  TOAST area --}}
     <x-toast />
+    {{-- Footer --}}
+    <div class="footer p-5 bg-neutral text-neutral-content mt-auto">
+        <div class="mx-auto">
+            <x-footer-links />
+        </div>
+        <div class="mx-auto">
+            &copy; {{config('app.name')}} {{ date('Y') }}
+        </div>
+    </div>
 </body>
 </html>

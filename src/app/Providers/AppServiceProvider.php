@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\PageService;
 use App\Services\ProjectQuotaService;
 use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
@@ -23,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectService::class);
         $this->app->singleton(ProjectVersionService::class);
         $this->app->singleton(ProjectQuotaService::class);
+        $this->app->singleton(PageService::class);
     }
 
     /**
