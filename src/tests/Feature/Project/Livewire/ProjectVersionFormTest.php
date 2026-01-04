@@ -5,6 +5,7 @@ namespace Tests\Feature\Project\Livewire;
 use App\Livewire\ProjectVersionForm;
 use App\Models\Membership;
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionTag;
@@ -966,7 +967,7 @@ class ProjectVersionFormTest extends TestCase
             'size' => 1024,
         ]);
 
-        Storage::put($file->path, 'content');
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
 
         Livewire::actingAs($this->user)
             ->test(ProjectVersionForm::class, [
@@ -980,7 +981,7 @@ class ProjectVersionFormTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseMissing('project_version', ['id' => $version->id]);
-        Storage::assertMissing($file->path);
+        Storage::disk(ProjectFile::getDisk())->assertMissing($file->path);
     }
 
     #[Test]

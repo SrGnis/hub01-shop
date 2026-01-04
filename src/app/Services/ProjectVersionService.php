@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionDependency;
 use App\Models\ProjectVersionTag;
@@ -26,7 +27,7 @@ class ProjectVersionService
                 $version->update($data);
                 $projectVersion = $version;
                 $projectVersion->dependencies()->delete();
-                
+
                 $this->deleteMarkedFiles($projectVersion, $existingFiles);
             } else {
                 $projectVersion = $project->versions()->create($data);
@@ -61,7 +62,7 @@ class ProjectVersionService
             if (isset($file['delete']) && $file['delete']) {
                 $fileModel = $projectVersion->files()->find($file['id']);
                 if ($fileModel) {
-                    Storage::delete($fileModel->path);
+                    Storage::disk(ProjectFile::getDisk())->delete($fileModel->path);
                     $fileModel->delete();
                 }
             }
@@ -75,7 +76,7 @@ class ProjectVersionService
     {
         foreach ($files as $file) {
             $fileName = $file->getClientOriginalName();
-            
+
             // Double check for duplicates if editing, though validation should catch this
             if ($isEditing) {
                 foreach ($existingFiles as $existingFile) {
@@ -87,7 +88,7 @@ class ProjectVersionService
                 }
             }
 
-            $path = $file->store('project-files');
+            $path = $file->store(ProjectFile::getDirectory(), ProjectFile::getDisk());
 
             try {
                 $projectVersion->files()->create([
@@ -97,7 +98,7 @@ class ProjectVersionService
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {
                 if (str_contains($e->getMessage(), 'project_file_unique')) {
-                    Storage::delete($path);
+                    Storage::disk(ProjectFile::getDisk())->delete($path);
                     throw new \Exception("A file with the name '{$fileName}' already exists in this version.");
                 }
                 throw $e;
@@ -183,7 +184,7 @@ class ProjectVersionService
             }
 
             foreach ($version->files as $file) {
-                Storage::delete($file->path);
+                Storage::disk(ProjectFile::getDisk())->delete($file->path);
                 $file->delete();
             }
 
@@ -248,10 +249,10 @@ class ProjectVersionService
             ->orderBy('release_date', 'desc')
             ->get()
             ->map(function ($version) {
-                $releaseType = $version->release_type instanceof \App\Enums\ReleaseType 
-                    ? $version->release_type->value 
+                $releaseType = $version->release_type instanceof \App\Enums\ReleaseType
+                    ? $version->release_type->value
                     : (string) $version->release_type;
-                    
+
                 return [
                     'id' => $version->id,
                     'name' => $version->version . ' (' . $releaseType . ')',

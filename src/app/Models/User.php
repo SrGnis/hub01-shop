@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'bio',
         'role',
         'avatar',
+        'unverified_deletion_warning_sent_at',
     ];
 
     /**

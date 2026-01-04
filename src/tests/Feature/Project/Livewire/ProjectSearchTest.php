@@ -63,10 +63,16 @@ class ProjectSearchTest extends TestCase
         $tag2->projectTypes()->attach($this->projectType);
 
         // Create projects with different tags
-        $project1 = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+        $project1 = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Project with Tag 1'
+        ]);
         $project1->tags()->attach($tag1);
 
-        $project2 = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+        $project2 = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Project with Tag 2'
+        ]);
         $project2->tags()->attach($tag2);
 
         Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
@@ -85,7 +91,10 @@ class ProjectSearchTest extends TestCase
         $versionTag->projectTypes()->attach($this->projectType);
 
         // Create project with version that has the tag
-        $project1 = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+        $project1 = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Project with Version Tag'
+        ]);
         $version1 = $project1->versions()->create([
             'name' => 'Version 1.0.0',
             'version' => '1.0.0',
@@ -96,7 +105,10 @@ class ProjectSearchTest extends TestCase
         $version1->tags()->attach($versionTag);
 
         // Create project without the version tag
-        $project2 = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+        $project2 = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Project without Version Tag'
+        ]);
 
         Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
             ->set('selectedVersionTags', [$versionTag->id])
@@ -132,7 +144,10 @@ class ProjectSearchTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $projectLow = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+        $projectLow = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Low Downloads Project'
+        ]);
         $versionLow = $projectLow->versions()->create([
             'name' => 'Low Downloads Version',
             'version' => '1.0.0',
@@ -141,7 +156,10 @@ class ProjectSearchTest extends TestCase
             'downloads' => 10,
         ]);
 
-        $projectHigh = Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+        $projectHigh = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'High Downloads Project'
+        ]);
         $versionHigh = $projectHigh->versions()->create([
             'name' => 'High Downloads Version',
             'version' => '1.0.0',
@@ -165,7 +183,10 @@ class ProjectSearchTest extends TestCase
 
         // Create 15 projects to trigger pagination
         for ($i = 0; $i < 15; $i++) {
-            Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+            Project::factory()->owner($user)->create([
+                'project_type_id' => $this->projectType->id,
+                'name' => 'Project ' . $i
+            ]);
         }
 
         Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
@@ -197,7 +218,10 @@ class ProjectSearchTest extends TestCase
 
         // Create 30 projects
         for ($i = 0; $i < 30; $i++) {
-            Project::factory()->owner($user)->create(['project_type_id' => $this->projectType->id]);
+            Project::factory()->owner($user)->create([
+                'project_type_id' => $this->projectType->id,
+                'name' => 'Project ' . $i . ''
+            ]);
         }
 
         $component = Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
@@ -239,12 +263,14 @@ class ProjectSearchTest extends TestCase
         $user = User::factory()->create();
 
         $activeProject = Project::factory()->owner($user)->create([
-            'project_type_id' => $this->projectType->id
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Active Project',
         ]);
 
         $deactivatedProject = Project::factory()->owner($user)->create([
             'project_type_id' => $this->projectType->id,
-            'deactivated_at' => now()
+            'deactivated_at' => now(),
+            'name' => 'Deactivated Project'
         ]);
 
         Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])

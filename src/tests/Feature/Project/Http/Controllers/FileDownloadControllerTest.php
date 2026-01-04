@@ -3,6 +3,7 @@
 namespace Tests\Feature\Project\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
 use App\Models\User;
@@ -46,7 +47,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => strlen($fileContent),
         ]);
 
-        Storage::put($file->path, $fileContent);
+        Storage::disk(ProjectFile::getDisk())->put($file->path, $fileContent);
 
         $response = $this->get(route('file.download', [
             'projectType' => $this->projectType,
@@ -69,7 +70,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => 1024,
         ]);
 
-        Storage::put($file->path, 'content');
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
 
         $initialDownloads = $this->version->downloads;
 
@@ -94,7 +95,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => strlen($fileContent),
         ]);
 
-        Storage::put($file->path, $fileContent);
+        Storage::disk(ProjectFile::getDisk())->put($file->path, $fileContent);
 
         $response = $this->get(route('file.download', [
             'projectType' => $this->projectType,
@@ -117,7 +118,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => 1024,
         ]);
 
-        Storage::put($file->path, 'content');
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
 
         $this->get(route('file.download', [
             'projectType' => $this->projectType,
@@ -137,7 +138,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => 1024,
         ]);
 
-        Storage::put($file->path, 'content');
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
 
         $this->get(route('file.download', [
             'projectType' => $this->projectType,
@@ -166,7 +167,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => 1024,
         ]);
 
-        Storage::put($file->path, 'content');
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
 
         // Try to download from wrong project
         $this->get(route('file.download', [
@@ -219,7 +220,7 @@ class FileDownloadControllerTest extends TestCase
             'size' => 1024,
         ]);
 
-        Storage::put($file->path, 'content');
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
 
         // No authentication
         $this->get(route('file.download', [
@@ -246,8 +247,8 @@ class FileDownloadControllerTest extends TestCase
             'size' => 2048,
         ]);
 
-        Storage::put($file1->path, 'content1');
-        Storage::put($file2->path, 'content2');
+        Storage::disk(ProjectFile::getDisk())->put($file1->path, 'content1');
+        Storage::disk(ProjectFile::getDisk())->put($file2->path, 'content2');
 
         $initialDownloads = $this->version->downloads;
 
