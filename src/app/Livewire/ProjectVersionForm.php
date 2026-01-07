@@ -285,6 +285,7 @@ class ProjectVersionForm extends Component
                 ])
             );
         } catch (\Exception $e) {
+            logger()->error('Error saving project version: ' . $e->getMessage());
             $this->error('An error occurred: ' . $e->getMessage());
         }
     }

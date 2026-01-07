@@ -95,7 +95,7 @@ class UserAccountSecurity extends Component
             $this->loadPendingEmailChange();
             $this->success('Verification email sent! Check your current email address to authorize the change.');
         } catch (\Exception $e) {
-            logger()->error('Failed to request email change', ['error' => $e->getMessage()]);
+            logger()->error('Failed to request email change');
             $this->error('Failed to request email change. Please try again.');
         }
 
@@ -110,6 +110,7 @@ class UserAccountSecurity extends Component
                 $this->success('Email change cancelled.');
             }
         } catch (\Exception) {
+            logger()->error('Failed to cancel email change');
             $this->error('Failed to cancel email change.');
         }
     }
@@ -137,7 +138,7 @@ class UserAccountSecurity extends Component
             $this->loadPendingPasswordChange();
             $this->success('Confirmation email sent! Check your email to confirm the password change.');
         } catch (\Exception $e) {
-            logger()->error('Failed to request password change', ['error' => $e->getMessage()]);
+            logger()->error('Failed to request password change');
             $this->error('Failed to request password change. Please try again.');
         }
     }
