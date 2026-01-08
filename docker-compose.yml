@@ -76,9 +76,7 @@ services:
             - "4318:4318" # OTLP HTTP receiver
             - "9090:9090" # Prometheus
         volumes:
-            - lgtm_grafana:/data/grafana
-            - lgtm_loki:/data/loki
-            - lgtm_prometheus:/data/prometheus
+            - lgtm_data:/data
         environment:
             - GF_PATHS_DATA=/data/grafana
         restart: unless-stopped
@@ -95,6 +93,4 @@ volumes:
     app_data:
     db_data:
     redis_data:
-    lgtm_grafana:
-    lgtm_loki:
-    lgtm_prometheus:
+    lgtm_data:
