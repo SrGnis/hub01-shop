@@ -71,7 +71,11 @@
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "sort-packages": true,
-    "allow-plugins": { "pestphp/pest-plugin": true, "php-http/discovery": true }
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true,
+      "tbachert/spi": true
+    }
   },
   "repositories": {
     "robsontenorio/mary": { "type": "path", "url": "lib/mary", "options": { "symlink": true } }
