@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\ProjectType;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -75,6 +76,11 @@ class ProjectApprovalManagement extends Component
             $this->projectService->approveProject($project, Auth::user());
             $this->success('Project "' . $project->name . '" approved successfully!');
         } catch (\Exception $e) {
+            Log::error('Failed to approve project', [
+                'project_id' => $projectId,
+                'admin_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             $this->error('Failed to approve project: ' . $e->getMessage());
         }
     }
@@ -97,6 +103,11 @@ class ProjectApprovalManagement extends Component
             $this->projectService->rejectProject($project, Auth::user(), $this->rejectionReason);
             $this->success('Project "' . $project->name . '" rejected successfully.');
         } catch (\Exception $e) {
+            Log::error('Failed to reject project', [
+                'project_id' => $this->projectToReject,
+                'admin_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             $this->error('Failed to reject project: ' . $e->getMessage());
         }
 

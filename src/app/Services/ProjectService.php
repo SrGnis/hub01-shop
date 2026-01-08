@@ -239,6 +239,12 @@ class ProjectService
             $project->update(array_merge($data, ['logo_path' => $logoPath]));
             $project->tags()->sync($data['selectedTags'] ?? []);
 
+            Log::info('Project updated', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'user_id' => Auth::id(),
+            ]);
+
             return $project;
         }
 
@@ -274,6 +280,12 @@ class ProjectService
 
         $project = Project::create($projectData);
         $project->tags()->attach($data['selectedTags'] ?? []);
+
+        Log::info('Project created', [
+            'project_id' => $project->id,
+            'project_name' => $project->name,
+            'user_id' => $user->id,
+        ]);
 
         // Create owner membership
         $membership = new Membership([
@@ -315,6 +327,13 @@ class ProjectService
         }
         $membership->save();
 
+        Log::info('Member added to project', [
+            'project_id' => $project->id,
+            'new_member_user_id' => $user->id,
+            'new_member_name' => $userName,
+            'role' => $role,
+        ]);
+
         $user->notify(new MembershipInvitation($membership));
     }
 
@@ -355,6 +374,13 @@ class ProjectService
             }
 
             DB::commit();
+
+            Log::info('Member removed from project', [
+                'project_id' => $project->id,
+                'removed_user_id' => $membership->user_id,
+                'membership_id' => $membershipId,
+                'is_self_removal' => $isSelfRemoval,
+            ]);
 
             return $isSelfRemoval;
         } catch (\Exception $e) {
@@ -403,6 +429,12 @@ class ProjectService
             }
 
             DB::commit();
+
+            Log::info('Primary member changed', [
+                'project_id' => $project->id,
+                'membership_id' => $membershipId,
+                'new_primary_user_id' => $membership->user_id,
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
@@ -475,6 +507,12 @@ class ProjectService
             $projectMembers = $project->active_users()->get();
             $project->delete();
 
+            Log::info('Project deleted', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'user_id' => Auth::id(),
+            ]);
+
             foreach ($projectMembers as $member) {
                 $member->notify(new ProjectDeleted($project, Auth::user()));
             }
@@ -516,6 +554,12 @@ class ProjectService
         try {
             $project->restore();
 
+            Log::info('Project restored', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'user_id' => Auth::id(),
+            ]);
+
             $projectMembers = $project->active_users()->get();
 
             foreach ($projectMembers as $member) {
@@ -540,6 +584,12 @@ class ProjectService
     {
         $project->submit();
 
+        Log::info('Project submitted for review', [
+            'project_id' => $project->id,
+            'project_name' => $project->name,
+            'user_id' => Auth::id(),
+        ]);
+
         // Get project owner
         $owner = $project->owner->first();
         if ($owner) {
@@ -562,6 +612,12 @@ class ProjectService
 
         try {
             $project->approve($admin);
+
+            Log::info('Project approved', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'admin_id' => $admin->id,
+            ]);
 
             // Notify project owner
             $owner = $project->owner->first();
@@ -590,6 +646,13 @@ class ProjectService
         try {
             $project->reject($admin, $reason);
 
+            Log::info('Project rejected', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'admin_id' => $admin->id,
+                'reason' => $reason,
+            ]);
+
             // Notify project owner
             $owner = $project->owner->first();
             if ($owner) {
@@ -607,3 +670,4 @@ class ProjectService
         }
     }
 }
+

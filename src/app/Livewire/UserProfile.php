@@ -7,6 +7,7 @@ use App\Models\Scopes\ProjectFullScope;
 use App\Models\User;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -98,12 +99,23 @@ class UserProfile extends Component
 
         try {
             $this->projectService->restoreProject($project);
+
+            Log::info('Project restored by user', [
+                'project_id' => $project->id,
+                'user_id' => Auth::id(),
+            ]);
+
             $this->success('Project restored successfully!');
 
             // Refresh the computed properties
             unset($this->activeProjects);
             unset($this->deletedProjects);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            Log::error('Failed to restore project', [
+                'project_id' => $projectId,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             $this->error('Failed to restore project. Please try again.');
         }
     }

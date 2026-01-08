@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\AbuseReportCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class AbuseReportService
@@ -36,6 +37,13 @@ class AbuseReportService
                 'reportable_type' => $data['reportable_type'],
                 'reporter_id' => $data['reporter_id'],
                 'status' => 'pending',
+            ]);
+
+            Log::info('Abuse report created', [
+                'report_id' => $report->id,
+                'reporter_id' => $data['reporter_id'],
+                'reportable_type' => $data['reportable_type'],
+                'reportable_id' => $data['reportable_id'],
             ]);
 
             // Send notification to all admin users
@@ -74,6 +82,10 @@ class AbuseReportService
     public function resolveReport(AbuseReport $report): void
     {
         $report->markAsResolved();
+
+        Log::info('Abuse report resolved', [
+            'report_id' => $report->id,
+        ]);
     }
 
     /**
@@ -85,6 +97,10 @@ class AbuseReportService
     public function reopenReport(AbuseReport $report): void
     {
         $report->markAsPending();
+
+        Log::info('Abuse report reopened', [
+            'report_id' => $report->id,
+        ]);
     }
 
     /**
@@ -150,6 +166,10 @@ class AbuseReportService
     public function deleteReport(AbuseReport $report): void
     {
         $report->delete();
+
+        Log::info('Abuse report deleted', [
+            'report_id' => $report->id,
+        ]);
     }
 
     /**
@@ -162,6 +182,11 @@ class AbuseReportService
     {
         $report = AbuseReport::withTrashed()->findOrFail($id);
         $report->restore();
+
+        Log::info('Abuse report restored', [
+            'report_id' => $report->id,
+        ]);
+
         return $report;
     }
 }
