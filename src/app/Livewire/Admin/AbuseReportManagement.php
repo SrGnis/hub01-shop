@@ -7,6 +7,7 @@ use App\Services\AbuseReportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -70,6 +71,11 @@ class AbuseReportManagement extends Component
         $service = app(AbuseReportService::class);
         $service->resolveReport($report);
 
+        Log::info('Abuse report resolved by admin', [
+            'report_id' => $id,
+            'admin_id' => Auth::id(),
+        ]);
+
         session()->flash('message', 'Report marked as resolved.');
     }
 
@@ -81,6 +87,11 @@ class AbuseReportManagement extends Component
         $service = app(AbuseReportService::class);
         $service->reopenReport($report);
 
+        Log::info('Abuse report reopened by admin', [
+            'report_id' => $id,
+            'admin_id' => Auth::id(),
+        ]);
+
         session()->flash('message', 'Report reopened.');
     }
 
@@ -90,6 +101,11 @@ class AbuseReportManagement extends Component
         $this->authorize('delete', $report);
 
         $report->delete();
+
+        Log::info('Abuse report deleted by admin', [
+            'report_id' => $id,
+            'admin_id' => Auth::id(),
+        ]);
 
         session()->flash('message', 'Report deleted.');
     }

@@ -10,8 +10,10 @@ use App\Notifications\ConfirmPasswordChange;
 use App\Notifications\UserDeactivated;
 use App\Notifications\UserReactivated;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class UserService
@@ -48,6 +50,13 @@ class UserService
 
             $user->markEmailAsVerified();
 
+            Log::info('User created by admin', [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]);
+
             return $user;
         });
     }
@@ -68,6 +77,13 @@ class UserService
 
             $user->save();
 
+            Log::info('User updated by admin', [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]);
+
             return $user;
         });
     }
@@ -78,6 +94,11 @@ class UserService
     public function delete(User $user): void
     {
         $user->delete();
+
+        Log::info('User deleted by admin', [
+            'user_id' => $user->id,
+            'deleted_user_email' => $user->email,
+        ]);
     }
 
     /**
@@ -94,6 +115,10 @@ class UserService
 
             // Send notification to the user
             $user->notify(new UserDeactivated);
+
+            Log::info('User deactivated by admin', [
+                'user_id' => $user->id,
+            ]);
         });
     }
 
@@ -108,6 +133,10 @@ class UserService
 
             // Send notification to the user
             $user->notify(new UserReactivated);
+
+            Log::info('User reactivated by admin', [
+                'user_id' => $user->id,
+            ]);
         });
     }
 
@@ -135,6 +164,12 @@ class UserService
 
             // Send authorization email to current email
             $user->notify(new AuthorizeEmailChange($pendingChange));
+
+            Log::info('Email change requested', [
+                'user_id' => $user->id,
+                'old_email' => $user->email,
+                'new_email' => $newEmail,
+            ]);
         });
     }
 
@@ -171,6 +206,10 @@ class UserService
 
             // Send confirmation email
             $user->notify(new ConfirmPasswordChange($pendingChange));
+
+            Log::info('Password change requested', [
+                'user_id' => $user->id,
+            ]);
         });
     }
 
