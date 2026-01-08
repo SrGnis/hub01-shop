@@ -36,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
             'project' => 'App\Models\Project',
             'project_type' => 'App\Models\ProjectType',
         ]);
+
+        if($this->app->environment('production')) {
+            \URL::forceScheme('https');
+        }
     }
 }
