@@ -23,3 +23,9 @@ Schedule::command('cleanup:orphaned-files --force')
     ->dailyAt('02:00')
     ->name('cleanup-orphaned-files')
     ->withoutOverlapping();
+
+// Schedule demo refresh to run every Friday at 1:00 AM
+Schedule::command('demo:refresh')
+    ->weeklyOn(5, '01:00')
+    ->name('demo-refresh')
+    ->withoutOverlapping();
