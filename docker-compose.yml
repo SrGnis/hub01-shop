@@ -61,25 +61,6 @@ services:
                 restart: true
             redis:
                 condition: service_started
-            lgtm:
-                condition: service_started
-
-    # ==========================================================================================
-    # OpenTelemetry (LGTM - Grafana, Tempo, Loki, Prometheus)
-    # ==========================================================================================
-    lgtm:
-        image: grafana/otel-lgtm:latest
-        container_name: hub01_shop_lgtm
-        ports:
-            - "3000:3000" # Grafana
-            - "4040:4040" # Tempo trace explorer
-            - "4318:4318" # OTLP HTTP receiver
-            - "9090:9090" # Prometheus
-        volumes:
-            - lgtm_data:/data
-        environment:
-            - GF_PATHS_DATA=/data/grafana
-        restart: unless-stopped
 
     # ==========================================================================================
     # Adminer
@@ -93,4 +74,3 @@ volumes:
     app_data:
     db_data:
     redis_data:
-    lgtm_data:
