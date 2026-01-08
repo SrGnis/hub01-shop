@@ -1,20 +1,4 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{{ config('app.name') }} - Your ultimate destination for game mods and extensions. Discover, download, and share mods for your favorite games.">
-    <title>{{ config('app.name') }}</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
-
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/css/welcome.css', 'resources/js/app.js'])
-</head>
-<body class="antialiased bg-base-200 text-base-content">
-    <div class="relative min-h-screen">
+<div class="relative min-h-screen">
         <!-- Particle Animation Background -->
         <div class="particles-container">
             <div class="particle small"></div>
@@ -98,14 +82,17 @@
             </div>
 
             <!-- Footer for all screen sizes -->
-            <div class="w-full py-6 text-center text-base-content/60 animate-fade-in-delay-3">
+            <div class="w-full py-6 text-base-content/60 animate-fade-in-delay-3">
                 <div class="mb-4 flex justify-center space-x-4">
                     <a href="{{ route('login') }}" class="text-primary hover:text-primary-focus transition-colors">Login</a>
                     <a href="{{ route('register') }}" class="text-primary hover:text-primary-focus transition-colors">Register</a>
                 </div>
-                <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                <div class="flex justify-center mt-20">
+                    <x-footer-links />
+                </div>
+                <div class="mt-10 text-center">
+                    &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
+                </div>
             </div>
         </div>
     </div>
-</body>
-</html>
