@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -33,8 +34,20 @@ class Login extends Component
 
         $this->ensureIsNotRateLimited();
 
+        Log::info('Login attempt', [
+            'email' => $this->email,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
+
+            Log::warning('Login failed - invalid credentials', [
+                'email' => $this->email,
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -45,10 +58,22 @@ class Login extends Component
         if (Auth::user()->isDeactivated()) {
             Auth::logout();
 
+            Log::warning('Login failed - user deactivated', [
+                'user_id' => Auth::id(),
+                'email' => $this->email,
+                'ip' => request()->ip(),
+            ]);
+
             return $this->redirect(route('account.deactivated'));
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        Log::info('User logged in', [
+            'user_id' => Auth::id(),
+            'email' => Auth::user()->email,
+            'ip' => request()->ip(),
+        ]);
 
         session()->regenerate();
 

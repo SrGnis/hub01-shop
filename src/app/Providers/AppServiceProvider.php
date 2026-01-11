@@ -9,6 +9,7 @@ use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
 use App\Services\UserService;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register services for dependency injection
+
+        if (! config('app.disable_otel')) {
+            App::register(
+                \Keepsuit\LaravelOpenTelemetry\LaravelOpenTelemetryServiceProvider::class
+            );
+        }
 
         $this->app->singleton(UserService::class);
         $this->app->singleton(ProjectService::class);
@@ -36,5 +43,9 @@ class AppServiceProvider extends ServiceProvider
             'project' => 'App\Models\Project',
             'project_type' => 'App\Models\ProjectType',
         ]);
+
+        if($this->app->environment('production')) {
+            \URL::forceScheme('https');
+        }
     }
 }

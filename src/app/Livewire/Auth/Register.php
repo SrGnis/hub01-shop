@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Rule;
@@ -50,6 +51,13 @@ class Register extends Component
     {
         $this->validate();
 
+        Log::info('User registration attempt', [
+            'name' => $this->name,
+            'email' => $this->email,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
@@ -59,6 +67,13 @@ class Register extends Component
         event(new Registered($user));
 
         Auth::login($user);
+
+        Log::info('User registered successfully', [
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'ip' => request()->ip(),
+        ]);
 
         $this->success('Welcome! Your account has been created.', redirectTo: '/');
     }

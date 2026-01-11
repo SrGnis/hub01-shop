@@ -6,7 +6,7 @@ Get in touch with us for any questions, concerns, or inquiries.
 
 For general questions about the platform:
 
--   **Email**: [contact@example.com](mailto:contact@example.com)
+-   **Email**: [support@hub01-shop.srgnis.com](mailto:support@hub01-shop.srgnis.com)
 
 ## Support
 
@@ -22,7 +22,7 @@ Please reach out through our email support.
 
 For DMCA notices or other legal matters:
 
--   **Email**: [legal@example.com](mailto:legal@example.com)
+-   **Email**: [support@hub01-shop.srgnis.com](mailto:support@hub01-shop.srgnis.com)
 
 Please include:
 

@@ -32,9 +32,18 @@ services:
         restart: true
       redis:
         condition: service_started
+    networks:
+      - hub01_shop_net
 
   mailpit:
     image: "axllent/mailpit:latest"
+    networks:
+      - hub01_shop_net
+
+networks:
+  hub01_shop_net:
+    name: ${NET_NAME:-hub01_shop_net}
+    external: ${NET_EXTERNAL:-false}
 
 volumes:
   db_data:

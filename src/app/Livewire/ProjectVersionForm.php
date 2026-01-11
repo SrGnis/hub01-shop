@@ -54,6 +54,13 @@ class ProjectVersionForm extends Component
     {
         $this->project = $project;
 
+        logger()->info('ProjectVersionForm mounted', [
+            'project_id' => $project->id,
+            'project_slug' => $project->slug,
+            'version_key' => $version_key,
+            'user_id' => Auth::id(),
+        ]);
+
         if (! Auth::check()) {
             // use normal laravel flash message toast is not working here
             session()->flash('error', 'Please log in to upload versions.');
@@ -73,6 +80,11 @@ class ProjectVersionForm extends Component
 
         if ($version_key) {
             if (! Gate::allows('editVersion', $project)) {
+                logger()->warning('Unauthorized version edit attempt', [
+                    'project_id' => $project->id,
+                    'version_key' => $version_key,
+                    'user_id' => Auth::id(),
+                ]);
 
                 session()->flash('error', 'You do not have permission to edit this project.');
                 return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
@@ -83,9 +95,19 @@ class ProjectVersionForm extends Component
             $this->version = $this->project->versions()->where('version', $version_key)->firstOrFail();
             $this->isEditing = true;
 
+            logger()->info('Editing existing version', [
+                'project_id' => $project->id,
+                'version_id' => $this->version->id,
+                'version_number' => $this->version->version,
+            ]);
+
             $this->loadVersionData();
         } else {
             if (! Gate::allows('uploadVersion', $project)) {
+                logger()->warning('Unauthorized version upload attempt', [
+                    'project_id' => $project->id,
+                    'user_id' => Auth::id(),
+                ]);
 
                 session()->flash('error', 'You do not have permission to upload versions.');
                 return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
@@ -255,6 +277,14 @@ class ProjectVersionForm extends Component
 
     public function save()
     {
+        logger()->info('Saving project version', [
+            'project_id' => $this->project->id,
+            'is_editing' => $this->isEditing,
+            'version_id' => $this->version?->id,
+            'version_number' => $this->version_number,
+            'user_id' => Auth::id(),
+        ]);
+
         $this->validate();
 
         try {
@@ -276,6 +306,13 @@ class ProjectVersionForm extends Component
                 $this->version
             );
 
+            logger()->info('Project version saved successfully', [
+                'project_id' => $this->project->id,
+                'version_id' => $projectVersion->id,
+                'version_number' => $projectVersion->version,
+                'user_id' => Auth::id(),
+            ]);
+
             $this->success(
                 $this->isEditing ? 'Version updated successfully.' : 'Version uploaded successfully.',
                 redirectTo: route('project.version.show', [
@@ -285,6 +322,13 @@ class ProjectVersionForm extends Component
                 ])
             );
         } catch (\Exception $e) {
+            logger()->error('Error saving project version: ' . $e->getMessage(), [
+                'project_id' => $this->project->id,
+                'version_id' => $this->version?->id,
+                'version_number' => $this->version_number,
+                'user_id' => Auth::id(),
+                'exception' => $e,
+            ]);
             $this->error('An error occurred: ' . $e->getMessage());
         }
     }
@@ -472,6 +516,11 @@ class ProjectVersionForm extends Component
         }
 
         if (!Auth::check() || !Gate::allows('editVersion', $this->project)) {
+            logger()->warning('Unauthorized version deletion attempt', [
+                'project_id' => $this->project->id,
+                'version_id' => $this->version?->id,
+                'user_id' => Auth::id(),
+            ]);
             $this->error('You do not have permission to delete this version.');
             return;
         }
@@ -482,14 +531,35 @@ class ProjectVersionForm extends Component
             'deleteConfirmation.in' => 'The version number you entered does not match. Please enter the exact version number to confirm deletion.',
         ]);
 
+        logger()->info('Deleting project version', [
+            'project_id' => $this->project->id,
+            'version_id' => $this->version->id,
+            'version_number' => $this->version->version,
+            'user_id' => Auth::id(),
+        ]);
+
         try {
             $this->projectVersionService->deleteVersion($this->version, $this->project);
+
+            logger()->info('Project version deleted successfully', [
+                'project_id' => $this->project->id,
+                'version_id' => $this->version->id,
+                'version_number' => $this->version->version,
+                'user_id' => Auth::id(),
+            ]);
 
             $this->success('Version deleted successfully.', redirectTo: route('project.show', [
                 'projectType' => $this->project->projectType,
                 'project' => $this->project,
             ]));
         } catch (\Exception $e) {
+            logger()->error('Failed to delete version: ' . $e->getMessage(), [
+                'project_id' => $this->project->id,
+                'version_id' => $this->version->id,
+                'version_number' => $this->version->version,
+                'user_id' => Auth::id(),
+                'exception' => $e,
+            ]);
             $this->error('Failed to delete version: ' . $e->getMessage());
         }
     }

@@ -34,6 +34,11 @@ services:
       - APP_ENV=${APP_ENV}
       - DB_CONNECTION=${DB_CONNECTION}
       - APP_KEY=${APP_KEY}
+      # OpenTelemetry
+      - OTEL_SDK_DISABLED=${OTEL_SDK_DISABLED:-false}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-hub01-shop}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-http://lgtm:4318}
+      - OTEL_EXPORTER_OTLP_PROTOCOL=${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
     volumes:
       - ./src:/var/www/laravel
       - ./src/storage:/var/www/laravel/storage
@@ -41,6 +46,12 @@ services:
       - ./docker/laravel/config/docker-laravel-dev-start:/usr/local/bin/docker-laravel-dev-start
       - ./docker/laravel/config/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
       - ./docker/laravel/vite.config.js:/var/www/laravel/vite.config.js
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
 
   # ==========================================================================================
   # Mailpit
@@ -55,6 +66,11 @@ services:
     extends:
       file: ./docker-compose.yml
       service: adminer
+
+networks:
+  hub01_shop_net:
+    name: ${NET_NAME:-hub01_shop_net}
+    external: ${NET_EXTERNAL:-false}
 
 volumes:
   db_data:

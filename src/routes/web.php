@@ -13,13 +13,12 @@ use App\Livewire\UserProfileEdit;
 use App\Livewire\ProjectShow;
 use App\Livewire\ProjectVersionForm;
 use App\Livewire\ProjectVersionShow;
+use App\Livewire\Welcome;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/admin.php';
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
+Route::get('/', Welcome::class)->name('welcome');
 
 // Dynamic Pages
 Route::get('/pages/{pageName}', Page::class)

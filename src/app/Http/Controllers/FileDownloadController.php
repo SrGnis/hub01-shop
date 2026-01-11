@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use Illuminate\Support\Facades\Storage;
+use Keepsuit\LaravelOpenTelemetry\Facades\Meter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileDownloadController extends Controller
@@ -41,6 +42,12 @@ class FileDownloadController extends Controller
 
         if (! Storage::exists($fileModel->path)) {
             abort(404, 'File not found');
+        }
+
+        if (! config('app.disable_otel')) {
+            $meter = Meter::createCounter('file_downloads', 'times', 'File downloads');
+            $meter->add(1);
+            Meter::collect();
         }
 
         return Storage::disk(ProjectFile::getDisk())->download(

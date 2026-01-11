@@ -9,6 +9,7 @@ use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -117,10 +118,19 @@ class UserManagement extends Component
                 $this->userService->update($user, $data);
                 $this->success('User updated successfully.');
             } else {
-                $this->userService->create($data);
+                $newUser = $this->userService->create($data);
+                Log::info('User created by admin', [
+                    'created_user_id' => $newUser->id,
+                    'admin_id' => Auth::id(),
+                ]);
                 $this->success('User created successfully.');
             }
         } catch (\Exception $e) {
+            Log::error('Failed to save user', [
+                'user_id' => $this->userId,
+                'admin_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             $this->error('Failed to save user: ' . $e->getMessage());
         }
 

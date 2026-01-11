@@ -9,6 +9,7 @@ use App\Models\ProjectType;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -230,21 +231,30 @@ class ProjectForm extends Component
             $this->projectService->submitProjectForReview($this->project);
             $this->project->refresh();
 
+            Log::info('Project submitted for review by user', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+            ]);
+
             $this->success('Project submitted for review!', redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
         } catch (\Exception $e) {
-            logger()->error("Failed to submit project for review: " . $e->getMessage());
-            $this->error("Failed to submit project for review");
+            Log::error('Failed to submit project for review', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->error('Failed to submit project for review');
         }
     }
 
     public function save()
     {
         $this->validate();
-        
+
         if ($this->isEditing && !Gate::allows('update', $this->project)) {
             $this->error('You do not have permission to edit this project.', redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
         }
-        
+
         try {
             $logoPath = null;
             if ($this->logo) {
@@ -271,20 +281,29 @@ class ProjectForm extends Component
 
             $project = $this->projectService->saveProject($this->project, Auth::user(), $data, $logoPath);
 
+            Log::info('Project saved', [
+                'project_id' => $project->id,
+                'is_new' => !$this->isEditing,
+                'user_id' => Auth::id(),
+            ]);
+
             // Determine success message based on auto-approve setting
             if ($this->isEditing) {
                 $message = 'Project updated successfully!';
             } else {
                 $autoApprove = config('projects.auto_approve', false);
-                $message = $autoApprove 
-                    ? 'Project created and approved!' 
+                $message = $autoApprove
+                    ? 'Project created and approved!'
                     : 'Project created as draft!';
             }
 
             $this->success($message, redirectTo: route('project.show', ['projectType' => $project->projectType, 'project' => $project]));
         } catch (\Exception $e) {
-            logger()->error("Failed to save project: " . $e->getMessage());
-            $this->error("Failed to save project");
+            Log::error('Failed to save project', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->error('Failed to save project');
         }
     }
 
@@ -308,7 +327,12 @@ class ProjectForm extends Component
             $this->project->load('memberships.user');
             $this->success('Invitation sent successfully!');
         } catch (\Exception $e) {
-            logger()->error("Failed to add member: " . $e->getMessage());
+            Log::error('Failed to add member to project', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+                'new_member_name' => $this->newMemberName,
+                'error' => $e->getMessage(),
+            ]);
             $this->addError('newMemberName', 'Failed to add member');
         }
     }
@@ -332,8 +356,13 @@ class ProjectForm extends Component
             $this->project->load('memberships.user');
             $this->success('Member removed successfully!');
         } catch (\Exception $e) {
-            logger()->error("Failed to remove member: " . $e->getMessage());
-            $this->error("Failed to remove member");
+            Log::error('Failed to remove member from project', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+                'membership_id' => $membershipId,
+                'error' => $e->getMessage(),
+            ]);
+            $this->error('Failed to remove member');
         }
     }
 
@@ -351,8 +380,13 @@ class ProjectForm extends Component
             $this->project->load('memberships.user');
             $this->success('Member set as primary successfully!');
         } catch (\Exception $e) {
-            logger()->error("Failed to set member as primary: " . $e->getMessage());
-            $this->error("Failed to set member as primary");
+            Log::error('Failed to set member as primary', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+                'membership_id' => $membershipId,
+                'error' => $e->getMessage(),
+            ]);
+            $this->error('Failed to set member as primary');
         }
     }
 
@@ -369,11 +403,21 @@ class ProjectForm extends Component
 
         try {
             $projectType = $this->project->projectType;
+            $projectId = $this->project->id;
             $this->projectService->deleteProject($this->project);
+
+            Log::info('Project deleted by user', [
+                'project_id' => $projectId,
+                'user_id' => Auth::id(),
+            ]);
 
             $this->success('Project deleted successfully. Members can still see it for 14 days.', redirectTo: route('project-search', ['projectType' => $projectType]));
         } catch (\Exception $e) {
-            logger()->error("Failed to delete project: " . $e->getMessage());
+            Log::error('Failed to delete project', [
+                'project_id' => $this->project->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
             $this->error('Failed to delete project');
         }
     }
