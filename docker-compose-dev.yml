@@ -9,15 +9,11 @@ services:
       - MARIADB_ROOT_HOST=%
     ports:
       - 13306:3306
-    networks:
-      - hub01_shop_net
 
   redis:
     extends:
       file: ./docker-compose.yml
       service: redis
-    networks:
-      - hub01_shop_net
 
   app:
     extends:
@@ -56,8 +52,6 @@ services:
         restart: true
       redis:
         condition: service_started
-    networks:
-      - hub01_shop_net
 
   # ==========================================================================================
   # Mailpit
@@ -67,20 +61,17 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
-    networks:
-      - hub01_shop_net
 
   adminer:
     extends:
       file: ./docker-compose.yml
       service: adminer
-    networks:
-      - hub01_shop_net
-volumes:
-  db_data:
-  redis_data:
 
 networks:
   hub01_shop_net:
-    name: ${hub01_shop_net:hub01_shop_net}
-    external: ${NET_EXTERNAL:false}
+    name: ${NET_NAME:-hub01_shop_net}
+    external: ${NET_EXTERNAL:-false}
+
+volumes:
+  db_data:
+  redis_data:
