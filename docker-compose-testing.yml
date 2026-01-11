@@ -36,6 +36,11 @@ services:
   mailpit:
     image: "axllent/mailpit:latest"
 
+networks:
+  hub01_shop_net:
+    name: ${NET_NAME:-hub01_shop_net}
+    external: ${NET_EXTERNAL:-false}
+
 volumes:
   db_data:
   redis_data:
