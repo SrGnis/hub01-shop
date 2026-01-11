@@ -1,6 +1,6 @@
 # About Us
 
-Welcome to our platform! We are a community-driven content hosting service.
+Welcome to our platform! We are a community-driven content hosting service creted for the Cataclysm Games modding community.
 
 ## Our Mission
 

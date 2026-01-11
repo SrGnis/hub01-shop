@@ -154,17 +154,21 @@
         </x-slot:content>
     </x-main>
 
-
-    {{--  TOAST area --}}
-    <x-toast />
     {{-- Footer --}}
     <div class="footer p-5 bg-neutral text-neutral-content mt-auto">
         <div class="mx-auto">
             <x-footer-links />
         </div>
         <div class="mx-auto">
-            &copy; {{config('app.name')}} {{ date('Y') }}
+            <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
         </div>
     </div>
+
+    {{--  TOAST area --}}
+    <x-toast />
+
+    {{-- Cookie Consent --}}
+    <x-cookie-consent />
+
 </body>
 </html>

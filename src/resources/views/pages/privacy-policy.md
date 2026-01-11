@@ -98,7 +98,7 @@ If you make a request, we have one month to respond.
 
 To exercise your rights, please contact us at:
 
--   **Email:** [PLACEHOLDER_EMAIL]
+-   **Email:** support@hub01-shop.srgnis.com
 
 ---
 
@@ -120,9 +120,24 @@ Hub01 Shop uses cookies to:
 
 ## What types of cookies do we use?
 
-Hub01 Shop uses the following cookies:
+Hub01 Shop uses the following types of cookies:
 
--   **Essential cookies** – These cookies are necessary for the website to function properly.
+### Essential cookies
+
+These cookies are necessary for the website to function properly and cannot be disabled. They ensure core features such as security, session management, and user preferences.
+
+The essential cookies we use include:
+
+-   **XSRF-TOKEN**
+    Used to protect the website against Cross-Site Request Forgery (CSRF) attacks and ensure secure interactions.
+
+-   **hub01-shop-session**
+    Maintains your session while you navigate the website, allowing features such as logging in, adding items to your cart, and completing purchases.
+
+-   **cookie_consent**
+    Stores your cookie preferences to remember whether you have accepted or rejected non-essential cookies.
+
+These cookies do not collect personal data for marketing purposes and are required for the proper operation of the website.
 
 ---
 
@@ -150,5 +165,5 @@ This privacy policy was last updated in **2026**.
 
 If you have any questions about this privacy policy or the data we hold on you, please contact us:
 
--   **Website:** [PLACEHOLDER_WEBSITE]
--   **Email:** [PLACEHOLDER_EMAIL]
+-   **Website:** [hub01-shop.srgnis.com](https://hub01-shop.srgnis.com)
+-   **Email:** [support@hub01-shop.srgnis.com](mailto:support@hub01-shop.srgnis.com)

@@ -120,6 +120,9 @@
 
     {{-- Toast --}}
     <x-toast />
+
+    {{-- Cookie Consent --}}
+    <x-cookie-consent />
 </body>
 
 </html>

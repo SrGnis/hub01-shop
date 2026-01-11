@@ -24,6 +24,8 @@ services:
             - db_data:/var/lib/mysql
             - ./docker/mariadb/my.cnf:/etc/mysql/conf.d/my.cnf
             - ./docker/mariadb/sql:/docker-entrypoint-initdb.d
+        networks:
+            - hub01_shop_net
 
     # ==========================================================================================
     # Redis
@@ -33,6 +35,8 @@ services:
         command: redis-server --appendonly yes
         volumes:
             - redis_data:/data
+        networks:
+            - hub01_shop_net
 
     # ==========================================================================================
     # Application
@@ -61,6 +65,8 @@ services:
                 restart: true
             redis:
                 condition: service_started
+        networks:
+            - hub01_shop_net
 
     # ==========================================================================================
     # Adminer
@@ -69,6 +75,13 @@ services:
         image: adminer
         ports:
             - 8080:8080
+        networks:
+            - hub01_shop_net
+
+networks:
+    hub01_shop_net:
+        name: ${NET_NAME:-hub01_shop_net}
+        external: ${NET_EXTERNAL:-false}
 
 volumes:
     app_data:

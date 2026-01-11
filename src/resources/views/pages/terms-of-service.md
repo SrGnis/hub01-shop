@@ -132,7 +132,7 @@ We take reasonable measures to protect data, but we are not responsible for data
 
 ## 11. Privacy
 
-Your use of the Service is also governed by our Privacy Policy. Please review our Privacy Policy to understand our data practices.
+Your use of the Service is also governed by our [Privacy Policy](/pages/privacy-policy). Please review it to understand our data practices.
 
 ## 12. Modifications to Terms
 
@@ -186,8 +186,8 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 If you have questions about these Terms of Service, please contact us:
 
--   **Email:** [PLACEHOLDER_EMAIL]
--   **Website:** [PLACEHOLDER_WEBSITE]
+-   **Email:** [support@hub01-shop.srgnis.com](mailto:support@hub01-shop.srgnis.com)
+-   **Website:** [hub01-shop.srgnis.com](https://hub01-shop.srgnis.com)
 
 ---
 

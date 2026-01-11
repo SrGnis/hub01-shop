@@ -13,6 +13,7 @@ use App\Notifications\BrokenDependencyNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectVersionService
@@ -36,6 +37,13 @@ class ProjectVersionService
             $this->saveTags($projectVersion, $tags, $version ? true : false);
             $this->uploadNewFiles($projectVersion, $files, $version ? true : false, $existingFiles);
             $this->saveDependencies($projectVersion, $dependencies);
+
+            Log::info('Project version saved', [
+                'version_id' => $projectVersion->id,
+                'project_id' => $project->id,
+                'version' => $projectVersion->version,
+                'is_new' => !$version,
+            ]);
 
             return $projectVersion;
         });
@@ -190,6 +198,12 @@ class ProjectVersionService
 
             $version->dependencies()->delete();
             $version->delete();
+
+            Log::info('Project version deleted', [
+                'version_id' => $version->id,
+                'project_id' => $project->id,
+                'version' => $version->version,
+            ]);
 
             foreach ($dependentProjects as $projectData) {
                 $depProject = $projectData['project'];

@@ -12,6 +12,7 @@
     "php": "^8.2",
     "blade-ui-kit/blade-icons": "^1.8",
     "graham-campbell/markdown": "^16.0",
+    "keepsuit/laravel-opentelemetry": "^1.15",
     "laravel/fortify": "^1.31",
     "laravel/framework": "^12.0",
     "laravel/tinker": "^2.10.1",
@@ -64,13 +65,21 @@
     "pre-package-uninstall": [ "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall" ]
   },
   "extra": {
-    "laravel": { "dont-discover": [  ] }
+    "laravel": {
+      "dont-discover": [
+        "keepsuit/laravel-opentelemetry"
+      ]
+    }
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "sort-packages": true,
-    "allow-plugins": { "pestphp/pest-plugin": true, "php-http/discovery": true }
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true,
+      "tbachert/spi": true
+    }
   },
   "repositories": {
     "robsontenorio/mary": { "type": "path", "url": "lib/mary", "options": { "symlink": true } }
