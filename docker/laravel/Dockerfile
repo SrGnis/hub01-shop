@@ -12,20 +12,20 @@ RUN apt-get update \
     libsasl2-dev libssl-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev \
     unzip \
     zlib1g-dev \
-    nodejs npm \
-    libgrpc-dev libprotobuf-dev protobuf-compiler \
-    && apt-get clean \
-    && apt-get autoclean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    nodejs npm
 
 # install extensions
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
     && pecl install --configureoptions='enable-redis-igbinary="yes" enable-redis-lzf="yes" enable-redis-zstd="yes"' igbinary zstd redis \
-    && pecl install opentelemetry-php/extension \
     && pecl clear-cache \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
     && docker-php-ext-install gd intl pdo_mysql pdo_pgsql zip \
-    && docker-php-ext-enable igbinary opcache redis zstd opentelemetry
+    && docker-php-ext-enable igbinary opcache redis zstd
+
+# apt cleanup
+RUN apt-get clean \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # install composer
 RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar \
