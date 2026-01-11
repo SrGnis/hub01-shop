@@ -65,7 +65,11 @@
     "pre-package-uninstall": [ "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall" ]
   },
   "extra": {
-    "laravel": { "dont-discover": [  ] }
+    "laravel": {
+      "dont-discover": [
+        "keepsuit/laravel-opentelemetry"
+      ]
+    }
   },
   "config": {
     "optimize-autoloader": true,
