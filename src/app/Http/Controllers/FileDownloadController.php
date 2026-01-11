@@ -44,9 +44,11 @@ class FileDownloadController extends Controller
             abort(404, 'File not found');
         }
 
-        $meter = Meter::createCounter('file_downloads', 'times', 'File downloads');
-        $meter->add(1);
-        Meter::collect();
+        if (! config('app.disable_otel')) {
+            $meter = Meter::createCounter('file_downloads', 'times', 'File downloads');
+            $meter->add(1);
+            Meter::collect();
+        }
 
         return Storage::disk(ProjectFile::getDisk())->download(
             $fileModel->path,
