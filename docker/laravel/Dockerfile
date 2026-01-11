@@ -36,7 +36,7 @@ COPY src /var/www/laravel
 COPY docker/laravel/vite.config.js /var/www/laravel/vite.config.js
 
 # install dependencies
-RUN composer install --optimize-autoloader --no-interaction --no-dev
+RUN composer install --no-interaction --no-dev
 
 # install node modules
 RUN npm install
