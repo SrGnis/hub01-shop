@@ -22,10 +22,6 @@ class AppServiceProvider extends ServiceProvider
         // Register services for dependency injection
 
 
-        App::register(
-            \Keepsuit\LaravelOpenTelemetry\LaravelOpenTelemetryServiceProvider::class
-        );
-
 
         $this->app->singleton(UserService::class);
         $this->app->singleton(ProjectService::class);
