@@ -30,6 +30,7 @@ class ProjectVersionService
      */
     public function saveVersion(Project $project, array $data, array $files, array $existingFiles, array $dependencies, array $tags, ?ProjectVersion $version = null): ProjectVersion
     {
+
         // Calculate total size of new files
         $newFilesSize = 0;
         foreach ($files as $file) {
@@ -51,7 +52,7 @@ class ProjectVersionService
 
         // Validate quotas before proceeding
         $this->quotaService->validateVersionUpload(
-            Auth::user(),
+            $project->owner->first(),
             $project,
             $netSizeChange,
             !$version // isNewVersion
