@@ -224,6 +224,112 @@ class ProjectQuotaService
     }
 
     /**
+     * Get the number of versions created today for a project
+     */
+    public function getVersionsCreatedToday(Project $project): int
+    {
+        return $project->versions()
+            ->whereDate('created_at', today())
+            ->count();
+    }
+
+    /**
+     * Validate version creation quota (versions per day)
+     *
+     * @throws \Exception
+     */
+    public function validateVersionCreation(User $user, Project $project): void
+    {
+        if ($this->isExemptFromQuotas($user)) {
+            return;
+        }
+
+        $versionsToday = $this->getVersionsCreatedToday($project);
+        $limits = $this->getQuotaLimits($user, $project->projectType, $project);
+
+        if ($versionsToday >= $limits['versions_per_day_max']) {
+            throw new \Exception(
+                "You have reached the maximum number of versions per day ({$limits['versions_per_day_max']}) for this project. " .
+                "Please try again tomorrow."
+            );
+        }
+    }
+
+    /**
+     * Validate version size quota
+     *
+     * @throws \Exception
+     */
+    public function validateVersionSize(User $user, Project $project, int $versionSize): void
+    {
+        if ($this->isExemptFromQuotas($user)) {
+            return;
+        }
+
+        $limits = $this->getQuotaLimits($user, $project->projectType, $project);
+
+        if ($versionSize > $limits['version_size_max']) {
+            $maxMB = round($limits['version_size_max'] / 1048576, 2);
+            $sizeMB = round($versionSize / 1048576, 2);
+            throw new \Exception(
+                "Version size ({$sizeMB}MB) exceeds the maximum allowed size ({$maxMB}MB). " .
+                "Please reduce the size of your files."
+            );
+        }
+    }
+
+    /**
+     * Validate project storage quota
+     *
+     * @throws \Exception
+     */
+    public function validateProjectStorage(User $user, Project $project, int $additionalSize = 0): void
+    {
+        if ($this->isExemptFromQuotas($user)) {
+            return;
+        }
+
+        $currentStorage = $this->getProjectStorageUsed($project);
+        $limits = $this->getQuotaLimits($user, $project->projectType, $project);
+
+        if (($currentStorage + $additionalSize) > $limits['project_storage_max']) {
+            $maxMB = round($limits['project_storage_max'] / 1048576, 2);
+            $currentMB = round($currentStorage / 1048576, 2);
+            throw new \Exception(
+                "Project storage quota exceeded. This project is using {$currentMB}MB of its {$maxMB}MB limit. " .
+                "Please contact an admin to request a quota increase."
+            );
+        }
+    }
+
+    /**
+     * Validate all version upload quotas
+     * This is a convenience method that validates all version-related quotas at once
+     *
+     * @throws \Exception
+     */
+    public function validateVersionUpload(User $user, Project $project, int $versionSize, bool $isNewVersion = true): void
+    {
+        if ($this->isExemptFromQuotas($user)) {
+            return;
+        }
+
+        // Only check versions per day for new versions, not edits
+        if ($isNewVersion) {
+            $this->validateVersionCreation($user, $project);
+        }
+
+        // Validate version size
+        $this->validateVersionSize($user, $project, $versionSize);
+
+        // Validate project storage
+        $this->validateProjectStorage($user, $project, $versionSize);
+
+        // Validate total user storage
+        $this->validateStorageQuota($user, $versionSize);
+    }
+
+    /**
      * Format bytes to human-readable format
      */
     private function formatBytes(int $bytes): string

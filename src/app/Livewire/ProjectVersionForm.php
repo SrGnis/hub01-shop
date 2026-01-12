@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Project;
 use App\Models\ProjectVersion;
+use App\Services\ProjectQuotaService;
 use App\Services\ProjectVersionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -44,10 +45,12 @@ class ProjectVersionForm extends Component
     public string $deleteConfirmation = '';
 
     protected ProjectVersionService $projectVersionService;
+    protected ProjectQuotaService $quotaService;
 
-    public function boot(ProjectVersionService $projectVersionService)
+    public function boot(ProjectVersionService $projectVersionService, ProjectQuotaService $quotaService)
     {
         $this->projectVersionService = $projectVersionService;
+        $this->quotaService = $quotaService;
     }
 
     public function mount($projectType, Project $project, $version_key = null)
@@ -296,6 +299,8 @@ class ProjectVersionForm extends Component
                 'changelog' => $this->changelog,
             ];
 
+            // Quota validation happens in ProjectVersionService::saveVersion()
+            // It validates: versions per day, version size, project storage, and total storage
             $projectVersion = $this->projectVersionService->saveVersion(
                 $this->project,
                 $versionData,
@@ -373,8 +378,10 @@ class ProjectVersionForm extends Component
         $this->addDependencyValidationRules($rules);
         $this->addFileValidationRules($rules);
 
+        //dd($rules);
 
         return $rules;
+
     }
 
     /**
@@ -438,7 +445,9 @@ class ProjectVersionForm extends Component
      *
      * Validates that:
      * - At least one file is uploaded when creating a new version
-     * - Each file does not exceed 100MB (102400 KB)
+     * - No more than the maximum allowed number of files in the quota
+     * - Each file does not exceed the maximum allowed size in the quota
+     * - Total size of all files does not exceed the maximum allowed size in the quota
      * - File names are unique within the version (no duplicates with existing files)
      * - File names are unique within the current upload batch
      *
@@ -446,43 +455,49 @@ class ProjectVersionForm extends Component
      */
     private function addFileValidationRules(array &$rules): void
     {
-        if (!$this->isEditing || count($this->files) > 0) {
-            $rules['files'] = 'required|array|min:1';
-            $rules['files.*'] = 'file|max:102400';
+        $quota_limits = $this->quotaService->getQuotaLimits(Auth::user(), $this->project->projectType, $this->project);
 
-            foreach ($this->files as $index => $file) {
-                $rules["files.{$index}"] = [
-                    'file',
-                    'max:102400',
-                    function ($attribute, $value, $fail) use ($file) {
-                        $fileName = $file->getClientOriginalName();
+        $rules['files'] = [
+            'array',
+            'max:' . $quota_limits['files_per_version_max'],
+        ];
+        if (!$this->isEditing) {
+            $rules['files'][] = 'required';
+            $rules['files'][] = 'min:1';
+        }
 
-                        if ($this->isEditing) {
-                            foreach ($this->existingFiles as $existingFile) {
-                                if (isset($existingFile['delete']) && $existingFile['delete']) {
-                                    continue;
-                                }
+        foreach ($this->files as $index => $file) {
+            $rules["files.{$index}"] = [
+                'file',
+                'max:' . $quota_limits['file_size_max']/1024,
+                function ($attribute, $value, $fail) use ($file) {
+                    $fileName = $file->getClientOriginalName();
 
-                                if ($existingFile['name'] === $fileName) {
-                                    $fail("A file with the name '{$fileName}' already exists in this version.");
-                                    return;
-                                }
+                    if ($this->isEditing) {
+                        foreach ($this->existingFiles as $existingFile) {
+                            if (isset($existingFile['delete']) && $existingFile['delete']) {
+                                continue;
+                            }
+
+                            if ($existingFile['name'] === $fileName) {
+                                $fail("A file with the name '{$fileName}' already exists in this version.");
+                                return;
                             }
                         }
+                    }
 
-                        $count = 0;
-                        foreach ($this->files as $uploadFile) {
-                            if ($uploadFile->getClientOriginalName() === $fileName) {
-                                $count++;
-                            }
+                    $count = 0;
+                    foreach ($this->files as $uploadFile) {
+                        if ($uploadFile->getClientOriginalName() === $fileName) {
+                            $count++;
                         }
+                    }
 
-                        if ($count > 1) {
-                            $fail("Duplicate file name '{$fileName}' in the upload batch. File names must be unique.");
-                        }
-                    },
-                ];
-            }
+                    if ($count > 1) {
+                        $fail("Duplicate file name '{$fileName}' in the upload batch. File names must be unique.");
+                    }
+                },
+            ];
         }
     }
 

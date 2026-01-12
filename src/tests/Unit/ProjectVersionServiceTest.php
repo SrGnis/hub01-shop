@@ -10,11 +10,13 @@ use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
 use App\Notifications\BrokenDependencyNotification;
+use App\Services\ProjectQuotaService;
 use App\Services\ProjectVersionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -843,5 +845,341 @@ class ProjectVersionServiceTest extends TestCase
         // Should get fresh data
         $tags2 = $this->projectVersionService->getAvailableTags($this->projectType);
         $this->assertCount(2, $tags2);
+    }
+
+    // ==========================================================================
+    // Quota Enforcement Tests
+    // ==========================================================================
+
+    #[Test]
+    public function test_quota_versions_per_day_enforced_on_create()
+    {
+        Config::set('quotas.versions_per_day_max', 2);
+
+        Auth::login($this->user);
+
+        // Create 2 versions today (at limit)
+        ProjectVersion::factory()->count(2)->create([
+            'project_id' => $this->project->id,
+            'created_at' => now(),
+        ]);
+
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $versionData = [
+            'name' => 'Test Version',
+            'version' => '3.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('maximum number of versions per day');
+
+        $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            []
+        );
+    }
+
+    #[Test]
+    public function test_quota_versions_per_day_not_enforced_on_edit()
+    {
+        Config::set('quotas.versions_per_day_max', 2);
+
+        Auth::login($this->user);
+
+        // Create 2 versions today (at limit)
+        ProjectVersion::factory()->count(2)->create([
+            'project_id' => $this->project->id,
+            'created_at' => now(),
+        ]);
+
+        // Create a version to edit
+        $version = ProjectVersion::factory()->create([
+            'project_id' => $this->project->id,
+            'version' => '1.0.0',
+        ]);
+
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $versionData = [
+            'name' => 'Updated Version',
+            'version' => '1.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Updated',
+        ];
+
+        // Should not throw exception because we're editing, not creating
+        $updatedVersion = $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            [],
+            $version
+        );
+
+        $this->assertEquals($version->id, $updatedVersion->id);
+    }
+
+    #[Test]
+    public function test_quota_version_size_enforced()
+    {
+        Config::set('quotas.version_size_max', 1024 * 1024 * 50); // 50MB
+
+        Auth::login($this->user);
+
+        // Create a file larger than the limit
+        $file = UploadedFile::fake()->create('large.zip', 1024 * 60); // 60MB
+
+        $versionData = [
+            'name' => 'Test Version',
+            'version' => '1.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Version size');
+
+        $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            []
+        );
+    }
+
+    #[Test]
+    public function test_quota_project_storage_enforced()
+    {
+        Config::set('quotas.project_storage_max', 1024 * 1024 * 100); // 100MB
+
+        Auth::login($this->user);
+
+        // Add 80MB of existing storage
+        $existingVersion = ProjectVersion::factory()->create([
+            'project_id' => $this->project->id,
+        ]);
+        $existingVersion->files()->create([
+            'name' => 'existing.zip',
+            'path' => 'test/existing.zip',
+            'size' => 1024 * 1024 * 80, // 80MB
+        ]);
+
+        // Try to add 30MB more (total 110MB > 100MB limit)
+        $file = UploadedFile::fake()->create('new.zip', 1024 * 30); // 30MB
+
+        $versionData = [
+            'name' => 'Test Version',
+            'version' => '2.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Project storage quota exceeded');
+
+        $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            []
+        );
+    }
+
+    #[Test]
+    public function test_quota_total_storage_enforced()
+    {
+        Config::set('quotas.total_storage_max', 1024 * 1024 * 200); // 200MB
+
+        Auth::login($this->user);
+
+        // Create another project owned by the same user
+        $otherProject = Project::factory()->owner($this->user)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        // Add 150MB of existing storage across projects
+        $existingVersion = ProjectVersion::factory()->create([
+            'project_id' => $otherProject->id,
+        ]);
+        $existingVersion->files()->create([
+            'name' => 'existing.zip',
+            'path' => 'test/existing.zip',
+            'size' => 1024 * 1024 * 150, // 150MB
+        ]);
+
+        // Try to add 60MB more (total 210MB > 200MB limit)
+        $file = UploadedFile::fake()->create('new.zip', 1024 * 60); // 60MB
+
+        $versionData = [
+            'name' => 'Test Version',
+            'version' => '1.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Storage quota exceeded');
+
+        $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            []
+        );
+    }
+
+    #[Test]
+    public function test_quota_not_enforced_for_admin()
+    {
+        Config::set('quotas.versions_per_day_max', 1);
+        Config::set('quotas.version_size_max', 1024 * 1024); // 1MB
+        Config::set('quotas.project_storage_max', 1024 * 1024); // 1MB
+        Config::set('quotas.total_storage_max', 1024 * 1024); // 1MB
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        Auth::login($admin);
+
+        $adminProject = Project::factory()->owner($admin)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        // Create 5 versions today (exceeds limit)
+        ProjectVersion::factory()->count(5)->create([
+            'project_id' => $adminProject->id,
+            'created_at' => now(),
+        ]);
+
+        // Create a large file (exceeds all limits)
+        $file = UploadedFile::fake()->create('large.zip', 1024 * 10); // 10MB
+
+        $versionData = [
+            'name' => 'Test Version',
+            'version' => '6.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        // Should not throw exception because user is admin
+        $version = $this->projectVersionService->saveVersion(
+            $adminProject,
+            $versionData,
+            [$file],
+            [],
+            [],
+            []
+        );
+
+        $this->assertInstanceOf(ProjectVersion::class, $version);
+    }
+
+    #[Test]
+    public function test_quota_accounts_for_deleted_files_on_edit()
+    {
+        Config::set('quotas.project_storage_max', 1024 * 1024 * 100); // 100MB
+
+        Auth::login($this->user);
+
+        // Create a version with 80MB file
+        $version = ProjectVersion::factory()->create([
+            'project_id' => $this->project->id,
+        ]);
+        $existingFile = $version->files()->create([
+            'name' => 'old.zip',
+            'path' => 'test/old.zip',
+            'size' => 1024 * 1024 * 80, // 80MB
+        ]);
+
+        Storage::disk(ProjectFile::getDisk())->put($existingFile->path, 'content');
+
+        // Mark the 80MB file for deletion and add a 90MB file
+        // Net change: -80MB + 90MB = +10MB (total should be 90MB, under 100MB limit)
+        $existingFiles = [
+            ['id' => $existingFile->id, 'name' => 'old.zip', 'size' => 1024 * 1024 * 80, 'delete' => true],
+        ];
+
+        $newFile = UploadedFile::fake()->create('new.zip', 1024 * 90); // 90MB
+
+        $versionData = [
+            'name' => $version->name,
+            'version' => $version->version,
+            'release_type' => $version->release_type->value,
+            'release_date' => $version->release_date->format('Y-m-d'),
+            'changelog' => $version->changelog,
+        ];
+
+        // Should not throw exception because net change is only +10MB
+        $updatedVersion = $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$newFile],
+            $existingFiles,
+            [],
+            [],
+            $version
+        );
+
+        $this->assertEquals($version->id, $updatedVersion->id);
+    }
+
+    #[Test]
+    public function test_quota_custom_limits_per_project()
+    {
+        Config::set('quotas.versions_per_day_max', 2);
+
+        Auth::login($this->user);
+
+        // Set custom quota for this project
+        $this->project->quota()->create([
+            'versions_per_day_max' => 10, // Higher limit for this project
+        ]);
+
+        // Create 5 versions today (exceeds default but under project limit)
+        ProjectVersion::factory()->count(5)->create([
+            'project_id' => $this->project->id,
+            'created_at' => now(),
+        ]);
+
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $versionData = [
+            'name' => 'Test Version',
+            'version' => '6.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        // Should not throw exception because project has custom higher limit
+        $version = $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            []
+        );
+
+        $this->assertInstanceOf(ProjectVersion::class, $version);
     }
 }

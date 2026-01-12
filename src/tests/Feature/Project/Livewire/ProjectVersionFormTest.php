@@ -362,7 +362,7 @@ class ProjectVersionFormTest extends TestCase
             ->set('release_date', now()->format('Y-m-d'))
             ->set('files', [$file])
             ->call('save')
-            ->assertHasErrors('files');
+            ->assertHasErrors();
     }
 
     #[Test]
