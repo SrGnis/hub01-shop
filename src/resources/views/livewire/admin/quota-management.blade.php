@@ -19,6 +19,19 @@
                     </div>
                 </div>
                 <div>
+                    <div class="text-base-content/60">Version Size</div>
+                    <div class="font-medium">{{ number_format(config('quotas.version_size_max') / 1048576, 0) }} MB
+                    </div>
+                </div>
+                <div>
+                    <div class="text-base-content/60">Files/Version</div>
+                    <div class="font-medium">{{ config('quotas.files_per_version_max') }}</div>
+                </div>
+                <div>
+                    <div class="text-base-content/60">File Size</div>
+                    <div class="font-medium">{{ number_format(config('quotas.file_size_max') / 1024, 0) }} MB</div>
+                </div>
+                <div>
                     <div class="text-base-content/60">Versions/Day</div>
                     <div class="font-medium">{{ config('quotas.versions_per_day_max') }}</div>
                 </div>

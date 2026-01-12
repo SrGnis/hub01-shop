@@ -26,7 +26,7 @@
         <!-- Content -->
         <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 lg:px-8">
             <!-- Logo and Header -->
-            <div class="text-center mb-12 animate-fade-in">
+            <div class="text-center mb-12 animate-fade-in" style="margin-top: 5rem;">
                 <div class="flex justify-center mb-6">
                     <div class="w-32 h-32">
                         <img src="{{ asset('images/logo.svg') }}" alt="" class="w-full h-full object-contain">
