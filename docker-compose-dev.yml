@@ -58,9 +58,12 @@ services:
   # ==========================================================================================
   mailpit:
     image: "axllent/mailpit:latest"
+    restart: always
     ports:
       - "1025:1025"
       - "8025:8025"
+    networks:
+      - hub01_shop_net
 
   adminer:
     extends:
