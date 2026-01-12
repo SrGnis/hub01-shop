@@ -18,11 +18,45 @@ use Illuminate\Support\Facades\Storage;
 
 class ProjectVersionService
 {
+    protected ProjectQuotaService $quotaService;
+
+    public function __construct(ProjectQuotaService $quotaService)
+    {
+        $this->quotaService = $quotaService;
+    }
+
     /**
      * Create or update a project version
      */
     public function saveVersion(Project $project, array $data, array $files, array $existingFiles, array $dependencies, array $tags, ?ProjectVersion $version = null): ProjectVersion
     {
+        // Calculate total size of new files
+        $newFilesSize = 0;
+        foreach ($files as $file) {
+            $newFilesSize += $file->getSize();
+        }
+
+        // Calculate size of files being deleted (for edits)
+        $deletedFilesSize = 0;
+        if ($version) {
+            foreach ($existingFiles as $file) {
+                if (isset($file['delete']) && $file['delete']) {
+                    $deletedFilesSize += $file['size'] ?? 0;
+                }
+            }
+        }
+
+        // Net size change (new files - deleted files)
+        $netSizeChange = $newFilesSize - $deletedFilesSize;
+
+        // Validate quotas before proceeding
+        $this->quotaService->validateVersionUpload(
+            Auth::user(),
+            $project,
+            $netSizeChange,
+            !$version // isNewVersion
+        );
+
         return DB::transaction(function () use ($project, $data, $files, $existingFiles, $dependencies, $tags, $version) {
             if ($version) {
                 $version->update($data);
