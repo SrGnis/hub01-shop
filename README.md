@@ -28,7 +28,7 @@ Hub01 Shop is a web application designed to serve as a centralized repository fo
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/srgnis/hub01-shop.git
+    git clone --recursive https://github.com/srgnis/hub01-shop.git
     cd hub01-shop
     ```
 
@@ -110,9 +110,12 @@ docker pull ghcr.io/srgnis/hub01-shop:sha-<commit_hash>
 Additional documentation can be found in the `docs/` directory:
 
 -   [Laravel Docker](docs/LARAVEL_DOCKER.md): Docker setup information
--   [Cache Documentation](docs/CACHE.md): Caching strategy details
--   [Database Schema](docs/src/uml/hub01_shop.er.md): Entity relationship diagrams
+-   [Database Schema](docs/Hub01%20Shop.svg): Entity relationship diagrams
 -   [GitHub Actions](docs/GITHUB_ACTIONS.md): CI/CD workflow details
+
+## Disclaimer
+
+This project contains LLM generated code.
 
 ## License
 
