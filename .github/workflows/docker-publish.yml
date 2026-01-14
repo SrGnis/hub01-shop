@@ -3,6 +3,12 @@ name: Build and Publish Docker Image
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/**'
+      - 'docker/**'
+      - '.dockerignore'
+      - '.env*'
   # Allow manual triggering
   workflow_dispatch:
 
