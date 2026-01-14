@@ -109,7 +109,6 @@ docker pull ghcr.io/srgnis/hub01-shop:sha-<commit_hash>
 
 Additional documentation can be found in the `docs/` directory:
 
--   [Laravel Docker](docs/LARAVEL_DOCKER.md): Docker setup information
 -   [Database Schema](docs/Hub01%20Shop.svg): Entity relationship diagrams
 -   [GitHub Actions](docs/GITHUB_ACTIONS.md): CI/CD workflow details
 

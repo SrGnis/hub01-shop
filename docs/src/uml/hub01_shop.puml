@@ -13,10 +13,8 @@ entity "users" USER_COLOR {
   *name : varchar(25)
   *email : varchar(255)
   email_verified_at : timestamp
+  unverified_deletion_warning_sent_at : timestamp
   *password : varchar(255)
-  two_factor_secret : text
-  two_factor_recovery_codes : text
-  two_factor_confirmed_at : timestamp
   bio : varchar(125)
   *role : enum(user, admin)
   avatar : varchar(255)
@@ -229,12 +227,27 @@ entity "notifications" USER_COLOR {
   updated_at : timestamp
 }
 
+entity "abuse_reports" SYSTEM_COLOR {
+  *id : bigint <<PK>>
+  ---
+  *reason : text
+  *reportable_id : bigint
+  *reportable_type : varchar(255)
+  *reporter_id : bigint <<FK>>
+  *status : enum(pending, resolved)
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
+}
+
 users ||--o{ sessions
 users ||--o{ membership : "invited user"
 users ||--o{ pending_email_changes
 users ||--o{ pending_password_changes
 users ||--o{ project : "reviewed_by"
 users ||--o{ notifications : "notifiable"
+users ||--o{ abuse_reports : "reporter"
+users |o--o{ abuse_reports : "reportable"
 users ||--o| user_quota
 
 membership }o--|| project
@@ -257,6 +270,9 @@ project_type }o--o{ project_tag_group : "allowed tag groups"
 project_type }o--o{ project_tag : "allowed tags"
 project_type }o--o{ project_version_tag_group : "allowed version tag groups"
 project_type }o--o{ project_version_tag : "allowed version tags"
+
+abuse_reports }o--o| project : "reportable"
+abuse_reports }o--o| project_version : "reportable"
 
 project }o--o{ project_tag
 project_version }o--o{ project_version_tag
