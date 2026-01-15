@@ -203,6 +203,28 @@ class ProjectService
     }
 
     /**
+     * Resolve parent tags for a list of tag IDs.
+     * When a sub-tag is selected, automatically include its main tag.
+     *
+     * @param array $tagIds The selected tag IDs
+     * @return array The resolved tag IDs including parent tags
+     */
+    public function resolveParentTags(array $tagIds): array
+    {
+        if (empty($tagIds)) {
+            return [];
+        }
+
+        // Get all selected tags with their parent IDs
+        $tags = ProjectTag::whereIn('id', $tagIds)->pluck('parent_id', 'id')->toArray();
+
+        // Add all parent IDs to the list
+        $resolvedIds = array_unique(array_filter($tagIds + array_filter($tags)));
+
+        return $resolvedIds;
+    }
+
+    /**
      * Save or update a project
      *
      * @param  Project|null  $project  The project to update, or null for new project
@@ -237,7 +259,10 @@ class ProjectService
             }
 
             $project->update(array_merge($data, ['logo_path' => $logoPath]));
-            $project->tags()->sync($data['selectedTags'] ?? []);
+
+            // Resolve parent tags for sub-tags
+            $resolvedTags = $this->resolveParentTags($data['selectedTags'] ?? []);
+            $project->tags()->sync($resolvedTags);
 
             Log::info('Project updated', [
                 'project_id' => $project->id,
@@ -279,7 +304,10 @@ class ProjectService
         }
 
         $project = Project::create($projectData);
-        $project->tags()->attach($data['selectedTags'] ?? []);
+
+        // Resolve parent tags for sub-tags
+        $resolvedTags = $this->resolveParentTags($data['selectedTags'] ?? []);
+        $project->tags()->attach($resolvedTags);
 
         Log::info('Project created', [
             'project_id' => $project->id,
