@@ -18,7 +18,9 @@ class VersionTagManagement extends Component
 
     public $versionTagIcon = 'lucide-tag';
 
-    public $versionTagGroupId = null;
+    public ?int $versionTagGroupId = null;
+
+    public ?int $versionTagParentId = null;
 
     public $versionTagProjectTypes = [];
 
@@ -32,11 +34,15 @@ class VersionTagManagement extends Component
 
     public $itemToDelete = null;
 
+    // Expanded rows for sub-tags (uses row->id by default)
+    public array $expanded = [];
+
     protected function rules()
     {
         return [
             'versionTagName' => 'required|string|max:50',
             'versionTagIcon' => 'required|string|max:50|starts_with:lucide-',
+            'versionTagParentId' => 'nullable|exists:project_version_tag,id',
         ];
     }
 
@@ -44,6 +50,7 @@ class VersionTagManagement extends Component
     {
         return [
             'versionTagIcon.starts_with' => 'The icon must be a valid Lucide icon (starts with "lucide-").',
+            'versionTagParentId.exists' => 'The selected parent tag does not exist.',
         ];
     }
 
@@ -67,6 +74,7 @@ class VersionTagManagement extends Component
         $this->versionTagName = $versionTag->name;
         $this->versionTagIcon = $versionTag->icon;
         $this->versionTagGroupId = $versionTag->project_version_tag_group_id;
+        $this->versionTagParentId = $versionTag->parent_id;
         $this->versionTagProjectTypes = $versionTag->projectTypes->pluck('id')->toArray();
         $this->isEditingVersionTag = true;
         $this->showModal = true;
@@ -81,6 +89,7 @@ class VersionTagManagement extends Component
             $versionTag->name = $this->versionTagName;
             $versionTag->icon = $this->versionTagIcon;
             $versionTag->project_version_tag_group_id = $this->versionTagGroupId;
+            $versionTag->parent_id = $this->versionTagParentId;
             $versionTag->save();
 
             // Sync project types
@@ -92,6 +101,7 @@ class VersionTagManagement extends Component
                 'name' => $this->versionTagName,
                 'icon' => $this->versionTagIcon,
                 'project_version_tag_group_id' => $this->versionTagGroupId,
+                'parent_id' => $this->versionTagParentId,
             ]);
 
             // Sync project types
@@ -110,6 +120,7 @@ class VersionTagManagement extends Component
         $this->versionTagName = '';
         $this->versionTagIcon = 'lucide-tag';
         $this->versionTagGroupId = null;
+        $this->versionTagParentId = null;
         $this->versionTagProjectTypes = [];
         $this->isEditingVersionTag = false;
     }
@@ -135,8 +146,14 @@ class VersionTagManagement extends Component
 
     public function render()
     {
+        // Get main tags with their sub-tag counts
+        $mainVersionTags = ProjectVersionTag::onlyMain()
+            ->with('tagGroup')
+            ->withCount('children')
+            ->get();
+
         return view('livewire.admin.version-tag-management', [
-            'versionTags' => ProjectVersionTag::with('tagGroup')->get(),
+            'mainVersionTags' => $mainVersionTags,
             'versionTagGroups' => ProjectVersionTagGroup::all(),
             'projectTypes' => ProjectType::all(),
         ]);
