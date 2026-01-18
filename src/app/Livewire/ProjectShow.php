@@ -10,6 +10,9 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
+use App\Services\ProjectService;
+use App\Models\ProjectVersionTag;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProjectShow extends Component
 {
@@ -27,6 +30,15 @@ class ProjectShow extends Component
 
     public array $sortBy = ['column' => 'release_date', 'direction' => 'desc'];
 
+    public array $selectedVersionTags = [];
+
+    protected ProjectService $projectService;
+
+    public function boot(ProjectService $projectService)
+    {
+        $this->projectService = $projectService;
+    }
+
     public function mount($project, ?string $activeTab = null)
     {
         $this->projectSlug = $project;
@@ -39,11 +51,6 @@ class ProjectShow extends Component
             return redirect()->route('project-search', ['projectType' => $this->project->projectType]);
         }
 
-        if ($activeTab && in_array($activeTab, ['description', 'versions', 'changelog'])) {
-            $this->activeTab = $activeTab;
-        }else{
-            $this->activeTab = 'description';
-        }
     }
 
     public function updatedVersionsPerPage()
@@ -54,6 +61,11 @@ class ProjectShow extends Component
     public function updatedChangelogPerPage()
     {
         $this->resetPage('changelogPage');
+    }
+
+    public function updatedSelectedVersionTags()
+    {
+        $this->resetPage('versionsPage');
     }
 
     #[Computed]
@@ -73,6 +85,11 @@ class ProjectShow extends Component
                 'project.projectType',
                 'project.owner'
             ])
+            ->when(!empty($this->selectedVersionTags), function (Builder $query) {
+                $query->whereHas('tags', function (Builder $q) {
+                    $q->whereIn('project_version_tag.id', $this->selectedVersionTags);
+                }, '>=', count($this->selectedVersionTags));
+            })
             ->orderBy($this->sortBy['column'], $this->sortBy['direction'])
             ->paginate($this->versionsPerPage, ['*'], 'versionsPage');
     }
@@ -84,6 +101,12 @@ class ProjectShow extends Component
             ->whereNotNull('changelog')
             ->orderBy('release_date', 'desc')
             ->paginate($this->changelogPerPage, ['*'], 'changelogPage');
+    }
+
+    #[Computed]
+    public function versionTagGroups()
+    {
+        return $this->projectService->getVersionTagGroups($this->project->projectType);
     }
 
     public function render()
