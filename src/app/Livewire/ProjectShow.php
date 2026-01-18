@@ -22,7 +22,7 @@ class ProjectShow extends Component
     #[Locked]
     public string $projectSlug;
 
-    #[Url]
+    #[Url(as: 'tab')]
     public string $activeTab = 'description';
 
     public int $versionsPerPage = 10;
