@@ -47,13 +47,10 @@
         </div>
 
         <!-- Tags -->
-        @php
-            $mainTags = $project->tags->whereNull('parent_id');
-        @endphp
-        @if ($mainTags->count() > 0)
+        @if ($project->mainTags->count() > 0)
             <div class="mb-4">
                 <div class="flex flex-wrap gap-2">
-                    @foreach ($mainTags as $tag)
+                    @foreach ($project->mainTags as $tag)
                         <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
                             <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
                             {{ $tag->name }}
