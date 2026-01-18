@@ -7,6 +7,7 @@ use App\Services\ProjectService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
@@ -19,11 +20,17 @@ class ProjectSearch extends Component
     public ProjectType $projectType;
 
     // Search and filter properties
+    #[Session]
     public string $search = '';
+    #[Session]
     public array $selectedTags = [];
+    #[Session]
     public array $selectedVersionTags = [];
+    #[Session]
     public string $orderBy = 'downloads';
+    #[Session]
     public string $orderDirection = 'desc';
+    #[Session]
     public int $resultsPerPage = 10;
     private ProjectService $projectService;
 
