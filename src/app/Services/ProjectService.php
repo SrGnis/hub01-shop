@@ -54,18 +54,18 @@ class ProjectService
             ->where('name', 'like', '%' . $search . '%')
             ->where('project_type_id', $projectType->id);
 
-        // Filter by project tags
+        // Filter by project tags, ensuring all selected tags are present
         if (count($selectedTags)) {
             $projects->whereHas('tags', function ($query) use ($selectedTags) {
                 $query->whereIn('tag_id', $selectedTags);
             }, '>=', count($selectedTags));
         }
 
-        // Filter by version tags
+        // Filter by version tags, ensuring all selected tags are present
         if (count($selectedVersionTags)) {
             $projects->whereHas('versions.tags', function ($query) use ($selectedVersionTags) {
                 $query->whereIn('tag_id', $selectedVersionTags);
-            });
+            }, '>=', count($selectedVersionTags));
         }
 
         // Apply ordering based on selected option
