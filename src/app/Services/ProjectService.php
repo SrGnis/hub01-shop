@@ -189,7 +189,8 @@ class ProjectService
     }
 
     /**
-     * Get tag groups for a project type
+     * Get tag groups for a project type. It will also load the main tags for each group and their sub-tags.
+     *
      */
     public function getTagGroupsForProjectType(ProjectType $projectType): Collection
     {
@@ -198,7 +199,9 @@ class ProjectService
         })->with(['tags' => function ($query) use ($projectType) {
             $query->whereHas('projectTypes', function ($subQuery) use ($projectType) {
                 $subQuery->where('project_type_id', $projectType->id);
-            });
+            })
+            ->whereNull('parent_id')
+            ->with('children');
         }])->get();
     }
 
