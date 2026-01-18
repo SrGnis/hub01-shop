@@ -80,14 +80,16 @@
                         @endif
                     @endif
 
-                    @if($project->tags->count() > 0)
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($project->tags as $tag)
-                                <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
-                                    <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
-                                    {{ $tag->name }}
-                                </div>
-                            @endforeach
+                    @if ($project->mainTags->count() > 0)
+                        <div class="mb-4">
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($project->mainTags as $tag)
+                                    <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
+                                        <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
+                                        {{ $tag->name }}
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -113,14 +115,16 @@
                                 <span class="text-sm">by <span class="font-medium">{{ $project->owner->first()->name }}</span></span>
                             </div>
 
-                            @if($project->tags->count() > 0)
-                                <div class="flex flex-wrap gap-4">
-                                    @foreach ($project->tags as $tag)
-                                        <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
-                                            <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
-                                            {{ $tag->name }}
-                                        </div>
-                                    @endforeach
+                            @if ($project->mainTags->count() > 0)
+                                <div class="mb-4">
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach ($project->mainTags as $tag)
+                                            <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
+                                                <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
+                                                {{ $tag->name }}
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -215,17 +219,29 @@
                     </div>
 
                     <!-- Version Tags -->
-                    @if($version->tags->count() > 0)
+                    @if($version->mainTags->count() > 0)
                         <div>
                             <div class="space-y-2">
-                                @foreach ($version->tags->groupBy('tagGroup.name') as $groupName => $tags)
+                                @foreach ($version->mainTags->groupBy('tagGroup.name') as $groupName => $tags)
                                     <div>
                                         <div class="text-xs font-medium text-base-content/60 mb-1">{{ $groupName ?? 'Other Tags' }}</div>
-                                        <div class="flex flex-wrap gap-1">
+                                        <div class="flex flex-col items-start gap-2">
                                             @foreach ($tags as $tag)
-                                                <div class="badge badge-sm badge-soft gap-1">
-                                                    <x-icon :name="$tag->icon" class="w-3 h-3" />
-                                                    {{ $tag->name }}
+                                                <div class="version-tag flex flex-col items-center gap-1">
+                                                    <div class="badge badge-sm badge-primary badge-soft gap-1">
+                                                        <x-icon :name="$tag->icon" class="w-3 h-3" />
+                                                        {{ $tag->name }}
+                                                    </div>
+                                                    @if($version->tags->where('parent_id', $tag->id)->count() > 0)
+                                                        <div class="version-subtags flex gap-1 justify-evenly">
+                                                            @foreach($version->tags->where('parent_id', $tag->id) as $subTag)
+                                                                <div class="badge badge-sm badge-soft gap-1">
+                                                                    <x-icon :name="$subTag->icon" class="w-3 h-3" />
+                                                                    {{ $subTag->name }}
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @endforeach
                                         </div>
