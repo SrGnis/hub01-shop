@@ -80,6 +80,12 @@ class ProjectForm extends Component
 
     /**
      * Validate that all selected tags belong to tag groups valid for the current project type.
+     *
+     * Main Tags need to be valid for the project type.
+     * Sub Tags only need that their parent tag is valid for the project type.
+     *
+     * @param array $selectedTagIds The selected tag IDs
+     * @param callable $fail The validation failure callback
      */
     private function validateTagsForProjectType(array $selectedTagIds, callable $fail): void
     {
@@ -87,13 +93,38 @@ class ProjectForm extends Component
             return;
         }
 
-        $invalidTags = ProjectTag::whereIn('id', $selectedTagIds)
-            ->whereDoesntHave('projectTypes', fn ($query) => $query->where('project_type_id', $this->projectType->id))
-            ->pluck('name')
-            ->toArray();
+        // Get all selected tags with their parent relationships
+        $selectedTags = ProjectTag::with('parent')->whereIn('id', $selectedTagIds)->get();
 
-        if (!empty($invalidTags)) {
-            $tagNames = implode(', ', $invalidTags);
+        $invalidMainTags = [];
+        $invalidSubTags = [];
+
+        foreach ($selectedTags as $tag) {
+            if ($tag->isSubTag()) {
+                // Sub tags: check if parent is valid for project type
+                $parentValid = $tag->parent->projectTypes()
+                    ->where('project_type_id', $this->projectType->id)
+                    ->exists();
+
+                if (!$parentValid) {
+                    $invalidSubTags[] = $tag->name;
+                }
+            } else {
+                // Main tags: check if they are valid for project type
+                $tagValid = $tag->projectTypes()
+                    ->where('project_type_id', $this->projectType->id)
+                    ->exists();
+
+                if (!$tagValid) {
+                    $invalidMainTags[] = $tag->name;
+                }
+            }
+        }
+
+        $allInvalidTags = array_merge($invalidMainTags, $invalidSubTags);
+
+        if (!empty($allInvalidTags)) {
+            $tagNames = implode(', ', $allInvalidTags);
             $fail("The following tags are not allowed for this project type: {$tagNames}.");
         }
     }
@@ -422,4 +453,3 @@ class ProjectForm extends Component
         }
     }
 }
-

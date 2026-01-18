@@ -62,27 +62,14 @@
             </div>
 
             <!-- Version Tags -->
-            <div>
+            <div x-data="{ expandedTags: [] }">
                 <label class="text-sm font-medium mb-2 block">Tags</label>
                 @foreach($this->availableTagGroups as $tagGroup)
                     <div class="mb-4">
                         <h3 class="font-semibold mb-2">{{ $tagGroup->name }}</h3>
                         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
                             @foreach($tagGroup->tags as $tag)
-                                <x-checkbox
-                                    wire:model="selectedTags"
-                                    value="{{ $tag->id }}"
-                                    class="text-sm"
-                                >
-                                    <x-slot:label class="flex items-center gap-2">
-                                        <div class="flex items-center gap-2">
-                                            @if($tag->icon)
-                                                <x-icon :name="$tag->icon" class="w-4 h-4" />
-                                            @endif
-                                            {{ $tag->name }}
-                                        </div>
-                                    </x-slot:label>
-                                </x-checkbox>
+                                <x-tag-check-item :tag="$tag" model="selectedTags"/>
                             @endforeach
                         </div>
                     </div>
