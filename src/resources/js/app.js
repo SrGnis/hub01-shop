@@ -2,7 +2,7 @@ import './bootstrap';
 
 
 // Tag checkbox handlers
-window.handleMainTagChange = function(checkbox) {
+window.handleMainTagChange = function(checkbox, live, wire) {
     if (!checkbox.checked) {
         const tagId = checkbox.dataset.tagId;
         const subTags = document.querySelectorAll(`.sub-tag-checkbox[data-parent-id="${tagId}"]`);
@@ -14,9 +14,13 @@ window.handleMainTagChange = function(checkbox) {
             }
         });
     }
+
+    if (live) {
+        wire.$refresh();
+    }
 };
 
-window.handleSubTagChange = function(checkbox) {
+window.handleSubTagChange = function(checkbox, live, wire) {
     if (checkbox.checked) {
         const parentId = checkbox.dataset.parentId;
         const parentCheckbox = document.querySelector(`.main-tag-checkbox[data-tag-id="${parentId}"]`);
@@ -25,5 +29,8 @@ window.handleSubTagChange = function(checkbox) {
             parentCheckbox.checked = true;
             parentCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
         }
+    }
+    if (live) {
+        wire.$refresh();
     }
 };

@@ -1,13 +1,18 @@
-@props(['tag', 'model'])
+@props([
+    'tag',
+    'model',
+    'live' => false,
+    ])
 
-<div class="flex flex-col" x-data="{ expanded: false }">
+<div class="flex flex-col" x-data="{ expanded: false, live: @js($live) }" wire:ignore>
     {{-- Main tag checkbox --}}
     <x-checkbox
+        wire:key="tag-{{$model}}-{{ $tag->id }}"
         wire:model="{{ $model }}"
         value="{{ $tag->id }}"
         class="text-sm main-tag-checkbox"
-        data-tag-id="{{ $tag->id }}"
-        @change="handleMainTagChange($el)"
+        data-tag-id="{{$model}}-{{ $tag->id }}"
+        @change="handleMainTagChange($el, live, $wire)"
     >
         <x-slot:label>
             <div class="flex items-center justify-between w-full">
@@ -44,12 +49,13 @@
         <div x-show="expanded" class="ml-6 flex flex-col gap-1 mt-1">
             @foreach($tag->children as $subTag)
                 <x-checkbox
+                    wire:key="sub-tag-{{$model}}-{{ $subTag->id }}"
                     wire:model="{{ $model }}"
                     value="{{ $subTag->id }}"
                     class="text-sm sub-tag-checkbox"
                     data-tag-id="{{ $subTag->id }}"
-                    data-parent-id="{{ $tag->id }}"
-                    @change="handleSubTagChange($el)"
+                    data-parent-id="{{$model}}-{{ $tag->id }}"
+                    @change="handleSubTagChange($el, live, $wire)"
                 >
                     <x-slot:label class="flex items-center gap-2">
                         <div class="flex items-center gap-2">

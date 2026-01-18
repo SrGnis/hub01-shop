@@ -34,19 +34,7 @@
                                 <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
                                 <div class="space-y-2 ml-4">
                                     @foreach ($tagGroup->tags as $tag)
-                                        <x-checkbox
-                                            wire:model.live="selectedTags"
-                                            value="{{ $tag->id }}"
-                                            right
-                                            class="text-sm"
-                                        >
-                                            <x-slot:label class="flex items-center gap-2">
-                                                <div class="flex items-center gap-2">
-                                                    <x-icon :name="$tag->icon" class="w-4 h-4" />
-                                                    {{ $tag->name }}
-                                                </div>
-                                            </x-slot:label>
-                                        </x-checkbox>
+                                        <x-tag-check-item :tag="$tag" model="selectedTags" :live="true" />
                                     @endforeach
                                 </div>
                             </div>
@@ -65,19 +53,7 @@
                                 <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
                                 <div class="space-y-2 ml-4">
                                     @foreach ($tagGroup->tags as $tag)
-                                        <x-checkbox
-                                            wire:model.live="selectedVersionTags"
-                                            value="{{ $tag->id }}"
-                                            right
-                                            class="text-sm"
-                                        >
-                                            <x-slot:label class="flex items-center gap-2">
-                                                <div class="flex items-center gap-2">
-                                                    <x-icon :name="$tag->icon" class="w-4 h-4" />
-                                                    {{ $tag->name }}
-                                                </div>
-                                            </x-slot:label>
-                                        </x-checkbox>
+                                        <x-tag-check-item :tag="$tag" model="selectedVersionTags" :live="true" />
                                     @endforeach
                                 </div>
                             </div>

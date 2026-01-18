@@ -43,10 +43,26 @@
 
         @scope('cell_tags', $version)
             <div class="flex flex-wrap gap-1">
-                @foreach($version->tags as $tag)
-                    <x-badge :value="$tag->name" class="badge-sm gap-1 badge-soft">
-                        <x-icon :name="$tag->icon" class="w-3 h-3" />
-                    </x-badge>
+                @foreach($version->mainTags as $tag)
+                    <div class="version-tag flex flex-col items-center gap-1">
+                        <div class="badge badge-sm badge-primary badge-soft gap-1">
+                            <x-icon :name="$tag->icon" class="w-3 h-3" />
+                            {{ $tag->name }}
+                        </div>
+                        @if($version->tags->where('parent_id', $tag->id)->count() > 0)
+                            <div class="version-subtags flex gap-1 justify-evenly">
+                                @foreach($version->tags->where('parent_id', $tag->id) as $subTag)
+                                    <div class="badge badge-sm badge-soft gap-1">
+                                        <x-icon :name="$subTag->icon" class="w-3 h-3" />
+                                        {{ $subTag->name }}
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+                {{-- Tags without parent (shouldn't happen but just in case) --}}
+                @foreach($version->tags->whereNull('parent_id') as $tag)
                 @endforeach
             </div>
         @endscope
