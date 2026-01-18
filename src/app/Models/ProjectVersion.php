@@ -169,6 +169,14 @@ class ProjectVersion extends Model
     }
 
     /**
+     * Get the main tags that belong to the ProjectVersion (tags without a parent)
+     */
+    public function mainTags(): BelongsToMany
+    {
+        return $this->tags()->whereNull('parent_id');
+    }
+
+    /**
      * Clear the tags cache for this project version
      */
     public function clearTagsCache(): void
