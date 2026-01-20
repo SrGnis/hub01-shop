@@ -624,4 +624,176 @@ class ProjectServiceTest extends TestCase
         $this->assertNull($updatedProject->logo_path);
         Storage::disk('public')->assertMissing('project-logos/old-logo.png');
     }
+
+    #[Test]
+    public function test_resolve_parent_tags_includes_parent_when_subtag_selected()
+    {
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Select only the subtag
+        $resolvedTags = $this->projectService->resolveParentTags([$subTag->id]);
+
+        // Should include both the subtag and its parent
+        $this->assertCount(2, $resolvedTags);
+        $this->assertContains($subTag->id, $resolvedTags);
+        $this->assertContains($parentTag->id, $resolvedTags);
+    }
+
+    #[Test]
+    public function test_resolve_parent_tags_handles_mixed_tags()
+    {
+        $parentTag1 = ProjectTag::factory()->create();
+        $parentTag1->projectTypes()->attach($this->projectType);
+
+        $parentTag2 = ProjectTag::factory()->create();
+        $parentTag2->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag1->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Select one parent tag and one subtag
+        $resolvedTags = $this->projectService->resolveParentTags([$parentTag2->id, $subTag->id]);
+
+        // Should include: parentTag2, subTag, and parentTag1 (parent of subTag)
+        $this->assertCount(3, $resolvedTags);
+        $this->assertContains($parentTag1->id, $resolvedTags);
+        $this->assertContains($parentTag2->id, $resolvedTags);
+        $this->assertContains($subTag->id, $resolvedTags);
+    }
+
+    #[Test]
+    public function test_resolve_parent_tags_handles_empty_array()
+    {
+        $resolvedTags = $this->projectService->resolveParentTags([]);
+
+        $this->assertIsArray($resolvedTags);
+        $this->assertEmpty($resolvedTags);
+    }
+
+    #[Test]
+    public function test_save_project_with_subtags_includes_parents()
+    {
+        Config::set('projects.auto_approve', false);
+
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        $data = [
+            'name' => 'Test Project with Subtags',
+            'slug' => 'test-project-subtags',
+            'summary' => 'Test summary',
+            'description' => 'Test description',
+            'website' => 'https://example.com',
+            'issues' => '',
+            'source' => '',
+            'status' => 'active',
+            'selectedTags' => [$subTag->id], // Only select the subtag
+            'project_type_id' => $this->projectType->id,
+        ];
+
+        $project = $this->projectService->saveProject(null, $this->user, $data);
+
+        // Should have both the subtag and its parent tag
+        $this->assertCount(2, $project->tags);
+        $this->assertTrue($project->tags->contains('id', $subTag->id));
+        $this->assertTrue($project->tags->contains('id', $parentTag->id));
+    }
+
+    #[Test]
+    public function test_filter_projects_by_parent_tag()
+    {
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Project with parent tag
+        $project1 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project1->tags()->attach($parentTag);
+
+        // Project with subtag (and parent due to resolution)
+        $project2 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project2->tags()->attach([$parentTag->id, $subTag->id]);
+
+        // Project without any of these tags
+        $otherTag = ProjectTag::factory()->create();
+        $otherTag->projectTypes()->attach($this->projectType);
+        $project3 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project3->tags()->attach($otherTag);
+
+        $results = $this->projectService->searchProjects(
+            projectType: $this->projectType,
+            selectedTags: [$parentTag->id]
+        );
+
+        // Should return both project1 and project2
+        $this->assertEquals(2, $results->total());
+        $resultIds = $results->pluck('id')->toArray();
+        $this->assertContains($project1->id, $resultIds);
+        $this->assertContains($project2->id, $resultIds);
+        $this->assertNotContains($project3->id, $resultIds);
+    }
+
+    #[Test]
+    public function test_filter_projects_by_subtag()
+    {
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Project with only parent tag
+        $project1 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project1->tags()->attach($parentTag);
+
+        // Project with subtag (and parent)
+        $project2 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project2->tags()->attach([$parentTag->id, $subTag->id]);
+
+        $results = $this->projectService->searchProjects(
+            projectType: $this->projectType,
+            selectedTags: [$subTag->id]
+        );
+
+        // Should return only project2
+        $this->assertEquals(1, $results->total());
+        $this->assertEquals($project2->id, $results->first()->id);
+    }
+
+    #[Test]
+    public function test_filter_projects_by_both_parent_and_subtag()
+    {
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Project with only parent tag
+        $project1 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project1->tags()->attach($parentTag);
+
+        // Project with both parent and subtag
+        $project2 = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project2->tags()->attach([$parentTag->id, $subTag->id]);
+
+        // Filter by both parent and subtag (requires both)
+        $results = $this->projectService->searchProjects(
+            projectType: $this->projectType,
+            selectedTags: [$parentTag->id, $subTag->id]
+        );
+
+        // Should return only project2 (has both tags)
+        $this->assertEquals(1, $results->total());
+        $this->assertEquals($project2->id, $results->first()->id);
+    }
 }

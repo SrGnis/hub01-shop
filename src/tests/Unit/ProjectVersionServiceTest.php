@@ -1182,4 +1182,122 @@ class ProjectVersionServiceTest extends TestCase
 
         $this->assertInstanceOf(ProjectVersion::class, $version);
     }
+
+    #[Test]
+    public function test_resolve_parent_tags_includes_parent_when_subtag_selected()
+    {
+        $parentTag = ProjectVersionTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectVersionTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Select only the subtag
+        $resolvedTags = $this->projectVersionService->resolveParentTags([$subTag->id]);
+
+        // Should include both the subtag and its parent
+        $this->assertCount(2, $resolvedTags);
+        $this->assertContains($subTag->id, $resolvedTags);
+        $this->assertContains($parentTag->id, $resolvedTags);
+    }
+
+    #[Test]
+    public function test_resolve_parent_tags_handles_mixed_version_tags()
+    {
+        $parentTag1 = ProjectVersionTag::factory()->create();
+        $parentTag1->projectTypes()->attach($this->projectType);
+
+        $parentTag2 = ProjectVersionTag::factory()->create();
+        $parentTag2->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectVersionTag::factory()->create(['parent_id' => $parentTag1->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        // Select one parent tag and one subtag
+        $resolvedTags = $this->projectVersionService->resolveParentTags([$parentTag2->id, $subTag->id]);
+
+        // Should include: parentTag2, subTag, and parentTag1 (parent of subTag)
+        $this->assertCount(3, $resolvedTags);
+        $this->assertContains($parentTag1->id, $resolvedTags);
+        $this->assertContains($parentTag2->id, $resolvedTags);
+        $this->assertContains($subTag->id, $resolvedTags);
+    }
+
+    #[Test]
+    public function test_save_version_with_subtags_includes_parents()
+    {
+        $parentTag = ProjectVersionTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectVersionTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $versionData = [
+            'name' => 'Test Version with Subtags',
+            'version' => '1.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        // Select only the subtag
+        $projectVersion = $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            [$subTag->id]
+        );
+
+        // Should have both the subtag and its parent tag
+        $this->assertCount(2, $projectVersion->tags);
+        $this->assertTrue($projectVersion->tags->contains('id', $subTag->id));
+        $this->assertTrue($projectVersion->tags->contains('id', $parentTag->id));
+    }
+
+    #[Test]
+    public function test_save_version_with_only_subtags()
+    {
+        $parentTag1 = ProjectVersionTag::factory()->create();
+        $parentTag1->projectTypes()->attach($this->projectType);
+
+        $subTag1 = ProjectVersionTag::factory()->create(['parent_id' => $parentTag1->id]);
+        $subTag1->projectTypes()->attach($this->projectType);
+
+        $parentTag2 = ProjectVersionTag::factory()->create();
+        $parentTag2->projectTypes()->attach($this->projectType);
+
+        $subTag2 = ProjectVersionTag::factory()->create(['parent_id' => $parentTag2->id]);
+        $subTag2->projectTypes()->attach($this->projectType);
+
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $versionData = [
+            'name' => 'Test Version with Multiple Subtags',
+            'version' => '2.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->format('Y-m-d'),
+            'changelog' => 'Test',
+        ];
+
+        // Select only subtags (no parent tags directly)
+        $projectVersion = $this->projectVersionService->saveVersion(
+            $this->project,
+            $versionData,
+            [$file],
+            [],
+            [],
+            [$subTag1->id, $subTag2->id]
+        );
+
+        // Should have 4 tags: both subtags + both parent tags
+        $this->assertCount(4, $projectVersion->tags);
+        $this->assertTrue($projectVersion->tags->contains('id', $subTag1->id));
+        $this->assertTrue($projectVersion->tags->contains('id', $subTag2->id));
+        $this->assertTrue($projectVersion->tags->contains('id', $parentTag1->id));
+        $this->assertTrue($projectVersion->tags->contains('id', $parentTag2->id));
+    }
 }
