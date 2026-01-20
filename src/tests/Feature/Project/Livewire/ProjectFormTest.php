@@ -231,6 +231,143 @@ class ProjectFormTest extends TestCase
     }
 
     #[Test]
+    public function test_create_project_with_only_subtags()
+    {
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('name', 'Test Project')
+            ->set('slug', 'test-project')
+            ->set('summary', 'A test summary')
+            ->set('description', 'A test description')
+            ->set('selectedTags', [$subTag->id]) // Only select subtag
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $project = Project::where('slug', 'test-project')->first();
+
+        // Should have both the subtag and its parent tag
+        $this->assertCount(2, $project->tags);
+        $this->assertTrue($project->tags->contains('id', $subTag->id));
+        $this->assertTrue($project->tags->contains('id', $parentTag->id));
+    }
+
+    #[Test]
+    public function test_create_project_with_mixed_tags()
+    {
+        $parentTag1 = ProjectTag::factory()->create();
+        $parentTag1->projectTypes()->attach($this->projectType);
+
+        $parentTag2 = ProjectTag::factory()->create();
+        $parentTag2->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag1->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('name', 'Test Project')
+            ->set('slug', 'test-project')
+            ->set('summary', 'A test summary')
+            ->set('description', 'A test description')
+            ->set('selectedTags', [$parentTag2->id, $subTag->id]) // Mix: one parent, one subtag
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $project = Project::where('slug', 'test-project')->first();
+
+        // Should have 3 tags: parentTag2, subTag, and parentTag1 (auto-added)
+        $this->assertCount(3, $project->tags);
+        $this->assertTrue($project->tags->contains('id', $parentTag1->id));
+        $this->assertTrue($project->tags->contains('id', $parentTag2->id));
+        $this->assertTrue($project->tags->contains('id', $subTag->id));
+    }
+
+    #[Test]
+    public function test_validate_subtag_parent_belongs_to_project_type()
+    {
+        $otherProjectType = ProjectType::factory()->create();
+
+        // Parent tag belongs to OTHER project type
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($otherProjectType);
+
+        // Subtag (child of parent that doesn't belong to our project type)
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('name', 'Test Project')
+            ->set('slug', 'test-project')
+            ->set('summary', 'A test summary')
+            ->set('description', 'A test description')
+            ->set('selectedTags', [$subTag->id])
+            ->call('save')
+            ->assertHasErrors(['selectedTags']); // Should fail because parent doesn't belong to project type
+    }
+
+    #[Test]
+    public function test_invalid_subtag_with_wrong_parent()
+    {
+        $correctParentTag = ProjectTag::factory()->create();
+        $correctParentTag->projectTypes()->attach($this->projectType);
+
+        $wrongParentTag = ProjectTag::factory()->create(); // Not associated with project type
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $wrongParentTag->id]);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('name', 'Test Project')
+            ->set('slug', 'test-project')
+            ->set('summary', 'A test summary')
+            ->set('description', 'A test description')
+            ->set('selectedTags', [$subTag->id])
+            ->call('save')
+            ->assertHasErrors(['selectedTags']);
+    }
+
+    #[Test]
+    public function test_update_project_replacing_tags_with_subtags()
+    {
+        $oldTag = ProjectTag::factory()->create();
+        $oldTag->projectTypes()->attach($this->projectType);
+
+        $project = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+        $project->tags()->attach($oldTag);
+
+        $parentTag = ProjectTag::factory()->create();
+        $parentTag->projectTypes()->attach($this->projectType);
+
+        $subTag = ProjectTag::factory()->create(['parent_id' => $parentTag->id]);
+        $subTag->projectTypes()->attach($this->projectType);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType, 'project' => $project])
+            ->set('name', 'Test Project')
+            ->set('slug', 'test-project')
+            ->set('summary', 'A test summary')
+            ->set('description', 'A test description')
+            ->set('selectedTags', [$subTag->id]) // Replace old tag with subtag
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $project->refresh();
+
+        // Should have subtag and its parent, but not the old tag
+        $this->assertCount(2, $project->tags);
+        $this->assertTrue($project->tags->contains('id', $subTag->id));
+        $this->assertTrue($project->tags->contains('id', $parentTag->id));
+        $this->assertFalse($project->tags->contains('id', $oldTag->id));
+    }
+
+
+    #[Test]
     public function test_logo_upload()
     {
         $tag = ProjectTag::factory()->create();

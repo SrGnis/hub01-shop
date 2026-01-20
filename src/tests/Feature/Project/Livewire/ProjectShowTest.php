@@ -121,16 +121,17 @@ class ProjectShowTest extends TestCase
             ->assertSet('activeTab', 'versions');
     }
 
-    #[Test]
-    public function test_invalid_active_tab_defaults_to_description()
-    {
-        $user = User::factory()->create();
-        $project = Project::factory()->owner($user)->create();
+    // Removed functionality
+    // #[Test]
+    // public function test_invalid_active_tab_defaults_to_description()
+    // {
+    //     $user = User::factory()->create();
+    //     $project = Project::factory()->owner($user)->create();
 
-        Livewire::actingAs($user)
-            ->test(ProjectShow::class, ['project' => $project->slug, 'activeTab' => 'invalid'])
-            ->assertSet('activeTab', 'description');
-    }
+    //     Livewire::actingAs($user)
+    //         ->test(ProjectShow::class, ['project' => $project->slug, 'activeTab' => 'invalid'])
+    //         ->assertSet('activeTab', 'description');
+    // }
 
     #[Test]
     public function test_versions_are_paginated()

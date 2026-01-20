@@ -378,8 +378,6 @@ class ProjectVersionForm extends Component
         $this->addDependencyValidationRules($rules);
         $this->addFileValidationRules($rules);
 
-        //dd($rules);
-
         return $rules;
 
     }
