@@ -125,6 +125,7 @@ entity "project_tag" PROJECT_COLOR {
 ---
 *name : varchar(255)
 *icon : varchar(255)
+parent_id : bigint <<FK>>
 project_tag_group_id : bigint <<FK>>
 timestamps : timestamps
 }
@@ -155,6 +156,7 @@ entity "project_version_tag" VERSION_COLOR {
   ---
   *name : varchar(255)
   *icon : varchar(255)
+  parent_id : bigint <<FK>>
   project_version_tag_group_id : bigint <<FK>>
   timestamps : timestamps
 }
@@ -264,6 +266,8 @@ project |o--o{ project_version_dependency : "dependency project"
 
 project_tag_group ||--o{ project_tag
 project_version_tag_group ||--o{ project_version_tag
+project_tag ||--o{ project_tag : "sub tags"
+project_version_tag ||--o{ project_version_tag : "sub tags"
 
 project_type ||--o| project_type_quota
 project_type }o--o{ project_tag_group : "allowed tag groups"
