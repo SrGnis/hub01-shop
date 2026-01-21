@@ -123,6 +123,4 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'disable_otel' => env('OTEL_SDK_DISABLED', true),
-
 ];
