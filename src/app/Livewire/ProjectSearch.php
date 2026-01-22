@@ -32,6 +32,15 @@ class ProjectSearch extends Component
     public string $orderDirection = 'desc';
     #[Session]
     public int $resultsPerPage = 10;
+
+    // Date range filter properties
+    #[Session]
+    public string $releaseDatePeriod = 'all';
+    #[Session]
+    public ?string $releaseDateStart = null;
+    #[Session]
+    public ?string $releaseDateEnd = null;
+
     private ProjectService $projectService;
 
     public function boot(ProjectService $projectService)
@@ -59,7 +68,10 @@ class ProjectSearch extends Component
             selectedVersionTags: $this->selectedVersionTags,
             orderBy: $this->orderBy,
             orderDirection: $this->orderDirection,
-            resultsPerPage: $this->resultsPerPage
+            resultsPerPage: $this->resultsPerPage,
+            releaseDatePeriod: $this->releaseDatePeriod,
+            releaseDateStart: $this->releaseDateStart,
+            releaseDateEnd: $this->releaseDateEnd
         );
     }
 
@@ -124,13 +136,29 @@ class ProjectSearch extends Component
         $this->resetPage();
     }
 
+    public function updatedReleaseDatePeriod()
+    {
+        $this->resetPage();
+    }
 
+    public function updatedReleaseDateStart()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedReleaseDateEnd()
+    {
+        $this->resetPage();
+    }
 
     public function clearFilters()
     {
+        $this->search = '';
         $this->selectedTags = [];
         $this->selectedVersionTags = [];
-        $this->search = '';
+        $this->releaseDatePeriod = 'all';
+        $this->releaseDateStart = null;
+        $this->releaseDateEnd = null;
         $this->resetPage();
     }
 }
