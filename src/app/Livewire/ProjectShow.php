@@ -32,6 +32,11 @@ class ProjectShow extends Component
 
     public array $selectedVersionTags = [];
 
+    // Date range filter properties
+    public string $releaseDatePeriod = 'all';
+    public ?string $releaseDateStart = null;
+    public ?string $releaseDateEnd = null;
+
     protected ProjectService $projectService;
 
     public function boot(ProjectService $projectService)
@@ -68,6 +73,18 @@ class ProjectShow extends Component
         $this->resetPage('versionsPage');
     }
 
+    public function updatedReleaseDatePeriod(){
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedReleaseDateStart(){
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedReleaseDateEnd(){
+        $this->resetPage('versionsPage');
+    }
+
     #[Computed]
     public function project()
     {
@@ -85,10 +102,37 @@ class ProjectShow extends Component
                 'project.projectType',
                 'project.owner'
             ])
-            ->when(!empty($this->selectedVersionTags), function (Builder $query) {
-                $query->whereHas('tags', function (Builder $q) {
-                    $q->whereIn('project_version_tag.id', $this->selectedVersionTags);
-                }, '>=', count($this->selectedVersionTags));
+            ->when(!empty($this->selectedVersionTags) || $this->releaseDatePeriod !== 'all', function (Builder $query) {
+                // Filter by version tags
+                if (!empty($this->selectedVersionTags)) {
+                    $query->whereHas('tags', function (Builder $q) {
+                        $q->whereIn('project_version_tag.id', $this->selectedVersionTags);
+                    }, '>=', count($this->selectedVersionTags));
+                }
+
+                // Filter by release date
+                if ($this->releaseDatePeriod !== 'all') {
+                    $startDate = match ($this->releaseDatePeriod) {
+                        'last_30_days' => now()->subDays(30),
+                        'last_90_days' => now()->subDays(90),
+                        'last_year' => now()->subYear(),
+                        'custom' => $this->releaseDateStart ? \Carbon\Carbon::parse($this->releaseDateStart)->startOfDay() : null,
+                        default => null,
+                    };
+
+                    $endDate = match ($this->releaseDatePeriod) {
+                        'custom' => $this->releaseDateEnd ? \Carbon\Carbon::parse($this->releaseDateEnd)->endOfDay() : null,
+                        default => null,
+                    };
+
+                    if ($startDate) {
+                        $query->where('release_date', '>=', $startDate);
+                    }
+
+                    if ($endDate) {
+                        $query->where('release_date', '<=', $endDate);
+                    }
+                }
             })
             ->orderBy($this->sortBy['column'], $this->sortBy['direction'])
             ->paginate($this->versionsPerPage, ['*'], 'versionsPage');

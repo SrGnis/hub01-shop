@@ -147,6 +147,9 @@ class ProjectFactory extends Factory
                 $query->where('project_type_id', $modType->id);
             })->inRandomOrder()->take(rand(1, 3))->get();
             $project->tags()->attach($tags);
+            // Assign a some random subtags from the already assigned tags
+            $subTags = ProjectTag::whereIn('parent_id', $tags->pluck('id'))->inRandomOrder()->take(rand(0, 2))->get();
+            $project->tags()->attach($subTags);
         });
     }
 
@@ -167,6 +170,8 @@ class ProjectFactory extends Factory
                 $query->where('project_type_id', $tileSetType->id);
             })->inRandomOrder()->take(rand(1, 3))->get();
             $project->tags()->attach($tags);
+            $subTags = ProjectTag::whereIn('parent_id', $tags->pluck('id'))->inRandomOrder()->take(rand(0, 2))->get();
+            $project->tags()->attach($subTags);
         });
     }
 
@@ -187,6 +192,8 @@ class ProjectFactory extends Factory
                 $query->where('project_type_id', $soundPackType->id);
             })->inRandomOrder()->take(rand(1, 3))->get();
             $project->tags()->attach($tags);
+            $subTags = ProjectTag::whereIn('parent_id', $tags->pluck('id'))->inRandomOrder()->take(rand(0, 2))->get();
+            $project->tags()->attach($subTags);
         });
     }
 

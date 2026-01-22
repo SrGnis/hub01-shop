@@ -2,6 +2,7 @@
     <!-- HEADER -->
     <x-header title="{{ $projectType->pluralizedDisplayName() }}" separator progress-indicator>
         <x-slot:actions>
+            <x-button label="Clear Filters" wire:click="clearFilters" responsive icon="x" class="invisible lg:visible"/>
             <x-input placeholder="Search {{ $projectType->pluralizedDisplayName() }}..."
                 wire:model.live.debounce.500ms="search" clearable icon="search" class="w-full max-w-md" />
             <x-button label="Filters" @click="showMobileFilters = true" responsive icon="list-filter"
@@ -13,8 +14,16 @@
         <!-- DESKTOP FILTERS SIDEBAR -->
         <div class="hidden lg:block lg:col-span-3">
             <x-card title="Filters" separator>
-                <x-tag-filters :tag-groups="$this->tagGroups" :version-tag-groups="$this->versionTagGroups" selected-tags-model="selectedTags"
-                    selected-version-tags-model="selectedVersionTags" />
+                <x-project-filters
+                    :tag-groups="$this->tagGroups"
+                    :version-tag-groups="$this->versionTagGroups"
+                    selected-tags-model="selectedTags"
+                    selected-version-tags-model="selectedVersionTags"
+                    release-date-period-model="releaseDatePeriod"
+                    :release-date-period="$releaseDatePeriod"
+                    release-date-start-model="releaseDateStart"
+                    release-date-end-model="releaseDateEnd"
+                />
             </x-card>
         </div>
 
@@ -79,8 +88,16 @@
             </div>
 
             <!-- Project & Version Tags -->
-            <x-tag-filters :tag-groups="$this->tagGroups" :version-tag-groups="$this->versionTagGroups" selected-tags-model="selectedTags"
-                selected-version-tags-model="selectedVersionTags" />
+            <x-project-filters
+                :tag-groups="$this->tagGroups"
+                :version-tag-groups="$this->versionTagGroups"
+                selected-tags-model="selectedTags"
+                selected-version-tags-model="selectedVersionTags"
+                release-date-period-model="releaseDatePeriod"
+                :release-date-period="$releaseDatePeriod"
+                release-date-start-model="releaseDateStart"
+                release-date-end-model="releaseDateEnd"
+            />
         </div>
 
         <x-slot:actions>

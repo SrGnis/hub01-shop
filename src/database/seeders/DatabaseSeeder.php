@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
         $tagGroupIds = $this->createTagGroups();
         $this->createTags($tagGroupIds, $projectTypes);
 
+        // Create project version tag groups and tags
+        $this->call(ProjectVersionTagSeeder::class);
+
         // Create projects with fewer records for faster seeding
         $this->createProjects();
 
@@ -37,11 +40,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MembershipSeeder::class,
             ProjectVersionDependencySeeder::class,
-            ProjectVersionTagSeeder::class,
         ]);
-
-        // Assign random version tags to project versions
-        $this->assignRandomTagsToProjectVersions();
 
         DB::commit();
     }
@@ -227,6 +226,95 @@ class DatabaseSeeder extends Seeder
         if (! empty($tagGroupProjectTypeRelations)) {
             DB::table('project_tag_group_project_type')->insert($tagGroupProjectTypeRelations);
         }
+
+        // Create subtags (no tag group or project type needed)
+        $this->createSubTags($insertedTags);
+    }
+
+    /**
+     * Create subtags for existing tags
+     */
+    private function createSubTags(Collection $insertedTags): void
+    {
+        $subTagsData = [
+            // Equipment subtags
+            'Equipment' => [
+                ['name' => 'Weapons', 'icon' => 'lucide-sword'],
+                ['name' => 'Armor', 'icon' => 'lucide-shield'],
+                ['name' => 'Accessories', 'icon' => 'lucide-gem'],
+                ['name' => 'Tools', 'icon' => 'lucide-hammer'],
+            ],
+            // Creatures subtags
+            'Creatures' => [
+                ['name' => 'Hostile', 'icon' => 'lucide-skull'],
+                ['name' => 'Friendly', 'icon' => 'lucide-heart'],
+                ['name' => 'Neutral', 'icon' => 'lucide-meh'],
+            ],
+            // Magic subtags
+            'Magic' => [
+                ['name' => 'Spells', 'icon' => 'lucide-sparkles'],
+                ['name' => 'Enchantments', 'icon' => 'lucide-star'],
+                ['name' => 'Potions', 'icon' => 'lucide-flask-conical'],
+            ],
+            // Pixel Art subtags
+            'Pixel Art' => [
+                ['name' => 'Top-down', 'icon' => 'lucide-view'],
+                ['name' => 'Isometric', 'icon' => 'lucide-box'],
+                ['name' => 'Animated', 'icon' => 'lucide-move'],
+            ],
+            // Realistic subtags
+            'Realistic' => [
+                ['name' => 'Photorealistic', 'icon' => 'lucide-camera'],
+                ['name' => 'Hand-painted', 'icon' => 'lucide-palette'],
+            ],
+            // Ambient subtags
+            'Ambient' => [
+                ['name' => 'Environment', 'icon' => 'lucide-tree-pine'],
+                ['name' => 'Weather', 'icon' => 'lucide-cloud-rain'],
+                ['name' => 'Interior', 'icon' => 'lucide-home'],
+            ],
+            // Music subtags
+            'Music' => [
+                ['name' => 'OST', 'icon' => 'lucide-music-2'],
+                ['name' => 'Battle Themes', 'icon' => 'lucide-zap'],
+                ['name' => 'Exploration', 'icon' => 'lucide-compass'],
+            ],
+            // Sci-Fi subtags
+            'Sci-Fi' => [
+                ['name' => 'Space', 'icon' => 'lucide-rocket'],
+                ['name' => 'Cyberpunk', 'icon' => 'lucide-cpu'],
+                ['name' => 'Post-Apocalyptic', 'icon' => 'lucide-radiation'],
+            ],
+            // Fantasy subtags
+            'Fantasy' => [
+                ['name' => 'Medieval', 'icon' => 'lucide-castle'],
+                ['name' => 'Mythology', 'icon' => 'lucide-dragon'],
+                ['name' => 'Horror', 'icon' => 'lucide-ghost'],
+            ],
+        ];
+
+        $now = now();
+        $subTagsToInsert = [];
+
+        foreach ($subTagsData as $parentName => $subTags) {
+            $parentTag = $insertedTags->where('name', $parentName)->first();
+
+            if ($parentTag) {
+                foreach ($subTags as $subTagData) {
+                    $subTagsToInsert[] = [
+                        'name' => $subTagData['name'],
+                        'icon' => $subTagData['icon'],
+                        'parent_id' => $parentTag->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+            }
+        }
+
+        if (! empty($subTagsToInsert)) {
+            DB::table('project_tag')->insert($subTagsToInsert);
+        }
     }
 
     /**
@@ -270,66 +358,5 @@ class DatabaseSeeder extends Seeder
                 'versions'
             )
             ->create();
-    }
-
-    /**
-     * Assign random version tags to project versions based on their project type
-     */
-    private function assignRandomTagsToProjectVersions(): void
-    {
-        // Process project versions in chunks to avoid memory issues
-        ProjectVersion::with('project.projectType')->chunkById(50, function ($projectVersions) {
-            $tagAssignments = [];
-            $now = now();
-
-            // Get all project types in this chunk
-            $projectTypeIds = $projectVersions->pluck('project.project_type_id')->unique()->toArray();
-
-            // Get tags for these project types
-            $tagsByProjectType = [];
-            foreach ($projectTypeIds as $projectTypeId) {
-                $tagsByProjectType[$projectTypeId] = ProjectVersionTag::whereHas('projectTypes', function ($query) use ($projectTypeId) {
-                    $query->where('project_type_id', $projectTypeId);
-                })->pluck('id')->toArray();
-            }
-
-            foreach ($projectVersions as $version) {
-                $projectTypeId = $version->project->project_type_id;
-
-                // Skip if no tags for this project type
-                if (empty($tagsByProjectType[$projectTypeId])) {
-                    continue;
-                }
-
-                // Select 1-2 random tags
-                $tagCount = min(rand(1, 2), count($tagsByProjectType[$projectTypeId]));
-                $randomTagKeys = array_rand($tagsByProjectType[$projectTypeId], $tagCount);
-
-                // Convert to array if only one tag selected
-                if (! is_array($randomTagKeys)) {
-                    $randomTagKeys = [$randomTagKeys];
-                }
-
-                foreach ($randomTagKeys as $key) {
-                    $tagId = $tagsByProjectType[$projectTypeId][$key];
-                    $tagAssignments[] = [
-                        'project_version_id' => $version->id,
-                        'tag_id' => $tagId,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-                }
-            }
-
-            // Bulk insert all tag assignments
-            if (! empty($tagAssignments)) {
-                DB::table('project_version_project_version_tag')->insert($tagAssignments);
-            }
-
-            // Clear caches in bulk
-            foreach ($projectVersions as $version) {
-                $version->clearTagsCache();
-            }
-        });
     }
 }

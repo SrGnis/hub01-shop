@@ -18,7 +18,14 @@
                     responsive />
 
                 <x-mary-modal x-show="showVersionFilterModal" title="Filter Versions" class="backdrop-blur-sm">
-                    <x-tag-filters :version-tag-groups="$versionTagGroups" selected-version-tags-model="selectedVersionTags" />
+                    <x-project-filters
+                        :version-tag-groups="$versionTagGroups"
+                        selected-version-tags-model="selectedVersionTags"
+                        release-date-period-model="releaseDatePeriod"
+                        :release-date-period="$releaseDatePeriod"
+                        release-date-start-model="releaseDateStart"
+                        release-date-end-model="releaseDateEnd"
+                    />
                     <x-slot:actions>
                         <x-button label="Close" @click="showVersionFilterModal = false" />
                     </x-slot:actions>

@@ -47,7 +47,10 @@ class ProjectService
         array $selectedVersionTags = [],
         string $orderBy = 'downloads',
         string $orderDirection = 'desc',
-        int $resultsPerPage = 10
+        int $resultsPerPage = 10,
+        string $releaseDatePeriod = 'all',
+        ?string $releaseDateStart = null,
+        ?string $releaseDateEnd = null
     ): LengthAwarePaginator {
         /** @disregard P1006, P1005 */
         $projects = Project::globalSearchScope()
@@ -61,11 +64,41 @@ class ProjectService
             }, '>=', count($selectedTags));
         }
 
-        // Filter by version tags, ensuring all selected tags are present
-        if (count($selectedVersionTags)) {
-            $projects->whereHas('versions.tags', function ($query) use ($selectedVersionTags) {
-                $query->whereIn('tag_id', $selectedVersionTags);
-            }, '>=', count($selectedVersionTags));
+        // Filter by version tags and/or release date
+        // These filters must apply to the same version
+        if (count($selectedVersionTags) || $releaseDatePeriod !== 'all') {
+            $projects->whereHas('versions', function ($versionQuery) use ($selectedVersionTags, $releaseDatePeriod, $releaseDateStart, $releaseDateEnd) {
+                // Filter by version tags
+                if (count($selectedVersionTags)) {
+                    $versionQuery->whereHas('tags', function ($tagQuery) use ($selectedVersionTags) {
+                        $tagQuery->whereIn('tag_id', $selectedVersionTags);
+                    }, '>=', count($selectedVersionTags));
+                }
+
+                // Filter by release date
+                if ($releaseDatePeriod !== 'all') {
+                    $startDate = match ($releaseDatePeriod) {
+                        'last_30_days' => now()->subDays(30),
+                        'last_90_days' => now()->subDays(90),
+                        'last_year' => now()->subYear(),
+                        'custom' => $releaseDateStart ? \Carbon\Carbon::parse($releaseDateStart)->startOfDay() : null,
+                        default => null,
+                    };
+
+                    $endDate = match ($releaseDatePeriod) {
+                        'custom' => $releaseDateEnd ? \Carbon\Carbon::parse($releaseDateEnd)->endOfDay() : null,
+                        default => null,
+                    };
+
+                    if ($startDate) {
+                        $versionQuery->where('release_date', '>=', $startDate);
+                    }
+
+                    if ($endDate) {
+                        $versionQuery->where('release_date', '<=', $endDate);
+                    }
+                }
+            });
         }
 
         // Apply ordering based on selected option

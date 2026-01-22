@@ -72,7 +72,13 @@
                     <x-project-show-description :project="$project" />
                 </x-tab>
                 <x-tab name="versions" label="Versions">
-                    <x-project-show-versions :project="$project" :versions="$versions" :sort-by="$sortBy" :version-tag-groups="$this->versionTagGroups" />
+                    <x-project-show-versions
+                        :project="$project"
+                        :versions="$versions"
+                        :sort-by="$sortBy"
+                        :version-tag-groups="$this->versionTagGroups"
+                        :release-date-period="$this->releaseDatePeriod"
+                    />
                 </x-tab>
                 <x-tab name="changelog" label="Changelog">
                     <x-project-show-changelog :versions="$changelogVersions" />
