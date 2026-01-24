@@ -113,9 +113,9 @@ class ProjectShow extends Component
                 // Filter by release date
                 if ($this->releaseDatePeriod !== 'all') {
                     $startDate = match ($this->releaseDatePeriod) {
-                        'last_30_days' => now()->subDays(30),
-                        'last_90_days' => now()->subDays(90),
-                        'last_year' => now()->subYear(),
+                        'last_30_days' => now()->subDays(30)->startOfDay(),
+                        'last_90_days' => now()->subDays(90)->startOfDay(),
+                        'last_year' => now()->subYear()->startOfDay(),
                         'custom' => $this->releaseDateStart ? \Carbon\Carbon::parse($this->releaseDateStart)->startOfDay() : null,
                         default => null,
                     };
