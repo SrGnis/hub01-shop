@@ -572,7 +572,7 @@ class ProjectVersionServiceTest extends TestCase
             'project_id' => $this->project->id,
         ]);
 
-        $version->tags()->attach([$tag1->id, $tag2->id]);
+        $version->tags()->sync([$tag1->id, $tag2->id]);
 
         $file = UploadedFile::fake()->create('test.zip', 1024);
 
