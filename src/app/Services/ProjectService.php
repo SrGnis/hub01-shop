@@ -78,9 +78,9 @@ class ProjectService
                 // Filter by release date
                 if ($releaseDatePeriod !== 'all') {
                     $startDate = match ($releaseDatePeriod) {
-                        'last_30_days' => now()->subDays(30),
-                        'last_90_days' => now()->subDays(90),
-                        'last_year' => now()->subYear(),
+                        'last_30_days' => now()->subDays(30)->startOfDay(),
+                        'last_90_days' => now()->subDays(90)->startOfDay(),
+                        'last_year' => now()->subYear()->startOfDay(),
                         'custom' => $releaseDateStart ? \Carbon\Carbon::parse($releaseDateStart)->startOfDay() : null,
                         default => null,
                     };
