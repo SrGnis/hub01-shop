@@ -38,6 +38,9 @@ class ProjectVersionTagSeeder extends Seeder
                 'project_version_tag_group_id' => $compatibilityGroup->id,
             ]);
             $tag->projectTypes()->attach($projectTypes->pluck('id'));
+
+            // Create game version subtags for this game
+            $this->createGameVersionSubtags($tag);
         }
 
         // Create Resolution tag group
@@ -65,5 +68,33 @@ class ProjectVersionTagSeeder extends Seeder
             $tag->projectTypes()->attach(ProjectType::where('value', 'tile_set')->first()->id);
         }
 
+    }
+
+    /**
+     * Create game version subtags for a parent tag
+     */
+    private function createGameVersionSubtags(ProjectVersionTag $parentTag): void
+    {
+        $gameVersions = [
+            ['name' => '0.G', 'icon' => 'lucide-tag'],
+            ['name' => '1.0', 'icon' => 'lucide-tag'],
+            ['name' => '2.0', 'icon' => 'lucide-tag'],
+            ['name' => '3.0', 'icon' => 'lucide-tag'],
+            ['name' => '4.0', 'icon' => 'lucide-tag'],
+            ['name' => '5.0', 'icon' => 'lucide-tag'],
+            ['name' => '6.0', 'icon' => 'lucide-tag'],
+            ['name' => '7.0', 'icon' => 'lucide-tag'],
+            ['name' => '8.0', 'icon' => 'lucide-tag'],
+            ['name' => '9.0', 'icon' => 'lucide-tag'],
+            ['name' => '10.0', 'icon' => 'lucide-tag'],
+        ];
+
+        foreach ($gameVersions as $versionData) {
+            ProjectVersionTag::create([
+                'name' => $versionData['name'],
+                'icon' => $versionData['icon'],
+                'parent_id' => $parentTag->id,
+            ]);
+        }
     }
 }

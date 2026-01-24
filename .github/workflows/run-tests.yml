@@ -3,6 +3,12 @@ name: Run Tests
 on:
   pull_request:
     branches: [ "main", "dev" ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/**'
+      - 'docker/**'
+      - '.dockerignore'
+      - '.env*'
   # Allow manual triggering
   workflow_dispatch:
 

@@ -88,3 +88,12 @@ table.with-dropdown {
 table.with-dropdown details.dropdown {
     @apply !static
 }
+
+/**
+* Version subtags container border
+* If version-tag has .version-subtag as child, add border to the container
+*/
+.version-tag:has(.version-subtags) {
+    @apply border border-primary/30 rounded-md p-1
+}
+

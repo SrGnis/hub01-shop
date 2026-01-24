@@ -47,24 +47,57 @@ class ProjectService
         array $selectedVersionTags = [],
         string $orderBy = 'downloads',
         string $orderDirection = 'desc',
-        int $resultsPerPage = 10
+        int $resultsPerPage = 10,
+        string $releaseDatePeriod = 'all',
+        ?string $releaseDateStart = null,
+        ?string $releaseDateEnd = null
     ): LengthAwarePaginator {
         /** @disregard P1006, P1005 */
         $projects = Project::globalSearchScope()
             ->where('name', 'like', '%' . $search . '%')
             ->where('project_type_id', $projectType->id);
 
-        // Filter by project tags
+        // Filter by project tags, ensuring all selected tags are present
         if (count($selectedTags)) {
             $projects->whereHas('tags', function ($query) use ($selectedTags) {
                 $query->whereIn('tag_id', $selectedTags);
             }, '>=', count($selectedTags));
         }
 
-        // Filter by version tags
-        if (count($selectedVersionTags)) {
-            $projects->whereHas('versions.tags', function ($query) use ($selectedVersionTags) {
-                $query->whereIn('tag_id', $selectedVersionTags);
+        // Filter by version tags and/or release date
+        // These filters must apply to the same version
+        if (count($selectedVersionTags) || $releaseDatePeriod !== 'all') {
+            $projects->whereHas('versions', function ($versionQuery) use ($selectedVersionTags, $releaseDatePeriod, $releaseDateStart, $releaseDateEnd) {
+                // Filter by version tags
+                if (count($selectedVersionTags)) {
+                    $versionQuery->whereHas('tags', function ($tagQuery) use ($selectedVersionTags) {
+                        $tagQuery->whereIn('tag_id', $selectedVersionTags);
+                    }, '>=', count($selectedVersionTags));
+                }
+
+                // Filter by release date
+                if ($releaseDatePeriod !== 'all') {
+                    $startDate = match ($releaseDatePeriod) {
+                        'last_30_days' => now()->subDays(30)->startOfDay(),
+                        'last_90_days' => now()->subDays(90)->startOfDay(),
+                        'last_year' => now()->subYear()->startOfDay(),
+                        'custom' => $releaseDateStart ? \Carbon\Carbon::parse($releaseDateStart)->startOfDay() : null,
+                        default => null,
+                    };
+
+                    $endDate = match ($releaseDatePeriod) {
+                        'custom' => $releaseDateEnd ? \Carbon\Carbon::parse($releaseDateEnd)->endOfDay() : null,
+                        default => null,
+                    };
+
+                    if ($startDate) {
+                        $versionQuery->where('release_date', '>=', $startDate);
+                    }
+
+                    if ($endDate) {
+                        $versionQuery->where('release_date', '<=', $endDate);
+                    }
+                }
             });
         }
 
@@ -189,7 +222,8 @@ class ProjectService
     }
 
     /**
-     * Get tag groups for a project type
+     * Get tag groups for a project type. It will also load the main tags for each group and their sub-tags.
+     *
      */
     public function getTagGroupsForProjectType(ProjectType $projectType): Collection
     {
@@ -198,8 +232,32 @@ class ProjectService
         })->with(['tags' => function ($query) use ($projectType) {
             $query->whereHas('projectTypes', function ($subQuery) use ($projectType) {
                 $subQuery->where('project_type_id', $projectType->id);
-            });
+            })
+            ->whereNull('parent_id')
+            ->with('children');
         }])->get();
+    }
+
+    /**
+     * Resolve parent tags for a list of tag IDs.
+     * When a sub-tag is selected, automatically include its main tag.
+     *
+     * @param array $tagIds The selected tag IDs
+     * @return array The resolved tag IDs including parent tags
+     */
+    public function resolveParentTags(array $tagIds): array
+    {
+        if (empty($tagIds)) {
+            return [];
+        }
+
+        // Get all selected tags with their parent IDs
+        $tags = ProjectTag::whereIn('id', $tagIds)->pluck('parent_id', 'id')->toArray();
+
+        // Add all parent IDs to the list
+        $resolvedIds = array_unique(array_filter($tagIds + array_filter($tags)));
+
+        return $resolvedIds;
     }
 
     /**
@@ -237,7 +295,10 @@ class ProjectService
             }
 
             $project->update(array_merge($data, ['logo_path' => $logoPath]));
-            $project->tags()->sync($data['selectedTags'] ?? []);
+
+            // Resolve parent tags for sub-tags
+            $resolvedTags = $this->resolveParentTags($data['selectedTags'] ?? []);
+            $project->tags()->sync($resolvedTags);
 
             Log::info('Project updated', [
                 'project_id' => $project->id,
@@ -279,7 +340,10 @@ class ProjectService
         }
 
         $project = Project::create($projectData);
-        $project->tags()->attach($data['selectedTags'] ?? []);
+
+        // Resolve parent tags for sub-tags
+        $resolvedTags = $this->resolveParentTags($data['selectedTags'] ?? []);
+        $project->tags()->attach($resolvedTags);
 
         Log::info('Project created', [
             'project_id' => $project->id,

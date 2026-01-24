@@ -21,12 +21,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register services for dependency injection
 
-        if (! config('app.disable_otel')) {
-            App::register(
-                \Keepsuit\LaravelOpenTelemetry\LaravelOpenTelemetryServiceProvider::class
-            );
-        }
-
         $this->app->singleton(UserService::class);
         $this->app->singleton(ProjectService::class);
         $this->app->singleton(ProjectVersionService::class);

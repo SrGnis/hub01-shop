@@ -378,14 +378,15 @@ class ProjectVersionForm extends Component
         $this->addDependencyValidationRules($rules);
         $this->addFileValidationRules($rules);
 
-        //dd($rules);
-
         return $rules;
 
     }
 
     /**
      * Validate that all selected tags belong to tag groups valid for the current project type.
+     *
+     * Main Tags need to be valid for the project type.
+     * Sub Tags only need that their parent tag is valid for the project type.
      */
     private function validateTagsForProjectType(array $selectedTagIds, callable $fail): void
     {
@@ -393,13 +394,38 @@ class ProjectVersionForm extends Component
             return;
         }
 
-        $invalidTags = \App\Models\ProjectVersionTag::whereIn('id', $selectedTagIds)
-            ->whereDoesntHave('projectTypes', fn ($query) => $query->where('project_type_id', $this->project->projectType->id))
-            ->pluck('name')
-            ->toArray();
+        // Get all selected tags with their parent relationships
+        $selectedTags = \App\Models\ProjectVersionTag::with('parent')->whereIn('id', $selectedTagIds)->get();
 
-        if (!empty($invalidTags)) {
-            $tagNames = implode(', ', $invalidTags);
+        $invalidMainTags = [];
+        $invalidSubTags = [];
+
+        foreach ($selectedTags as $tag) {
+            if ($tag->isSubTag()) {
+                // Sub tags: check if parent is valid for project type
+                $parentValid = $tag->parent->projectTypes()
+                    ->where('project_type_id', $this->project->projectType->id)
+                    ->exists();
+
+                if (!$parentValid) {
+                    $invalidSubTags[] = $tag->name;
+                }
+            } else {
+                // Main tags: check if they are valid for project type
+                $tagValid = $tag->projectTypes()
+                    ->where('project_type_id', $this->project->projectType->id)
+                    ->exists();
+
+                if (!$tagValid) {
+                    $invalidMainTags[] = $tag->name;
+                }
+            }
+        }
+
+        $allInvalidTags = array_merge($invalidMainTags, $invalidSubTags);
+
+        if (!empty($allInvalidTags)) {
+            $tagNames = implode(', ', $allInvalidTags);
             $fail("The following tags are not allowed for this project type: {$tagNames}.");
         }
     }
@@ -588,12 +614,6 @@ class ProjectVersionForm extends Component
 
     // dummy method for attaching the loading state
     public function refreshMarkdown(): void {}
-
-    #[Computed]
-    public function availableTags()
-    {
-        return $this->projectVersionService->getAvailableTags($this->project->projectType);
-    }
 
     #[Computed]
     public function availableTagGroups()

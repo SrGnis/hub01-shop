@@ -5,33 +5,29 @@
     <div class="mb-6 flex justify-between items-center flex-wrap gap-4">
         <x-button link="{{ route('project-search', ['projectType' => $project->projectType]) }}" icon="arrow-left"
             label="Back to Projects" class="btn-ghost" no-wire-navigate />
-            <div class="flex flex-col lg:flex-row gap-2">
-                @auth
-                    @can('uploadVersion', $project)
-                        <x-button
-                            link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $this->project]) }}"
-                            icon="upload" label="Upload Version" class="btn-success" no-wire-navigate />
-                    @endcan
+        <div class="flex flex-col lg:flex-row gap-2">
+            @auth
+                @can('uploadVersion', $project)
+                    <x-button
+                        link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $this->project]) }}"
+                        icon="upload" label="Upload Version" class="btn-success" no-wire-navigate />
+                @endcan
 
-                    @can('update', $project)
-                        <x-button
-                            link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                            icon="pencil" label="Edit Project" class="btn-primary" no-wire-navigate />
-                    @endcan
-                @endauth
-                <x-dropdown right>
-                    <x-slot:trigger>
-                        <x-button icon="ellipsis" class="btn-ghost" />
-                    </x-slot:trigger>
+                @can('update', $project)
+                    <x-button
+                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        icon="pencil" label="Edit Project" class="btn-primary" no-wire-navigate />
+                @endcan
+            @endauth
+            <x-dropdown right>
+                <x-slot:trigger>
+                    <x-button icon="ellipsis" class="btn-ghost" />
+                </x-slot:trigger>
 
-                    <x-menu-item
-                        title="Report"
-                        class="text-error"
-                        icon="flag"
-                        @click="$dispatch('open-report-modal', { itemId: {{ $project->id }}, itemType: 'App\\\\Models\\\\Project', itemName: '{{ addslashes($project->name) }}' })"
-                    />
-                </x-dropdown>
-            </div>
+                <x-menu-item title="Report" class="text-error" icon="flag"
+                    @click="$dispatch('open-report-modal', { itemId: {{ $project->id }}, itemType: 'App\\\\Models\\\\Project', itemName: '{{ addslashes($project->name) }}' })" />
+            </x-dropdown>
+        </div>
     </div>
 
     {{-- Pending Approval Notice --}}
@@ -76,7 +72,13 @@
                     <x-project-show-description :project="$project" />
                 </x-tab>
                 <x-tab name="versions" label="Versions">
-                    <x-project-show-versions :project="$project" :versions="$versions" :sort-by="$sortBy" />
+                    <x-project-show-versions
+                        :project="$project"
+                        :versions="$versions"
+                        :sort-by="$sortBy"
+                        :version-tag-groups="$this->versionTagGroups"
+                        :release-date-period="$this->releaseDatePeriod"
+                    />
                 </x-tab>
                 <x-tab name="changelog" label="Changelog">
                     <x-project-show-changelog :versions="$changelogVersions" />

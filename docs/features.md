@@ -1,91 +1,112 @@
--   Authentication
+- Authentication
+    - Registration
+    - Login
+    - Password Reset
+    - Email Verification
 
-    -   Registration
-    -   Login
-    -   Password Reset
-    -   Email Verification
+- Users
+    - Profile
+        - Projects
+        - Bio
+        - Avatar
+    - Email Change
+    - Password Change
+    - Delete (Admin only)
+    - Disable (Admin only)
+        - No Profile Visibility
+        - Cannot login
 
--   Users
+- Tags
+    - Project Tags
+    - Version Tags
+    - Sub Tags
+    - List
+        - Filter
+        - Search
+        - Sorting
+    - Creation
+        - Associate to parent tag
+    - Tag Groups
+    - Allowed Project Types
+    - Tag Groups
+        - Allowed Project Types
 
-    -   Profile
-        -   Projects
-        -   Bio
-        -   Avatar
-    -   Email Change
-    -   Password Change
-    -   Delete (Admin only)
-    -   Disable (Admin only)
-        -   No Profile Visibility
-        -   Cannot login
+- Projects
+    - List
+        - Filter
+        - Search
+        - Sorting
+    - Creation
+        - Only verified users can create projects
+        - Unique Slug
+    - Review
+        - Acceptance
+        - Rejection
+        - No visibility until accepted
+    - Deletion
+    - Restore
+    - Disable
+        - No visibility
+        - Cannot download any versions
+    - Members
+        - Invite
+            - Accept Invite
+            - Decline Invite
+        - Remove
+        - Set Primary
+    - Tags
+        - Add
+            - Automatically add main tags on sub tag addition
+        - Remove
+            - Automatically remove sub tags on main tag removal
 
--   Projects
+- Project Version
+    - List
+        - Search
+        - Sorting
+    - Creation
+        - Unique version number (On project level)
+        - Dependencies
+            - Project
+            - Version
+            - External
+    - Deletion
+        - Broken dependencies
+    - Download
+        - Download count
+    - Files
+        - Upload
+        - Delete
+    - Tags
+        - Add
+            - Automatically add main tags on sub tag addition
+        - Remove
+            - Automatically remove sub tags on main tag removal
 
-    -   List
-        -   Filter
-        -   Search
-        -   Sorting
-    -   Creation
-        -   Only verified users can create projects
-        -   Unique Slug
-    -   Review
-        -   Acceptance
-        -   Rejection
-        -   No visibility until accepted
-    -   Deletion
-    -   Restore
-    -   Disable
-        -   No visibility
-        -   Cannot download any versions
-    -   Members
-        -   Invite
-            -   Accept Invite
-            -   Decline Invite
-        -   Remove
-        -   Set Primary
+- Abuse Reports
+    - Only from authenticated and verified users
+    - Project
+    - Project Version
+    - User
 
--   Project Version
+- Quotas
+    - 3 pending projects at a time
+    - 1GB of storage total for all projects
+    - 500MB per project
+    - 5 versions per project per day
+    - 100MB per version
+    - 5 files per version
+    - 100MB per file
+    - Custom limits
+        - Per project type
+        - Per project
+        - Per user
 
-    -   List
-        -   Search
-        -   Sorting
-    -   Creation
-        -   Unique version number (On project level)
-        -   Dependencies
-            -   Project
-            -   Version
-            -   External
-    -   Deletion
-        -   Broken dependencies
-    -   Download
-        -   Download count
-
--   Abuse Reports
-
-    -   Only from authenticated and verified users
-    -   Project
-    -   Project Version
-    -   User
-
--   Quotas
-
-    -   3 pending projects at a time
-    -   1GB of storage total for all projects
-    -   500MB per project
-    -   5 versions per project per day
-    -   100MB per version
-    -   5 files per version
-    -   100MB per file
-    -   Custom limits
-        -   Per project type
-        -   Per project
-        -   Per user
-
--   System
-
-    -   Automatic clean orphaned storage files
-        -   List all orphaned files
-        -   Delete all orphaned files
-    -   Automatic clean unverified users
-        -   List all unverified users
-        -   Send email notification before deletion using a configurable threshold of days
-        -   Delete all unverified users using a configurable threshold of days
+- System
+    - Automatic clean orphaned storage files
+        - List all orphaned files
+        - Delete all orphaned files
+    - Automatic clean unverified users
+        - List all unverified users
+        - Send email notification before deletion using a configurable threshold of days
+        - Delete all unverified users using a configurable threshold of days

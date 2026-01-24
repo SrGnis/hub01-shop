@@ -126,6 +126,14 @@ class Project extends Model
     }
 
     /**
+     * The main tags that belong to the Project (tags without a parent)
+     */
+    public function mainTags(): BelongsToMany
+    {
+        return $this->tags()->whereNull('parent_id');
+    }
+
+    /**
      * Get the memberships associated with the project
      */
     public function memberships(): HasMany
@@ -239,7 +247,7 @@ class Project extends Model
     }
 
     /**
-     * Scope query to include relations 
+     * Scope query to include relations
      */
     #[Scope]
     protected function withRelations(Builder $query): void

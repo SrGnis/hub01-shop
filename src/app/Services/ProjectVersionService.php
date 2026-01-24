@@ -26,11 +26,32 @@ class ProjectVersionService
     }
 
     /**
+     * Resolve parent tags for a list of tag IDs.
+     * When a sub-tag is selected, automatically include its main tag.
+     *
+     * @param array $tagIds The selected tag IDs
+     * @return array The resolved tag IDs including parent tags
+     */
+    public function resolveParentTags(array $tagIds): array
+    {
+        if (empty($tagIds)) {
+            return [];
+        }
+
+        // Get all selected tags with their parent IDs
+        $tags = ProjectVersionTag::whereIn('id', $tagIds)->pluck('parent_id', 'id')->toArray();
+
+        // Add all parent IDs to the list
+        $resolvedIds = array_unique(array_filter($tagIds + array_filter($tags)));
+
+        return $resolvedIds;
+    }
+
+    /**
      * Create or update a project version
      */
     public function saveVersion(Project $project, array $data, array $files, array $existingFiles, array $dependencies, array $tags, ?ProjectVersion $version = null): ProjectVersion
     {
-
         // Calculate total size of new files
         $newFilesSize = 0;
         foreach ($files as $file) {
@@ -58,7 +79,10 @@ class ProjectVersionService
             !$version // isNewVersion
         );
 
-        return DB::transaction(function () use ($project, $data, $files, $existingFiles, $dependencies, $tags, $version) {
+        // Resolve parent tags for sub-tags
+        $resolvedTags = $this->resolveParentTags($tags);
+
+        return DB::transaction(function () use ($project, $data, $files, $existingFiles, $dependencies, $resolvedTags, $version) {
             if ($version) {
                 $version->update($data);
                 $projectVersion = $version;
@@ -69,7 +93,7 @@ class ProjectVersionService
                 $projectVersion = $project->versions()->create($data);
             }
 
-            $this->saveTags($projectVersion, $tags, $version ? true : false);
+            $this->saveTags($projectVersion, $resolvedTags, $version ? true : false);
             $this->uploadNewFiles($projectVersion, $files, $version ? true : false, $existingFiles);
             $this->saveDependencies($projectVersion, $dependencies);
 
@@ -266,27 +290,26 @@ class ProjectVersionService
      */
     public function getAvailableTags(ProjectType $projectType)
     {
-        $cacheKey = 'project_version_tags_by_type_' . $projectType->value;
-
-        return Cache::remember($cacheKey, now()->addHours(24), function () use ($projectType) {
-            return ProjectVersionTag::whereHas('projectTypes', function ($query) use ($projectType) {
-                $query->where('project_type_id', $projectType->id);
-            })->with('tagGroup')->get();
-        });
+        return ProjectVersionTag::whereHas('projectTypes', function ($query) use ($projectType) {
+            $query->where('project_type_id', $projectType->id);
+        })->with('tagGroup')->get();
     }
 
     /**
-     * Get available tag groups for the project type
+     * Get available tag groups for the project type. It will also load the main tags for each group and their sub-tags.
      */
     public function getAvailableTagGroups(ProjectType $projectType)
     {
-        $cacheKey = 'project_version_tag_groups_by_type_' . $projectType->value;
 
-        return Cache::remember($cacheKey, now()->addHours(24), function () use ($projectType) {
-            return ProjectVersionTagGroup::whereHas('projectTypes', function ($query) use ($projectType) {
-                $query->where('project_type_id', $projectType->id);
-            })->with('tags')->get();
-        });
+        return ProjectVersionTagGroup::whereHas('projectTypes', function ($query) use ($projectType) {
+            $query->where('project_type_id', $projectType->id);
+        })->with(['tags' => function ($query) use ($projectType) {
+            $query->whereHas('projectTypes', function ($subQuery) use ($projectType) {
+                $subQuery->where('project_type_id', $projectType->id);
+            })
+            ->whereNull('parent_id')
+            ->with('children');
+        }])->get();
     }
 
     /**

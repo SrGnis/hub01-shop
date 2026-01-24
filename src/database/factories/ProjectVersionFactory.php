@@ -3,6 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Project;
+use App\Models\ProjectVersion;
+use App\Models\ProjectVersionTag;
+use App\Models\ProjectType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,22 +14,46 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class ProjectVersionFactory extends Factory
 {
     /**
+     * Configure the model factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (ProjectVersion $projectVersion) {
+            // Assign tags and subtags to the project version
+            $projectType = $projectVersion->project->projectType;
+
+            // Get tags that belong to the project's project type
+            $tags = ProjectVersionTag::whereHas('projectTypes', function ($query) use ($projectType) {
+                $query->where('project_type_id', $projectType->id);
+            })->whereNull('parent_id')->inRandomOrder()->take(rand(1, 2))->get();
+
+            $projectVersion->tags()->attach($tags);
+
+            // Assign some random subtags from the already assigned tags
+            $subTags = ProjectVersionTag::whereIn('parent_id', $tags->pluck('id'))->inRandomOrder()->take(rand(0, 2))->get();
+            $projectVersion->tags()->attach($subTags);
+        });
+
+    }
+
+    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
+        $relese_date = fake()->dateTimeBetween('-1 years', 'now');
         return [
             'name' => fake()->words(rand(1, 3), true),
             'version' => fake()->unique()->numerify('#.#.#'),
             'changelog' => fake()->paragraphs(rand(1, 3), true),
             'release_type' => fake()->randomElement(['alpha', 'beta', 'release']),
-            'release_date' => fake()->dateTimeBetween('-2 years', 'now'),
+            'release_date' => $relese_date,
             'downloads' => fake()->numberBetween(0, 10000),
             'project_id' => Project::factory(),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at' => $relese_date,
+            'updated_at' => $relese_date,
         ];
     }
 

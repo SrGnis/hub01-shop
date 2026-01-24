@@ -18,7 +18,9 @@ class TagManagement extends Component
 
     public $tagIcon = 'lucide-tag';
 
-    public $tagGroupId = null;
+    public ?int $tagGroupId = null;
+
+    public ?int $tagParentId = null;
 
     public $tagProjectTypes = [];
 
@@ -32,11 +34,15 @@ class TagManagement extends Component
 
     public $itemToDelete = null;
 
+    // Expanded rows for sub-tags (uses row->id by default)
+    public array $expanded = [];
+
     protected function rules()
     {
         return [
             'projectTagName' => 'required|string|max:50',
             'tagIcon' => 'required|string|max:50|starts_with:lucide-',
+            'tagParentId' => 'nullable|exists:project_tag,id',
         ];
     }
 
@@ -44,6 +50,7 @@ class TagManagement extends Component
     {
         return [
             'tagIcon.starts_with' => 'The icon must be a valid Lucide icon (starts with "lucide-").',
+            'tagParentId.exists' => 'The selected parent tag does not exist.',
         ];
     }
 
@@ -67,6 +74,7 @@ class TagManagement extends Component
         $this->projectTagName = $tag->name;
         $this->tagIcon = $tag->icon;
         $this->tagGroupId = $tag->project_tag_group_id;
+        $this->tagParentId = $tag->parent_id;
         $this->tagProjectTypes = $tag->projectTypes->pluck('id')->toArray();
         $this->isEditingTag = true;
         $this->showModal = true;
@@ -81,6 +89,7 @@ class TagManagement extends Component
             $tag->name = $this->projectTagName;
             $tag->icon = $this->tagIcon;
             $tag->project_tag_group_id = $this->tagGroupId;
+            $tag->parent_id = $this->tagParentId;
             $tag->save();
 
             // Sync project types
@@ -92,6 +101,7 @@ class TagManagement extends Component
                 'name' => $this->projectTagName,
                 'icon' => $this->tagIcon,
                 'project_tag_group_id' => $this->tagGroupId,
+                'parent_id' => $this->tagParentId,
             ]);
 
             // Sync project types
@@ -110,6 +120,7 @@ class TagManagement extends Component
         $this->projectTagName = '';
         $this->tagIcon = 'lucide-tag';
         $this->tagGroupId = null;
+        $this->tagParentId = null;
         $this->tagProjectTypes = [];
         $this->isEditingTag = false;
     }
@@ -135,8 +146,14 @@ class TagManagement extends Component
 
     public function render()
     {
+        // Get main tags with their sub-tag counts
+        $mainTags = ProjectTag::onlyMain()
+            ->with('tagGroup')
+            ->withCount('children')
+            ->get();
+
         return view('livewire.admin.tag-management', [
-            'tags' => ProjectTag::with('tagGroup')->get(),
+            'mainTags' => $mainTags,
             'tagGroups' => ProjectTagGroup::all(),
             'projectTypes' => ProjectType::all(),
         ]);
