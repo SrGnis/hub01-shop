@@ -15,6 +15,8 @@ class TagGroupManagement extends Component
 
     public $tagGroupName = '';
 
+    public $tagGroupSlug = '';
+
     public $tagGroupProjectTypes = [];
 
     public $isEditingTagGroup = false;
@@ -31,7 +33,21 @@ class TagGroupManagement extends Component
     {
         return [
             'tagGroupName' => 'required|string|max:50',
+            'tagGroupSlug' => 'required|string|max:50|unique:project_tag_group,slug,' . $this->tagGroupId,
+            'tagGroupProjectTypes' => 'required|array',
         ];
+    }
+
+    public function updatedTagGroupName(){
+        $this->tagGroupSlug = ProjectTagGroup::createSlug($this->tagGroupName);
+
+        $this->resetValidation('tagGroupSlug');
+        $this->validateOnly('tagGroupSlug');
+    }
+
+    public function updatedTagGroupSlug(){
+        $this->resetValidation('tagGroupSlug');
+        $this->validateOnly('tagGroupSlug');
     }
 
     public function createTagGroup()
@@ -52,6 +68,7 @@ class TagGroupManagement extends Component
 
         $this->tagGroupId = $tagGroup->id;
         $this->tagGroupName = $tagGroup->name;
+        $this->tagGroupSlug = $tagGroup->slug;
         $this->tagGroupProjectTypes = $tagGroup->projectTypes->pluck('id')->toArray();
         $this->isEditingTagGroup = true;
         $this->showModal = true;
@@ -64,6 +81,7 @@ class TagGroupManagement extends Component
         if ($this->isEditingTagGroup) {
             $tagGroup = ProjectTagGroup::find($this->tagGroupId);
             $tagGroup->name = $this->tagGroupName;
+            $tagGroup->slug = $this->tagGroupSlug;
             $tagGroup->save();
 
             // Sync project types
@@ -73,6 +91,7 @@ class TagGroupManagement extends Component
         } else {
             $tagGroup = ProjectTagGroup::create([
                 'name' => $this->tagGroupName,
+                'slug' => $this->tagGroupSlug,
             ]);
 
             // Sync project types
@@ -89,6 +108,7 @@ class TagGroupManagement extends Component
     {
         $this->tagGroupId = null;
         $this->tagGroupName = '';
+        $this->tagGroupSlug = '';
         $this->tagGroupProjectTypes = [];
         $this->isEditingTagGroup = false;
     }

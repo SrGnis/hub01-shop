@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
+use App\Traits\HasUniqueSlug;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use Str;
 
 /**
  * @mixin IdeHelperProjectTagGroup
  */
 class ProjectTagGroup extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUniqueSlug;
 
     /**
      * The table associated with the model.
@@ -24,6 +26,8 @@ class ProjectTagGroup extends Model
 
     protected $fillable = [
         'name',
+        'slug',
+        'icon'
     ];
 
     /**
@@ -33,6 +37,7 @@ class ProjectTagGroup extends Model
      */
     protected static function booted()
     {
+
         static::saved(function ($tagGroup) {
             if ($tagGroup->projectTypes->isNotEmpty()) {
                 foreach ($tagGroup->projectTypes as $projectType) {
@@ -70,4 +75,5 @@ class ProjectTagGroup extends Model
             'project_type_id'
         );
     }
+
 }

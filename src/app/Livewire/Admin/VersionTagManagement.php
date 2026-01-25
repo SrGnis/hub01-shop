@@ -16,6 +16,8 @@ class VersionTagManagement extends Component
 
     public $versionTagName = '';
 
+    public $versionTagSlug = '';
+
     public $versionTagIcon = 'lucide-tag';
 
     public ?int $versionTagGroupId = null;
@@ -41,6 +43,7 @@ class VersionTagManagement extends Component
     {
         return [
             'versionTagName' => 'required|string|max:50',
+            'versionTagSlug' => 'required|string|max:50|unique:project_version_tag,slug,' . $this->versionTagId,
             'versionTagIcon' => 'required|string|max:50|starts_with:lucide-',
             'versionTagParentId' => 'nullable|exists:project_version_tag,id',
         ];
@@ -52,6 +55,18 @@ class VersionTagManagement extends Component
             'versionTagIcon.starts_with' => 'The icon must be a valid Lucide icon (starts with "lucide-").',
             'versionTagParentId.exists' => 'The selected parent tag does not exist.',
         ];
+    }
+
+    public function updatedVersionTagName(){
+        $this->versionTagSlug = ProjectVersionTag::createSlug($this->versionTagName);
+
+        $this->resetValidation('versionTagSlug');
+        $this->validateOnly('versionTagSlug');
+    }
+
+    public function updatedVersionTagSlug(){
+        $this->resetValidation('versionTagSlug');
+        $this->validateOnly('versionTagSlug');
     }
 
     public function createVersionTag()
@@ -72,6 +87,7 @@ class VersionTagManagement extends Component
 
         $this->versionTagId = $versionTag->id;
         $this->versionTagName = $versionTag->name;
+        $this->versionTagSlug = $versionTag->slug;
         $this->versionTagIcon = $versionTag->icon;
         $this->versionTagGroupId = $versionTag->project_version_tag_group_id;
         $this->versionTagParentId = $versionTag->parent_id;
@@ -87,6 +103,7 @@ class VersionTagManagement extends Component
         if ($this->isEditingVersionTag) {
             $versionTag = ProjectVersionTag::find($this->versionTagId);
             $versionTag->name = $this->versionTagName;
+            $versionTag->slug = $this->versionTagSlug;
             $versionTag->icon = $this->versionTagIcon;
             $versionTag->project_version_tag_group_id = $this->versionTagGroupId;
             $versionTag->parent_id = $this->versionTagParentId;
@@ -99,6 +116,7 @@ class VersionTagManagement extends Component
         } else {
             $versionTag = ProjectVersionTag::create([
                 'name' => $this->versionTagName,
+                'slug' => $this->versionTagSlug,
                 'icon' => $this->versionTagIcon,
                 'project_version_tag_group_id' => $this->versionTagGroupId,
                 'parent_id' => $this->versionTagParentId,
@@ -118,6 +136,7 @@ class VersionTagManagement extends Component
     {
         $this->versionTagId = null;
         $this->versionTagName = '';
+        $this->versionTagSlug = '';
         $this->versionTagIcon = 'lucide-tag';
         $this->versionTagGroupId = null;
         $this->versionTagParentId = null;

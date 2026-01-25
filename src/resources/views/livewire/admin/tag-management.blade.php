@@ -7,6 +7,7 @@
     {{-- Tags Table with Hierarchical Display --}}
     <x-table :headers="[
         ['key' => 'name', 'label' => 'Name'],
+        ['key' => 'slug', 'label' => 'Slug'],
         ['key' => 'icon', 'label' => 'Icon'],
         ['key' => 'group', 'label' => 'Group'],
         ['key' => 'sub_tags_count', 'label' => 'Sub-tags'],
@@ -21,6 +22,10 @@
                     <x-badge value="Sub-tag" class="badge-xs badge-info" />
                 @endif
             </div>
+        @endscope
+
+        @scope('cell_slug', $tag)
+            <code class="text-xs text-gray-500">{{ $tag->slug }}</code>
         @endscope
 
         @scope('cell_icon', $tag)
@@ -85,35 +90,40 @@
     {{-- Create/Edit Modal --}}
     <x-modal wire:model="showModal" title="{{ $isEditingTag ? 'Edit Tag' : 'Create Tag' }}">
         <x-form wire:submit="saveTag">
-            <x-input label="Name" wire:model="projectTagName" hint="Tag name (e.g., 'Magic', 'Technology')"
+            <x-input label="Name" wire:model.live.debounce.500ms="projectTagName" hint="Tag name (e.g., 'Magic', 'Technology')"
                 required />
+
+            <x-input label="Slug" wire:model.live.debounce.500ms="projectTagSlug" spinner="projectTagName, projectTagSlug" />
+
             <x-input label="Icon" wire:model="tagIcon" hint="Lucide icon name (must start with 'lucide-')" required />
 
             <div class="text-sm text-gray-400 mt-2">
                 Preview: <x-icon :name="$tagIcon" class="w-5 h-5 inline" />
             </div>
 
-            <x-select label="Tag Group" wire:model="tagGroupId" :options="$tagGroups"
-                placeholder="Select group (optional)" />
-
             <x-select
                 label="Parent Tag (Main Tag)"
-                wire:model="tagParentId"
+                wire:model.live="tagParentId"
                 :options="$mainTags"
                 placeholder="None (this is a main tag)"
                 hint="Select a parent tag to make this a sub-tag"
             />
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Associated Project Types</span>
-                </label>
-                <div class="grid grid-cols-2 gap-2">
-                    @foreach ($projectTypes as $type)
-                        <x-checkbox wire:model="tagProjectTypes" :label="$type->display_name" :value="$type->id" />
-                    @endforeach
+            @if(!$tagParentId)
+                <x-select label="Tag Group" wire:model="tagGroupId" :options="$tagGroups"
+                    placeholder="Select group (optional)" />
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Associated Project Types</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach ($projectTypes as $type)
+                            <x-checkbox wire:model="tagProjectTypes" :label="$type->display_name" :value="$type->id" />
+                        @endforeach
+                    </div>
                 </div>
-            </div>
+            @endif
 
             <x-slot:actions>
                 <x-button label="Cancel" wire:click="$set('showModal', false)" />

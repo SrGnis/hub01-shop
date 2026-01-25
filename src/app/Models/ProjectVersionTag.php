@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasUniqueSlug;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class ProjectVersionTag extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUniqueSlug;
 
     /**
      * The table associated with the model.
@@ -27,6 +28,7 @@ class ProjectVersionTag extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'icon',
         'project_version_tag_group_id',
         'parent_id',
@@ -58,6 +60,11 @@ class ProjectVersionTag extends Model
                 $projectVersion->clearTagsCache();
             }
         });
+    }
+
+    public function generateSlug($model): string
+    {
+        return static::createSlug($model->name, $model->mainTag?->slug);
     }
 
     /**
