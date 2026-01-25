@@ -1,0 +1,15 @@
+meta {
+  name: project_tag
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/project_tag/:slug
+  body: none
+  auth: none
+}
+
+params:path {
+  slug: equipment
+}

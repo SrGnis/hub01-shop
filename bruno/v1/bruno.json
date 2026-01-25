@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "hub01_shop_v1",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
