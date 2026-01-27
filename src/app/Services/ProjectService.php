@@ -50,10 +50,12 @@ class ProjectService
         int $resultsPerPage = 10,
         string $releaseDatePeriod = 'all',
         ?string $releaseDateStart = null,
-        ?string $releaseDateEnd = null
+        ?string $releaseDateEnd = null,
+        array $exclude = []
     ): LengthAwarePaginator {
         /** @disregard P1006, P1005 */
-        $projects = Project::globalSearchScope()
+        $projects = Project::exclude($exclude)
+            ->globalSearchScope()
             ->where('name', 'like', '%' . $search . '%')
             ->where('project_type_id', $projectType->id);
 

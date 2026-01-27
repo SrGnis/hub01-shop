@@ -1,17 +1,13 @@
 meta {
-  name: project
+  name: projects
   type: http
   seq: 3
 }
 
 get {
-  url: http://{{HOST}}:{{PORT}}/api/v1/project/:slug
+  url: http://{{HOST}}:{{PORT}}/api/v1/projects
   body: none
   auth: inherit
-}
-
-params:path {
-  slug: test-mod
 }
 
 settings {
