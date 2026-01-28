@@ -5,21 +5,21 @@ meta {
 }
 
 get {
-  url: http://{{HOST}}:{{PORT}}/api/v1/projects?tags[]=sci-fi&tags[]=equipment&version_tags[]=dda
+  url: http://{{HOST}}:{{PORT}}/api/v1/projects
   body: none
   auth: inherit
 }
 
 params:query {
-  tags[]: sci-fi
-  tags[]: equipment
-  version_tags[]: dda
+  ~tags[]: sci-fi
+  ~tags[]: equipment
+  ~version_tags[]: dda
   ~project_type: tile_set
   ~search: test
-  ~order_by: 
-  ~order_direction: 
-  ~per_page: 
-  ~release_date_period: 
+  ~order_by: name
+  ~order_direction: asc
+  ~per_page: 25
+  ~release_date_period: last_30_days
   ~release_date_start: 
   ~release_date_end: 
 }
