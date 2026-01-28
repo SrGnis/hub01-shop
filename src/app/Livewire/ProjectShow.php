@@ -11,6 +11,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 use App\Services\ProjectService;
+use App\Services\ProjectVersionService;
 use App\Models\ProjectVersionTag;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -38,10 +39,12 @@ class ProjectShow extends Component
     public ?string $releaseDateEnd = null;
 
     protected ProjectService $projectService;
+    protected ProjectVersionService $projectVersionService;
 
-    public function boot(ProjectService $projectService)
+    public function boot(ProjectService $projectService, ProjectVersionService $projectVersionService)
     {
         $this->projectService = $projectService;
+        $this->projectVersionService = $projectVersionService;
     }
 
     public function mount($project, ?string $activeTab = null)
@@ -96,46 +99,16 @@ class ProjectShow extends Component
     #[Computed]
     public function versions()
     {
-        return $this->project->versions()
-            ->with([
-                'tags.tagGroup',
-                'project.projectType',
-                'project.owner'
-            ])
-            ->when(!empty($this->selectedVersionTags) || $this->releaseDatePeriod !== 'all', function (Builder $query) {
-                // Filter by version tags
-                if (!empty($this->selectedVersionTags)) {
-                    $query->whereHas('tags', function (Builder $q) {
-                        $q->whereIn('project_version_tag.id', $this->selectedVersionTags);
-                    }, '>=', count($this->selectedVersionTags));
-                }
-
-                // Filter by release date
-                if ($this->releaseDatePeriod !== 'all') {
-                    $startDate = match ($this->releaseDatePeriod) {
-                        'last_30_days' => now()->subDays(30)->startOfDay(),
-                        'last_90_days' => now()->subDays(90)->startOfDay(),
-                        'last_year' => now()->subYear()->startOfDay(),
-                        'custom' => $this->releaseDateStart ? \Carbon\Carbon::parse($this->releaseDateStart)->startOfDay() : null,
-                        default => null,
-                    };
-
-                    $endDate = match ($this->releaseDatePeriod) {
-                        'custom' => $this->releaseDateEnd ? \Carbon\Carbon::parse($this->releaseDateEnd)->endOfDay() : null,
-                        default => null,
-                    };
-
-                    if ($startDate) {
-                        $query->where('release_date', '>=', $startDate);
-                    }
-
-                    if ($endDate) {
-                        $query->where('release_date', '<=', $endDate);
-                    }
-                }
-            })
-            ->orderBy($this->sortBy['column'], $this->sortBy['direction'])
-            ->paginate($this->versionsPerPage, ['*'], 'versionsPage');
+        return $this->projectVersionService->getProjectVersions(
+            $this->project,
+            $this->selectedVersionTags,
+            $this->sortBy['column'],
+            $this->sortBy['direction'],
+            $this->versionsPerPage,
+            $this->releaseDatePeriod,
+            $this->releaseDateStart,
+            $this->releaseDateEnd
+        );
     }
 
     #[Computed]
