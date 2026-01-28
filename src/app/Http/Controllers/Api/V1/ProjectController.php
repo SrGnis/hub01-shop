@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectCollection;
 use App\Http\Resources\ProjectResource;
+use App\Http\Resources\ProjectTypeResource;
 use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectType;
@@ -22,6 +23,27 @@ class ProjectController extends Controller
     }
 
     /**
+     * Get all project types.
+     */
+    public function getProjectTypes(Request $request){
+        $projectTypes = ProjectType::all();
+        return ProjectTypeResource::collection($projectTypes);
+    }
+
+    /**
+     * Get a project type by its slug.
+     */
+    public function getProjectTypeBySlug(Request $request, string $slug){
+        $projectType = ProjectType::where('value', $slug)->first();
+
+        if(!$projectType){
+            return response()->json(['message' => 'Project type not found'], 404);
+        }
+
+        return ProjectTypeResource::make($projectType);
+    }
+
+    /**
      * Get a project by its slug.
      */
     public function getProjectBySlug(Request $request, string $slug){
@@ -31,7 +53,7 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Project not found'], 404);
         }
 
-        return new ProjectResource($project);
+        return ProjectResource::make($project);
     }
 
     /**
@@ -138,7 +160,7 @@ class ProjectController extends Controller
 
         // Return paginated JSON response
         return response()->json([
-            'data' => ProjectResource::collection($paginator->items()),
+            'data' => ProjectCollection::make($paginator->items()),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),

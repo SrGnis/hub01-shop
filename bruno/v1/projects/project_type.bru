@@ -1,0 +1,20 @@
+meta {
+  name: project_type
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/project_type/:slug
+  body: none
+  auth: inherit
+}
+
+params:path {
+  slug: mod
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
