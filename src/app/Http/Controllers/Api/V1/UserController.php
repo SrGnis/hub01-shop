@@ -35,7 +35,7 @@ class UserController extends Controller
             ->whereHas('memberships', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->where('status', 'active');
-            })->get();
+            })->paginate();
 
         return ProjectCollection::make($projects);
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectVersionCollection;
 use App\Http\Resources\ProjectVersionResource;
 use App\Models\Project;
 use App\Models\ProjectVersionTag;
@@ -101,23 +102,7 @@ class ProjectVersionController extends Controller
         );
 
         // Return paginated JSON response
-        return response()->json([
-            'data' => ProjectVersionResource::collection($paginator->items()),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-            ],
-            'links' => [
-                'first' => $paginator->url(1),
-                'last' => $paginator->url($paginator->lastPage()),
-                'prev' => $paginator->previousPageUrl(),
-                'next' => $paginator->nextPageUrl(),
-            ],
-        ]);
+        return ProjectVersionCollection::make($paginator);
     }
 
     /**
