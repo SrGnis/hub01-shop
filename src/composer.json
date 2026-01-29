@@ -11,6 +11,7 @@
   "require": {
     "php": "^8.2",
     "blade-ui-kit/blade-icons": "^1.8",
+    "dedoc/scramble": "^0.13.11",
     "graham-campbell/markdown": "^16.0",
     "laravel/fortify": "^1.31",
     "laravel/framework": "^12.0",
