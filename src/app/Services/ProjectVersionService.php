@@ -11,7 +11,6 @@ use App\Models\ProjectVersionTagGroup;
 use App\Models\ProjectType;
 use App\Notifications\BrokenDependencyNotification;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -344,10 +343,11 @@ class ProjectVersionService
         int $perPage = 10,
         string $releaseDatePeriod = 'all',
         ?string $releaseDateStart = null,
-        ?string $releaseDateEnd = null
+        ?string $releaseDateEnd = null,
+        ?array $with = null
     ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
         return $project->versions()
-            ->with([
+            ->with($with ?? [
                 'tags.tagGroup',
                 'project.projectType',
                 'project.owner'

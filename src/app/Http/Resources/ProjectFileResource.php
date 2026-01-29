@@ -14,6 +14,11 @@ class ProjectFileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'name' => $this->name,
+            'size' => $this->size,
+            'sha1' => $this->sha1,
+            'url' => $this->downloadUrl,
+        ];
     }
 }

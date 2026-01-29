@@ -1,0 +1,20 @@
+meta {
+  name: user
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/user/:name
+  body: none
+  auth: inherit
+}
+
+params:path {
+  name: admin
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

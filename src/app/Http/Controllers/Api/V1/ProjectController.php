@@ -11,15 +11,18 @@ use App\Models\ProjectTag;
 use App\Models\ProjectType;
 use App\Models\ProjectVersionTag;
 use App\Services\ProjectService;
+use App\Services\ProjectVersionService;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
     protected ProjectService $projectService;
+    protected ProjectVersionService $projectVersionService;
 
-    public function __construct(ProjectService $projectService)
+    public function __construct(ProjectService $projectService, ProjectVersionService $projectVersionService)
     {
         $this->projectService = $projectService;
+        $this->projectVersionService = $projectVersionService;
     }
 
     /**
@@ -123,9 +126,6 @@ class ProjectController extends Controller
         $selectedTags = [];
         if (!empty($tagSlugs)) {
             $tags = ProjectTag::whereIn('slug', $tagSlugs)
-                ->whereHas('projectTypes', function ($query) use ($projectType) {
-                    $query->where('project_type_id', $projectType->id);
-                })
                 ->pluck('id')
                 ->toArray();
             $selectedTags = $tags;
@@ -135,9 +135,6 @@ class ProjectController extends Controller
         $selectedVersionTags = [];
         if (!empty($versionTagSlugs)) {
             $versionTags = ProjectVersionTag::whereIn('slug', $versionTagSlugs)
-                ->whereHas('projectTypes', function ($query) use ($projectType) {
-                    $query->where('project_type_id', $projectType->id);
-                })
                 ->pluck('id')
                 ->toArray();
             $selectedVersionTags = $versionTags;
