@@ -33,6 +33,10 @@ class ProjectVersionDependency extends Model
         'dependency_version',
     ];
 
+    protected $casts = [
+        'dependency_type' => DependencyType::class,
+    ];
+
     /**
      * Boot the model.
      */

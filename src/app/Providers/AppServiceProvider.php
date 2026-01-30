@@ -8,6 +8,7 @@ use App\Services\ProjectQuotaService;
 use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
 use App\Services\UserService;
+use Dedoc\Scramble\Scramble;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectVersionService::class);
         $this->app->singleton(ProjectQuotaService::class);
         $this->app->singleton(PageService::class);
+
+        // Ignore default routes for Scramble
+        Scramble::ignoreDefaultRoutes();
     }
 
     /**

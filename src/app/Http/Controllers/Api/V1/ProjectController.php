@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectCollection;
 use App\Http\Resources\ProjectResource;
+use App\Http\Resources\ProjectTypeCollection;
 use App\Http\Resources\ProjectTypeResource;
 use App\Models\Project;
 use App\Models\ProjectTag;
@@ -12,6 +13,8 @@ use App\Models\ProjectType;
 use App\Models\ProjectVersionTag;
 use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
+use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -26,29 +29,39 @@ class ProjectController extends Controller
     }
 
     /**
-     * Get all project types.
+     * List project types.
+     *
+     * Returns all the project types defined in the application
      */
+    #[Group('Project Types')]
     public function getProjectTypes(Request $request){
         $projectTypes = ProjectType::all();
+
         return ProjectTypeResource::collection($projectTypes);
     }
 
     /**
-     * Get a project type by its slug.
+     * Get a project type.
+     *
+     * Returns the project type with the given slug
      */
+    #[Group('Project Types')]
     public function getProjectTypeBySlug(Request $request, string $slug){
         $projectType = ProjectType::where('value', $slug)->first();
 
         if(!$projectType){
-            return response()->json(['message' => 'Project type not found'], 404);
+            abort(404, 'Project type not found');
         }
 
         return ProjectTypeResource::make($projectType);
     }
 
     /**
-     * Get a project by its slug.
+     * Get a project
+     *
+     * Returns the project with the given slug
      */
+    #[Group('Projects')]
     public function getProjectBySlug(Request $request, string $slug){
         $project = Project::where('slug', $slug)->first();
 
@@ -60,85 +73,65 @@ class ProjectController extends Controller
     }
 
     /**
-     * Get all projects with search and filtering capabilities.
+     * Search projects
      *
-     * @queryParam search string Search query for project names. Example: cataclysm
-     * @queryParam project_type string Project type value (optional, defaults to first type). Example: mod
-     * @queryParam tags array Project tag slugs to filter by. Example: ["graphics", "gameplay"]
-     * @queryParam version_tags array Version tag slugs to filter by. Example: ["stable", "experimental"]
-     * @queryParam order_by string Field to order by (name, created_at, latest_version, downloads). Default: downloads
-     * @queryParam order_direction string Order direction (asc, desc). Default: desc
-     * @queryParam per_page int Number of results per page (10, 25, 50, 100). Default: 10
-     * @queryParam release_date_period string Release date period (all, last_30_days, last_90_days, last_year, custom). Default: all
-     * @queryParam release_date_start string Custom start date (YYYY-MM-DD). Required when release_date_period=custom
-     * @queryParam release_date_end string Custom end date (YYYY-MM-DD). Required when release_date_period=custom
+     * Returns a filtered list of projects
      */
+    #[Group('Projects')]
+    #[QueryParameter(name: 'project_type', description: 'The project type to filter by', default: 'mod')]
+    #[QueryParameter(name: 'search', description: 'The search query to filter by')]
+    #[QueryParameter(name: 'tags[]', description: 'The tags slugs to filter by', example: 'tags[]=tag1&tags[]=tag2')]
+    #[QueryParameter(name: 'version_tags[]', description: 'The version tags slugs to filter by', example: 'version_tags[]=tag1&version_tags[]=tag2')]
+    #[QueryParameter(name: 'order_by', description: 'The field to order by', default: 'downloads')]
+    #[QueryParameter(name: 'order_direction', description: 'The direction to order by', default: 'desc')]
+    #[QueryParameter(name: 'per_page', description: 'The number of results per page', default: 10)]
+    #[QueryParameter(name: 'release_date_period', description: 'The release date period to filter by', default: 'all')]
+    #[QueryParameter(name: 'release_date_start', description: 'The start date to filter by, only used if release_date_period is custom')]
+    #[QueryParameter(name: 'release_date_end', description: 'The end date to filter by, only used if release_date_period is custom')]
     public function getProjects(Request $request)
     {
+
+        // Validate all query parameters
+        $validated = $request->validate([
+            'project_type' => 'nullable|string|exists:project_types,value',
+            'search' => 'nullable|string|max:255',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|exists:project_tags,slug',
+            'version_tags' => 'nullable|array',
+            'version_tags.*' => 'string|exists:project_version_tags,slug',
+            'order_by' => 'nullable|string|in:name,created_at,latest_version,downloads',
+            'order_direction' => 'nullable|string|in:asc,desc',
+            'per_page' => 'nullable|integer|in:10,25,50,100',
+            'release_date_period' => 'nullable|string|in:all,last_30_days,last_90_days,last_year,custom',
+            'release_date_start' => 'nullable|date',
+            'release_date_end' => 'nullable|date|after_or_equal:release_date_start',
+        ]);
+
         // Get or default project type
-        $projectTypeValue = $request->query('project_type');
-        $projectType = $projectTypeValue
-            ? ProjectType::where('value', $projectTypeValue)->firstOrFail()
+        $projectType = $validated['project_type'] ?? null
+            ? ProjectType::where('value', $validated['project_type'])->firstOrFail()
             : ProjectType::first();
 
-        // Extract query parameters with defaults
-        $search = $request->query('search', '');
-        $tagSlugs = $request->query('tags', []);
-        $versionTagSlugs = $request->query('version_tags', []);
-        $orderBy = $request->query('order_by', 'downloads');
-        $orderDirection = $request->query('order_direction', 'desc');
-        $resultsPerPage = $request->query('per_page', 10);
-        $releaseDatePeriod = $request->query('release_date_period', 'all');
-        $releaseDateStart = $request->query('release_date_start');
-        $releaseDateEnd = $request->query('release_date_end');
+        // Extract validated parameters with defaults
+        $search = $validated['search'] ?? '';
+        $tagSlugs = $validated['tags'] ?? [];
+        $versionTagSlugs = $validated['version_tags'] ?? [];
+        $orderBy = $validated['order_by'] ?? 'downloads';
+        $orderDirection = $validated['order_direction'] ?? 'desc';
+        $resultsPerPage = $validated['per_page'] ?? 10;
+        $releaseDatePeriod = $validated['release_date_period'] ?? 'all';
+        $releaseDateStart = $validated['release_date_start'] ?? null;
+        $releaseDateEnd = $validated['release_date_end'] ?? null;
 
-        // Validate parameters
-        $validOrderBy = ['name', 'created_at', 'latest_version', 'downloads'];
-        if (!in_array($orderBy, $validOrderBy)) {
-            $orderBy = 'downloads';
-        }
+        // Convert tag slugs to IDs
+        $selectedTags = !empty($tagSlugs)
+            ? ProjectTag::whereIn('slug', $tagSlugs)->pluck('id')->toArray()
+            : [];
 
-        $validOrderDirection = ['asc', 'desc'];
-        if (!in_array($orderDirection, $validOrderDirection)) {
-            $orderDirection = 'desc';
-        }
-
-        $validPerPage = [10, 25, 50, 100];
-        if (!in_array($resultsPerPage, $validPerPage)) {
-            $resultsPerPage = 10;
-        }
-
-        $validReleaseDatePeriod = ['all', 'last_30_days', 'last_90_days', 'last_year', 'custom'];
-        if (!in_array($releaseDatePeriod, $validReleaseDatePeriod)) {
-            $releaseDatePeriod = 'all';
-        }
-
-        // Ensure tags are arrays
-        if (!is_array($tagSlugs)) {
-            $tagSlugs = [];
-        }
-
-        if (!is_array($versionTagSlugs)) {
-            $versionTagSlugs = [];
-        }
-
-        // Convert tag slugs to IDs, validating they exist in the database
-        $selectedTags = [];
-        if (!empty($tagSlugs)) {
-            $tags = ProjectTag::whereIn('slug', $tagSlugs)
-                ->pluck('id')
-                ->toArray();
-            $selectedTags = $tags;
-        }
-
-        // Convert version tag slugs to IDs, validating they exist in the database
-        $selectedVersionTags = [];
-        if (!empty($versionTagSlugs)) {
-            $versionTags = ProjectVersionTag::whereIn('slug', $versionTagSlugs)
-                ->pluck('id')
-                ->toArray();
-            $selectedVersionTags = $versionTags;
-        }
+        // Convert version tag slugs to IDs
+        $selectedVersionTags = !empty($versionTagSlugs)
+            ? ProjectVersionTag::whereIn('slug', $versionTagSlugs)->pluck('id')->toArray()
+            : [];
 
         // Get paginated results from service
         $paginator = $this->projectService->searchProjects(
@@ -156,6 +149,6 @@ class ProjectController extends Controller
         );
 
         // Return paginated JSON response
-        return ProjectCollection::make($paginator);
+        return ProjectResource::collection($paginator);
     }
 }

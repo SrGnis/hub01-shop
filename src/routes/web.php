@@ -17,7 +17,9 @@ use App\Livewire\Welcome;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/admin.php';
+require __DIR__.'/api_docs.php';
 
+// Homepage
 Route::get('/', Welcome::class)->name('welcome');
 
 // Dynamic Pages

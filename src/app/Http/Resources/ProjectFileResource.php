@@ -18,6 +18,9 @@ class ProjectFileResource extends JsonResource
             'name' => $this->name,
             'size' => $this->size,
             'sha1' => $this->sha1,
+            /**
+             * @format url
+             */
             'url' => $this->downloadUrl,
         ];
     }

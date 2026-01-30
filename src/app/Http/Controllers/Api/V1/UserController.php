@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectCollection;
+use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserResource;
 use App\Models\Project;
 use App\Models\User;
@@ -16,9 +17,9 @@ class UserController extends Controller
      */
     public function getUserByName(Request $request, string $name){
         $user = User::where('name', $name)->first();
-        if(!$user){
-            return response()->json(['message' => 'User not found'], 404);
-        }
+
+        abort_if(!$user, 404, 'User not found');
+
         return UserResource::make($user);
     }
 
@@ -27,9 +28,8 @@ class UserController extends Controller
      */
     public function getUserProjects(Request $request, string $name){
         $user = User::where('name', $name)->first();
-        if(!$user){
-            return response()->json(['message' => 'User not found'], 404);
-        }
+
+        abort_if(!$user, 404, 'User not found');
 
         $projects = Project::exclude(['description'])
             ->whereHas('memberships', function ($query) use ($user) {
@@ -37,6 +37,6 @@ class UserController extends Controller
                     ->where('status', 'active');
             })->paginate();
 
-        return ProjectCollection::make($projects);
+        return ProjectResource::collection($projects);
     }
 }
