@@ -1,0 +1,1578 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Hub01 Shop",
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://0.0.0.0:8000/api"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Project Types"
+        },
+        {
+            "name": "Projects"
+        }
+    ],
+    "paths": {
+        "/v1/project_types": {
+            "get": {
+                "operationId": "project.getProjectTypes",
+                "description": "Returns all the project types defined in the application",
+                "summary": "List project types",
+                "tags": [
+                    "Project Types"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ProjectTypeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProjectTypeResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/project_type/{slug}": {
+            "get": {
+                "operationId": "project.getProjectTypeBySlug",
+                "description": "Returns the project type with the given slug",
+                "summary": "Get a project type",
+                "tags": [
+                    "Project Types"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ProjectTypeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectTypeResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/projects": {
+            "get": {
+                "operationId": "project.getProjects",
+                "description": "Returns a filtered list of projects",
+                "summary": "Search projects",
+                "tags": [
+                    "Projects"
+                ],
+                "parameters": [
+                    {
+                        "name": "project_type",
+                        "in": "query",
+                        "description": "The project type to filter by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "default": "mod"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "The search query to filter by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "tags[]",
+                        "in": "query",
+                        "description": "The tags slugs to filter by",
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        },
+                        "example": "tags[]=tag1&tags[]=tag2"
+                    },
+                    {
+                        "name": "version_tags[]",
+                        "in": "query",
+                        "description": "The version tags slugs to filter by",
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        },
+                        "example": "version_tags[]=tag1&version_tags[]=tag2"
+                    },
+                    {
+                        "name": "order_by",
+                        "in": "query",
+                        "description": "The field to order by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "name",
+                                "created_at",
+                                "latest_version",
+                                "downloads"
+                            ],
+                            "default": "downloads"
+                        }
+                    },
+                    {
+                        "name": "order_direction",
+                        "in": "query",
+                        "description": "The direction to order by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "desc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "The number of results per page",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "enum": [
+                                "10",
+                                "25",
+                                "50",
+                                "100"
+                            ],
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "release_date_period",
+                        "in": "query",
+                        "description": "The release date period to filter by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "all",
+                                "last_30_days",
+                                "last_90_days",
+                                "last_year",
+                                "custom"
+                            ],
+                            "default": "all"
+                        }
+                    },
+                    {
+                        "name": "release_date_start",
+                        "in": "query",
+                        "description": "The start date to filter by, only used if release_date_period is custom",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "release_date_end",
+                        "in": "query",
+                        "description": "The end date to filter by, only used if release_date_period is custom",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return paginated JSON response\n\n\n\nPaginated set of `ProjectResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProjectResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/project/{slug}": {
+            "get": {
+                "operationId": "project.getProjectBySlug",
+                "description": "Returns the project with the given slug",
+                "summary": "Get a project",
+                "tags": [
+                    "Projects"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ProjectResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Project not found"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/project/{slug}/versions": {
+            "get": {
+                "operationId": "projectVersion.getProjectVersions",
+                "summary": "List all versions of a project",
+                "tags": [
+                    "ProjectVersion"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tags[]",
+                        "in": "query",
+                        "description": "The version tags slugs to filter by",
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        },
+                        "example": "tags[]=tag1&tags[]=tag2"
+                    },
+                    {
+                        "name": "order_by",
+                        "in": "query",
+                        "description": "The field to order by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "version",
+                                "release_date",
+                                "downloads"
+                            ],
+                            "default": "downloads"
+                        }
+                    },
+                    {
+                        "name": "order_direction",
+                        "in": "query",
+                        "description": "The direction to order by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "desc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "The number of results per page",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "enum": [
+                                "10",
+                                "25",
+                                "50",
+                                "100"
+                            ],
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "release_date_period",
+                        "in": "query",
+                        "description": "The release date period to filter by",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "all",
+                                "last_30_days",
+                                "last_90_days",
+                                "last_year",
+                                "custom"
+                            ],
+                            "default": "all"
+                        }
+                    },
+                    {
+                        "name": "release_date_start",
+                        "in": "query",
+                        "description": "The start date to filter by, only used if release_date_period is custom",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "release_date_end",
+                        "in": "query",
+                        "description": "The end date to filter by, only used if release_date_period is custom",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return paginated JSON response\n\n\n\nPaginated set of `ProjectVersionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProjectVersionResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/project/{slug}/version/{version}": {
+            "get": {
+                "operationId": "projectVersion.getProjectVersionBySlug",
+                "summary": "Get a project version",
+                "tags": [
+                    "ProjectVersion"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project version",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ProjectVersionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectVersionResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/project_tags": {
+            "get": {
+                "operationId": "tag.getProjectTags",
+                "description": "Returns a list of project tags",
+                "summary": "List project tags",
+                "tags": [
+                    "Tag"
+                ],
+                "parameters": [
+                    {
+                        "name": "plain",
+                        "in": "query",
+                        "description": "Whether to return the tags in a hierarchical structure or a flat list",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ProjectTagResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProjectTagResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/project_tag/{slug}": {
+            "get": {
+                "operationId": "tag.getProjectTagsBySlug",
+                "description": "Returns the project tag with the given slug",
+                "summary": "Get a project tag",
+                "tags": [
+                    "Tag"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ProjectTagResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectTagResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/version_tags": {
+            "get": {
+                "operationId": "tag.getProjectVersionTags",
+                "description": "Returns a list of project version tags",
+                "summary": "List project version tags",
+                "tags": [
+                    "Tag"
+                ],
+                "parameters": [
+                    {
+                        "name": "plain",
+                        "in": "query",
+                        "description": "Whether to return the tags in a hierarchical structure or a flat list",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ProjectVersionTagResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProjectVersionTagResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/version_tag/{slug}": {
+            "get": {
+                "operationId": "tag.getProjectVersionTagBySlug",
+                "description": "Returns the project version tag with the given slug",
+                "summary": "Get a project version tag",
+                "tags": [
+                    "Tag"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ProjectVersionTagResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectVersionTagResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/user/{name}": {
+            "get": {
+                "operationId": "user.getUserByName",
+                "summary": "Get a user by name",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`UserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/user/{name}/projects": {
+            "get": {
+                "operationId": "user.getUserProjects",
+                "summary": "Get a user's projects",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `ProjectResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProjectResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "DependencyType": {
+                "type": "string",
+                "enum": [
+                    "required",
+                    "optional",
+                    "embedded"
+                ],
+                "title": "DependencyType"
+            },
+            "ProjectFileResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "type": "integer"
+                    },
+                    "sha1": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string",
+                        "format": "url"
+                    }
+                },
+                "required": [
+                    "name",
+                    "size",
+                    "sha1",
+                    "url"
+                ],
+                "title": "ProjectFileResource"
+            },
+            "ProjectResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "summary": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Null in collection responses"
+                    },
+                    "logo_url": {
+                        "type": "string"
+                    },
+                    "website": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "issues": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "source": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "tags": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "List of the slugs of the associated tags",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The status of the project, can be either 'active' or 'inactive'"
+                    },
+                    "members": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "username": {
+                                    "type": "string"
+                                },
+                                "role": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "username",
+                                "role"
+                            ]
+                        }
+                    },
+                    "downloads": {
+                        "type": "integer"
+                    },
+                    "last_release_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "version_count": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "name",
+                    "slug",
+                    "summary",
+                    "description",
+                    "logo_url",
+                    "website",
+                    "issues",
+                    "source",
+                    "status",
+                    "downloads",
+                    "last_release_date",
+                    "created_at"
+                ],
+                "title": "ProjectResource"
+            },
+            "ProjectTagResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    },
+                    "tag_group": {
+                        "type": "string"
+                    },
+                    "project_types": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "sub_tags": {
+                        "type": "array",
+                        "description": "Unset when the request does not have the `plain` query parameter or is a single query",
+                        "items": {
+                            "$ref": "#/components/schemas/ProjectTagResource"
+                        }
+                    },
+                    "main_tag": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "slug",
+                    "icon",
+                    "tag_group",
+                    "project_types",
+                    "main_tag"
+                ],
+                "title": "ProjectTagResource"
+            },
+            "ProjectTypeResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "slug",
+                    "icon"
+                ],
+                "title": "ProjectTypeResource"
+            },
+            "ProjectVersionDependencyResource": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "string",
+                        "description": "The project slug of the dependency"
+                    },
+                    "version": {
+                        "type": "string",
+                        "description": "The version of the dependency"
+                    },
+                    "type": {
+                        "description": "@",
+                        "$ref": "#/components/schemas/DependencyType"
+                    },
+                    "external": {
+                        "type": "boolean",
+                        "description": "Whether the dependency is external (not a project on this platform)"
+                    }
+                },
+                "required": [
+                    "project",
+                    "version",
+                    "type",
+                    "external"
+                ],
+                "title": "ProjectVersionDependencyResource"
+            },
+            "ProjectVersionResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "release_type": {
+                        "$ref": "#/components/schemas/ReleaseType"
+                    },
+                    "release_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "changelog": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "downloads": {
+                        "type": "integer"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "description": "List of version tag slugs",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProjectFileResource"
+                        }
+                    },
+                    "dependencies": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProjectVersionDependencyResource"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "version",
+                    "release_type",
+                    "release_date",
+                    "changelog",
+                    "downloads",
+                    "tags"
+                ],
+                "title": "ProjectVersionResource"
+            },
+            "ProjectVersionTagResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    },
+                    "tag_group": {
+                        "type": "string"
+                    },
+                    "project_types": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "sub_tags": {
+                        "type": "array",
+                        "description": "Unset when the request does not have the `plain` query parameter or is a single query",
+                        "items": {
+                            "$ref": "#/components/schemas/ProjectVersionTagResource"
+                        }
+                    },
+                    "main_tag": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "slug",
+                    "icon",
+                    "tag_group",
+                    "project_types",
+                    "main_tag"
+                ],
+                "title": "ProjectVersionTagResource"
+            },
+            "ReleaseType": {
+                "type": "string",
+                "enum": [
+                    "alpha",
+                    "beta",
+                    "rc",
+                    "release"
+                ],
+                "title": "ReleaseType"
+            },
+            "UserResource": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    },
+                    "bio": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "avatar": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "url"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "username",
+                    "bio",
+                    "avatar",
+                    "created_at"
+                ],
+                "title": "UserResource"
+            }
+        },
+        "responses": {
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

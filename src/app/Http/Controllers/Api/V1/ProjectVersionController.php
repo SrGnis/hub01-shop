@@ -8,6 +8,8 @@ use App\Http\Resources\ProjectVersionResource;
 use App\Models\Project;
 use App\Models\ProjectVersionTag;
 use App\Services\ProjectVersionService;
+use Dedoc\Scramble\Attributes\PathParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
 
 class ProjectVersionController extends Controller
@@ -20,67 +22,48 @@ class ProjectVersionController extends Controller
     }
 
     /**
-     * Get all versions of a project with filtering and sorting capabilities.
+     * List all versions of a project.
      *
-     * @queryParam tags array Version tag slugs to filter by.
-     * @queryParam order_by string Field to order by (version, release_date, downloads). Default: release_date
-     * @queryParam order_direction string Order direction (asc, desc). Default: desc
-     * @queryParam per_page int Number of results per page (10, 25, 50, 100). Default: 10
-     * @queryParam release_date_period string Release date period (all, last_30_days, last_90_days, last_year, custom). Default: all
-     * @queryParam release_date_start string Custom start date (YYYY-MM-DD). Required when release_date_period=custom
-     * @queryParam release_date_end string Custom end date (YYYY-MM-DD). Required when release_date_period=custom
      */
+    #[PathParameter(name: 'slug', description: 'The project slug')]
+    #[QueryParameter(name: 'tags[]', description: 'The version tags slugs to filter by', example: 'tags[]=tag1&tags[]=tag2')]
+    #[QueryParameter(name: 'order_by', description: 'The field to order by', default: 'downloads')]
+    #[QueryParameter(name: 'order_direction', description: 'The direction to order by', default: 'desc')]
+    #[QueryParameter(name: 'per_page', description: 'The number of results per page', default: 10)]
+    #[QueryParameter(name: 'release_date_period', description: 'The release date period to filter by', default: 'all')]
+    #[QueryParameter(name: 'release_date_start', description: 'The start date to filter by, only used if release_date_period is custom')]
+    #[QueryParameter(name: 'release_date_end', description: 'The end date to filter by, only used if release_date_period is custom')]
     public function getProjectVersions(Request $request, string $slug)
     {
         $project = Project::where('slug', $slug)->first();
 
-        if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404);
-        }
+        abort_if(!$project, 404, 'Project not found');
 
-        // Extract query parameters with defaults
-        $versionTagSlugs = $request->query('tags', []);
-        $orderBy = $request->query('order_by', 'release_date');
-        $orderDirection = $request->query('order_direction', 'desc');
-        $perPage = $request->query('per_page', 10);
-        $releaseDatePeriod = $request->query('release_date_period', 'all');
-        $releaseDateStart = $request->query('release_date_start');
-        $releaseDateEnd = $request->query('release_date_end');
+        // Validate all query parameters
+        $validated = $request->validate([
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|exists:project_version_tags,slug',
+            'order_by' => 'nullable|string|in:version,release_date,downloads',
+            'order_direction' => 'nullable|string|in:asc,desc',
+            'per_page' => 'nullable|integer|in:10,25,50,100',
+            'release_date_period' => 'nullable|string|in:all,last_30_days,last_90_days,last_year,custom',
+            'release_date_start' => 'nullable|date',
+            'release_date_end' => 'nullable|date|after_or_equal:release_date_start',
+        ]);
 
-        // Validate parameters
-        $validOrderBy = ['version', 'release_date', 'downloads'];
-        if (!in_array($orderBy, $validOrderBy)) {
-            $orderBy = 'release_date';
-        }
-
-        $validOrderDirection = ['asc', 'desc'];
-        if (!in_array($orderDirection, $validOrderDirection)) {
-            $orderDirection = 'desc';
-        }
-
-        $validPerPage = [10, 25, 50, 100];
-        if (!in_array($perPage, $validPerPage)) {
-            $perPage = 10;
-        }
-
-        $validReleaseDatePeriod = ['all', 'last_30_days', 'last_90_days', 'last_year', 'custom'];
-        if (!in_array($releaseDatePeriod, $validReleaseDatePeriod)) {
-            $releaseDatePeriod = 'all';
-        }
-
-        // Ensure tags are arrays
-        if (!is_array($versionTagSlugs)) {
-            $versionTagSlugs = [];
-        }
+        // Extract validated parameters with defaults
+        $versionTagSlugs = $validated['tags'] ?? [];
+        $orderBy = $validated['order_by'] ?? 'release_date';
+        $orderDirection = $validated['order_direction'] ?? 'desc';
+        $perPage = $validated['per_page'] ?? 10;
+        $releaseDatePeriod = $validated['release_date_period'] ?? 'all';
+        $releaseDateStart = $validated['release_date_start'] ?? null;
+        $releaseDateEnd = $validated['release_date_end'] ?? null;
 
         // Convert version tag slugs to IDs
-        $selectedVersionTags = [];
-        if (!empty($versionTagSlugs)) {
-            $versionTags = ProjectVersionTag::whereIn('slug', $versionTagSlugs)
-                ->pluck('id')
-                ->toArray();
-            $selectedVersionTags = $versionTags;
-        }
+        $selectedVersionTags = !empty($versionTagSlugs)
+            ? ProjectVersionTag::whereIn('slug', $versionTagSlugs)->pluck('id')->toArray()
+            : [];
 
         $with = [
             'tags',
@@ -102,25 +85,23 @@ class ProjectVersionController extends Controller
         );
 
         // Return paginated JSON response
-        return ProjectVersionCollection::make($paginator);
+        return ProjectVersionResource::collection($paginator);
     }
 
     /**
-     * Get a specific project version by version string.
+     * Get a project version
      */
+    #[PathParameter(name: 'slug', description: 'The project slug')]
+    #[PathParameter(name: 'version', description: 'The project version')]
     public function getProjectVersionBySlug(Request $request, string $slug, string $version)
     {
         $project = Project::where('slug', $slug)->first();
 
-        if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404);
-        }
+        abort_if(!$project, 404, 'Project not found');
 
         $projectVersion = $this->projectVersionService->getProjectVersionByVersionString($project, $version);
 
-        if (!$projectVersion) {
-            return response()->json(['message' => 'Version not found'], 404);
-        }
+        abort_if(!$projectVersion, 404, 'Project version not found');
 
         return ProjectVersionResource::make($projectVersion);
     }

@@ -17,7 +17,15 @@ class UserResource extends JsonResource
         return [
             'username' => $this->name,
             'bio' => $this->bio,
+            /**
+             * @var string | null
+             * @format url
+             */
             'avatar' => $this->getAvatarUrl(),
+            /**
+             * @var string
+             * @format date
+             */
             'created_at' => $this->created_at->toDateString(),
         ];
     }

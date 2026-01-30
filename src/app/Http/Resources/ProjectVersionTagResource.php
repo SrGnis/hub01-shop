@@ -20,6 +20,9 @@ class ProjectVersionTagResource extends JsonResource
             'icon' => $this->icon,
             'tag_group' => $this->tagGroup?->slug,
             'project_types' => $this->projectTypes()->pluck('value'),
+            /**
+             * Unset when the request does not have the `plain` query parameter or is a single query
+             */
             'sub_tags' => $this->when($this->whenLoaded('subTags', default: null), fn () => ProjectVersionTagResource::collection($this->subTags)),
             'main_tag' => $this->mainTag?->slug,
         ];

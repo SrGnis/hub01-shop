@@ -15,41 +15,47 @@ class ProjectResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            // Core project information
             'name' => $this->name,
             'slug' => $this->slug,
-
-            // Content
             'summary' => $this->summary,
-            'description' => $this->when($this->description, $this->description),
+            /** Null in collection responses
+             * @var string | null
+            */
+            'description' => $this->description,
             'logo_url' => $this->getLogoUrl(),
-
-            // Links
             'website' => $this->website,
             'issues' => $this->issues,
             'source' => $this->source,
-
-            // Type and tags
             'type' => $this->when($this->whenLoaded('projectType'), fn () => $this->projectType?->value),
+            /**
+             * List of the slugs of the associated tags
+             * @var array<string> | null
+             */
             'tags' => $this->when($this->whenLoaded('tags'), fn () => $this->tags->pluck('slug')),
-
-            // Status
+            /**
+             * The status of the project, can be either 'active' or 'inactive'
+             */
             'status' => $this->status,
-
-            // Active members
             'members' => $this->when($this->whenLoaded('active_users'), fn () => $this->active_users->map(function ($user) {
                 return [
                     'username' => $user->name,
                     'role' => $user->pivot->role,
                 ];
             })),
-
-            // Statistics
+            /**
+             * @var int
+             */
             'downloads' => $this->downloads ?? 0,
+            /**
+             * @var string | null
+             * @format date
+             */
             'last_release_date' => $this->recentReleaseDate?->toDateString(),
             'version_count' => $this->when($this->whenLoaded('versions'), fn () => $this->versions->count()),
-
-            // Timestamp
+            /**
+             * @var string | null
+             * @format date
+             */
             'created_at' => $this->created_at?->toDateString(),
         ];
     }
