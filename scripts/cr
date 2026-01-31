@@ -1,3 +1,4 @@
+#!/bin/bash
 
 export DUID=$UID
 export DGID=$(id -g)
@@ -17,7 +18,7 @@ cr() {
   USER_FLAG=""
   CUSTOM_UID=""
   RUN_AS_ROOT=false
-  
+
   # Parse options first
   while (( "$#" )); do
     case "$1" in
@@ -45,7 +46,7 @@ cr() {
         ;;
     esac
   done
-  
+
   # Now $1 should be the service name
   SERVICE_NAME=$1
   if [ -z "$SERVICE_NAME" ]; then
@@ -53,7 +54,7 @@ cr() {
     return 1
   fi
   shift
-  
+
   # Set default user for app service if not specified
   if [ -z "$USER_FLAG" ] && [ "$SERVICE_NAME" = "app" ]; then
     USER_FLAG="--user $DUID"
@@ -73,10 +74,5 @@ cr() {
   fi
 }
 
-# Launch Development Composer
-#
-# Runs docker compose with the development compose file and the given commands as arguments, also sets the DUID environment variable to the current user id.
-dcdev() {
-  echo "Running docker compose with DUID=$DUID and DGID=$DGID"
-  DUID=$DUID DGID=$DGID docker compose -f docker-compose-dev.yml ${@:1}
-}
+# Launch Container Run with the provided arguments
+cr "$@"
