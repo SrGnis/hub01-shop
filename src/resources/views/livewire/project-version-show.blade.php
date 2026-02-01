@@ -55,7 +55,11 @@
                                 Version: <span class="font-semibold">{{ $version->name }} - {{ $version->version }}</span>
                             </div>
                             <div class="text-sm text-base-content/60">
-                                by <span class="font-medium">{{ $project->owner->first()->name }}</span>
+                                @if ($project->owner->first())
+                                    by <span class="font-medium">{{ $project->owner->first()->name }}</span>
+                                @else
+                                    by <span class="font-medium">Unknown</span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -112,7 +116,11 @@
                                 <x-badge :value="$version->display_name" class="badge-sm {{ $version->bg_color_class }}" />
                             </div>
                             <div class="mb-4">
-                                <span class="text-sm">by <span class="font-medium">{{ $project->owner->first()->name }}</span></span>
+                                @if ($project->owner->first())
+                                    by <span class="font-medium">{{ $project->owner->first()->name }}</span>
+                                @else
+                                    by <span class="font-medium">Unknown</span>
+                                @endif
                             </div>
 
                             @if ($project->mainTags->count() > 0)

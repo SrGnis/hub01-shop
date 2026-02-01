@@ -51,11 +51,6 @@
                         @endif
                     </div>
                 </x-alert>
-            @elseif($approvalStatus === \App\Enums\ApprovalStatus::APPROVED)
-                <x-alert icon="lucide-check-circle" class="alert-success mb-6">
-                    <div class="font-semibold">Project Approved ✓</div>
-                    <p class="text-sm mt-1">Your project is approved and visible to all users.</p>
-                </x-alert>
             @endif
         @endif
 
@@ -195,7 +190,7 @@
                                 $isSelf = $membership->user_id === auth()->id();
                             @endphp
                             <tr>
-                                <td>{{ $membership->user->name }}</td>
+                                <td>{{ $membership->user ? $membership->user->name : 'Unknown User' }}</td>
                                 <td>
                                     @php
                                         $role_label =
