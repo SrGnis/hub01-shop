@@ -6,19 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectVersionCollection;
 use App\Http\Resources\ProjectVersionResource;
 use App\Models\Project;
+use App\Models\ProjectVersion;
 use App\Models\ProjectVersionTag;
+use App\Services\ProjectQuotaService;
 use App\Services\ProjectVersionService;
+use Dedoc\Scramble\Attributes\BodyParameter;
+use Dedoc\Scramble\Attributes\HeaderParameter;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class ProjectVersionController extends Controller
 {
     protected ProjectVersionService $projectVersionService;
+    protected ProjectQuotaService $quotaService;
 
-    public function __construct(ProjectVersionService $projectVersionService)
+    public function __construct(ProjectVersionService $projectVersionService, ProjectQuotaService $quotaService)
     {
         $this->projectVersionService = $projectVersionService;
+        $this->quotaService = $quotaService;
     }
 
     /**
@@ -104,5 +113,350 @@ class ProjectVersionController extends Controller
         abort_if(!$projectVersion, 404, 'Project version not found');
 
         return ProjectVersionResource::make($projectVersion);
+    }
+
+    /**
+     * Create a new project version
+     *
+     * @requestMediaType multipart/form-data
+     */
+    #[HeaderParameter(name: 'Authorization', description: 'Bearer token', type: 'string', required: true, example: 'Bearer {token}')]
+    #[PathParameter(name: 'slug', description: 'The project slug')]
+    #[BodyParameter('name', description: 'The name of the version', type: 'string', required: true, example: 'Version 1.0.0')]
+    #[BodyParameter('version', description: 'The version number (must be unique for the project)', type: 'string', required: true, example: '1.0.0')]
+    #[BodyParameter('release_type', description: 'The release type: `release`, `rc`, `beta`, or `alpha`', type: 'string', required: true, example: 'release')]
+    #[BodyParameter('release_date', description: 'The release date', type: 'string', format: 'date', required: true, example: '2024-01-15')]
+    #[BodyParameter('changelog', description: 'The changelog for this version', type: 'string', required: false, example: 'Initial release')]
+    #[BodyParameter('files[]', description: 'Array of files to upload', type: 'array', required: true)]
+    #[BodyParameter('files[].*', description: 'File to upload', type: 'file', required: true)]
+    #[BodyParameter('dependencies[]', description: 'Array of dependencies', type: 'array', required: false)]
+    #[BodyParameter('dependencies[].*.type', description: 'Dependency type: `required`, `optional` or `embedded`', type: 'string', required: true, example: 'required')]
+    #[BodyParameter('dependencies[].*.mode', description: 'Dependency mode: `linked` or `manual`', type: 'string', required: true, example: 'linked')]
+    #[BodyParameter('dependencies[].*.project_slug', description: 'Project slug for linked dependencies', type: 'string', required: false)]
+    #[BodyParameter('dependencies[].*.version_number', description: 'Version number for specific version dependencies', type: 'string', required: false)]
+    #[BodyParameter('dependencies[].*.dependency_name', description: 'Dependency name for manual dependencies', type: 'string', required: false)]
+    #[BodyParameter('dependencies[].*.dependency_version', description: 'Dependency version for manual dependencies', type: 'string', required: false)]
+    #[BodyParameter('tags[]', description: 'Array of version tag slugs', type: 'array', required: false)]
+    public function store(Request $request, string $slug)
+    {
+        logger()->debug($request);
+
+        $project = Project::where('slug', $slug)->first();
+
+        abort_if(!$project, 404, 'Project not found');
+
+        // Check if the project is deactivated
+        abort_if($project->isDeactivated(), 403, 'This project has been deactivated and versions cannot be created.');
+
+        // Authorization check
+        abort_unless(Gate::allows('uploadVersion', $project), 403, 'You do not have permission to upload versions to this project.');
+
+        // Validate request
+        $validated = $request->validate($this->getStoreValidationRules($project));
+
+        // Prepare version data
+        $versionData = [
+            'name' => $validated['name'],
+            'version' => $validated['version'],
+            'release_type' => $validated['release_type'],
+            'release_date' => $validated['release_date'],
+            'changelog' => $validated['changelog'] ?? null,
+        ];
+
+        // Prepare dependencies
+        $dependencies = $validated['dependencies'] ?? [];
+
+        // Prepare tags
+        $tags = $validated['tags'] ?? [];
+
+        // Convert version tag slugs to IDs
+        $tags = !empty($tags)
+            ? ProjectVersionTag::whereIn('slug', $tags)->pluck('id')->toArray()
+            : [];
+
+        // Prepare files
+        $files = $validated['files'] ?? [];
+
+        abort(419,'');
+
+        try {
+            // Create version using service
+            $projectVersion = $this->projectVersionService->saveVersion(
+                $project,
+                $versionData,
+                $files,
+                [], // No existing files for new version
+                $dependencies,
+                $tags,
+                null // No existing version
+            );
+
+            return ProjectVersionResource::make($projectVersion->load(['tags','dependencies','files']))
+                ->additional(['message' => 'Version created successfully'])
+                ->response()
+                ->setStatusCode(201);
+        } catch (\Exception $e) {
+            abort(500, 'Failed to create version: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update an existing project version
+     *
+     * @requestMediaType multipart/form-data
+     */
+    #[HeaderParameter(name: 'Authorization', description: 'Bearer token', type: 'string', required: true, example: 'Bearer {token}')]
+    #[PathParameter(name: 'slug', description: 'The project slug')]
+    #[PathParameter(name: 'version', description: 'The project version')]
+    #[BodyParameter('name', description: 'The name of the version', type: 'string', required: true, example: 'Version 1.0.1')]
+    #[BodyParameter('version', description: 'The version number (must be unique for the project)', type: 'string', required: true, example: '1.0.1')]
+    #[BodyParameter('release_type', description: 'The release type', type: 'string', required: true, example: 'release')]
+    #[BodyParameter('release_date', description: 'The release date', type: 'string', format: 'date', required: true, example: '2024-01-20')]
+    #[BodyParameter('changelog', description: 'The changelog for this version', type: 'string', required: false, example: 'Bug fixes')]
+    #[BodyParameter('files[]', description: 'Array of new files to upload', type: 'array', required: false)]
+    #[BodyParameter('files[].*', description: 'File to upload', type: 'file', required: false)]
+    #[BodyParameter('files_to_remove[]', description: 'Array of names of existing files to delete', type: 'array', required: false, example: ['file1.txt', 'file2.txt'])]
+    #[BodyParameter('clean_existing_files', description: 'Boolean to indicate if existing files should be deleted', type: 'boolean', required: false)]
+    #[BodyParameter('dependencies[]', description: 'Array of dependencies', type: 'array', required: false)]
+    #[BodyParameter('dependencies[].*.type', description: 'Dependency type', type: 'string', required: true, example: 'required')]
+    #[BodyParameter('dependencies[].*.mode', description: 'Dependency mode (linked or manual)', type: 'string', required: true, example: 'linked')]
+    #[BodyParameter('dependencies[].*.project_id', description: 'Project ID for linked dependencies', type: 'integer', required: false)]
+    #[BodyParameter('dependencies[].*.version_id', description: 'Version ID for specific version dependencies', type: 'integer', required: false)]
+    #[BodyParameter('dependencies[].*.dependency_name', description: 'Dependency name for manual dependencies', type: 'string', required: false)]
+    #[BodyParameter('dependencies[].*.dependency_version', description: 'Dependency version for manual dependencies', type: 'string', required: false)]
+    #[BodyParameter('tags[]', description: 'Array of version tag slugs', type: 'array', required: false)]
+    public function update(Request $request, string $slug, string $version)
+    {
+        logger()->debug('Update project version');
+        logger()->debug($request);
+
+        $project = Project::where('slug', $slug)->first();
+
+        abort_if(!$project, 404, 'Project not found');
+
+        // Check if the project is deactivated
+        abort_if($project->isDeactivated(), 403, 'This project has been deactivated and versions cannot be edited.');
+
+        // Authorization check
+        abort_unless(Gate::allows('editVersion', $project), 403, 'You do not have permission to edit versions of this project.');
+
+        // Find the version
+        $projectVersion = $project->versions()->where('version', $version)->first();
+
+        abort_if(!$projectVersion, 404, 'Project version not found');
+
+        // Validate request
+        $validated = $request->validate($this->getUpdateValidationRules($project, $projectVersion));
+
+        // Prepare version data
+        $versionData = [
+            'name' => $validated['name'],
+            'version' => $validated['version'],
+            'release_type' => $validated['release_type'],
+            'release_date' => $validated['release_date'],
+            'changelog' => $validated['changelog'] ?? null,
+        ];
+
+        // Prepare dependencies
+        $dependencies = $validated['dependencies'] ?? [];
+
+        // Prepare tags
+        $tags = $validated['tags'] ?? [];
+
+        // Convert version tag slugs to IDs
+        $tags = !empty($tags)
+            ? ProjectVersionTag::whereIn('slug', $tags)->pluck('id')->toArray()
+            : [];
+
+        // Prepare files
+        $files = $validated['files'] ?? [];
+
+        // Prepare existing files for the service
+        $filesToRemove = $validated['files_to_remove'] ?? [];
+        $cleanExistingFiles = $validated['clean_existing_files'] ?? false;
+
+        // Build existing files array for the service
+        $existingFiles = [];
+
+        if ($cleanExistingFiles) {
+            // Mark all existing files for deletion
+            $existingFiles = $projectVersion->files->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'delete' => true,
+                ];
+            })->toArray();
+        } elseif (!empty($filesToRemove)) {
+            // Mark only specified files for deletion
+            $existingFiles = $projectVersion->files
+                ->whereIn('name', $filesToRemove)
+                ->map(function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'delete' => true,
+                    ];
+                })->toArray();
+        }
+
+        logger()->debug($existingFiles);
+
+        try {
+            // Update version using service
+            $updatedVersion = $this->projectVersionService->saveVersion(
+                $project,
+                $versionData,
+                $files,
+                $existingFiles,
+                $dependencies,
+                $tags,
+                $projectVersion
+            );
+
+            return ProjectVersionResource::make($updatedVersion->load(['tags','dependencies','files']))
+                ->additional(['message' => 'Version updated successfully']);
+        } catch (\Exception $e) {
+            abort(500, 'Failed to update version: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete a project version
+     */
+    #[HeaderParameter(name: 'Authorization', description: 'Bearer token', type: 'string', required: true, example: 'Bearer {token}')]
+    #[PathParameter(name: 'slug', description: 'The project slug')]
+    #[PathParameter(name: 'version', description: 'The project version')]
+    public function destroy(Request $request, string $slug, string $version)
+    {
+        $project = Project::where('slug', $slug)->first();
+
+        abort_if(!$project, 404, 'Project not found');
+
+        // Authorization check
+        abort_unless(Gate::allows('editVersion', $project), 403, 'You do not have permission to delete versions of this project.');
+
+        // Find the version
+        $projectVersion = $project->versions()->where('version', $version)->first();
+
+        abort_if(!$projectVersion, 404, 'Project version not found');
+
+        try {
+            // Delete version using service
+            $this->projectVersionService->deleteVersion($projectVersion, $project);
+
+            return response()->noContent();
+        } catch (\Exception $e) {
+            abort(500, 'Failed to delete version: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get validation rules for creating a new version
+     */
+    private function getStoreValidationRules(Project $project): array
+    {
+        $quotaLimits = $this->quotaService->getQuotaLimits(Auth::user(), $project->projectType, $project);
+
+        $rules = [
+            'name' => 'required|string|max:255',
+            'version' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique(ProjectVersion::class, 'version')->where('project_id', $project->id),
+            ],
+            'release_type' => 'required|in:alpha,beta,rc,release',
+            'release_date' => 'required|date',
+            'changelog' => 'nullable|string',
+            'files' => [
+                'required',
+                'array',
+                'min:1',
+                'max:' . $quotaLimits['files_per_version_max'],
+            ],
+            'files.*' => [
+                'file',
+                'max:' . $quotaLimits['file_size_max'] / 1024,
+            ],
+            'dependencies' => 'nullable|array',
+            'dependencies.*.type' => 'required|in:required,optional,embedded',
+            'dependencies.*.mode' => 'required|in:linked,manual',
+            'dependencies.*.project_slug' => 'nullable|exists:project,slug',
+            'dependencies.*.version_slug' => 'nullable|exists:project_version,slug',
+            'dependencies.*.dependency_name' => 'nullable|string|max:255',
+            'dependencies.*.dependency_version' => 'nullable|string|max:50',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:project_version_tag,slug',
+        ];
+
+        // Add dynamic validation for dependencies based on mode
+        //$this->addDependencyValidationRules($rules, []);
+
+        return $rules;
+    }
+
+    /**
+     * Get validation rules for updating an existing version
+     */
+    private function getUpdateValidationRules(Project $project, ProjectVersion $version): array
+    {
+        $quotaLimits = $this->quotaService->getQuotaLimits(Auth::user(), $project->projectType, $project);
+
+        $rules = [
+            'name' => 'required|string|max:255',
+            'version' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique(ProjectVersion::class, 'version')
+                    ->where('project_id', $project->id)
+                    ->ignore($version),
+            ],
+            'release_type' => 'required|in:alpha,beta,rc,release',
+            'release_date' => 'required|date',
+            'changelog' => 'nullable|string',
+            'files' => [
+                'nullable',
+                'array',
+                'max:' . $quotaLimits['files_per_version_max'],
+            ],
+            'files.*' => [
+                'file',
+                'max:' . $quotaLimits['file_size_max'] / 1024,
+            ],
+            'files_to_remove' => 'nullable|array',
+            'files_to_remove.*' => 'string|exists:project_file,name',
+            'clean_existing_files' => 'nullable|boolean',
+            'dependencies' => 'nullable|array',
+            'dependencies.*.type' => 'required|in:required,optional,embedded',
+            'dependencies.*.mode' => 'required|in:linked,manual',
+            'dependencies.*.project_id' => 'nullable|exists:project,id',
+            'dependencies.*.version_id' => 'nullable|exists:project_version,id',
+            'dependencies.*.dependency_name' => 'nullable|string|max:255',
+            'dependencies.*.dependency_version' => 'nullable|string|max:50',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:project_version_tag,slug',
+        ];
+
+        // Add dynamic validation for dependencies based on mode
+        //$this->addDependencyValidationRules($rules, []);
+
+        return $rules;
+    }
+
+    /**
+     * Add dynamic validation rules for dependencies based on their mode
+     */
+    private function addDependencyValidationRules(array &$rules, array $dependencies): void
+    {
+        foreach ($dependencies as $index => $dependency) {
+            if ($dependency['mode'] === 'linked') {
+                $rules["dependencies.{$index}.project_id"] = 'required|exists:project,id';
+                $rules["dependencies.{$index}.dependency_name"] = 'nullable|string|max:255';
+                $rules["dependencies.{$index}.dependency_version"] = 'nullable|string|max:50';
+            } else { // manual mode
+                $rules["dependencies.{$index}.dependency_name"] = 'required|string|max:255';
+                $rules["dependencies.{$index}.dependency_version"] = 'nullable|string|max:50';
+            }
+        }
     }
 }
