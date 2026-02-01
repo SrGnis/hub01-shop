@@ -48,7 +48,7 @@ trait HasUniqueSlug{
         }
 
         $baseSlug = Str::of($name)
-            ->slug(dictionary: ['@' => 'at', '.' => '_'])
+            ->slug(dictionary: ['@' => 'at'])
             ->limit(100);
 
         $slug = $prefix ? "{$prefix}_{$baseSlug}" : $baseSlug;
