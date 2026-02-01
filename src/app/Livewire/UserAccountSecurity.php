@@ -4,11 +4,13 @@ namespace App\Livewire;
 
 use App\Models\PendingEmailChange;
 use App\Models\PendingPasswordChange;
+use App\Services\ApiTokenService;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -25,17 +27,30 @@ class UserAccountSecurity extends Component
     public ?PendingEmailChange $pending_email_change = null;
     public ?PendingPasswordChange $pending_password_change = null;
 
-    private UserService $userService;
+    // API Token Management
+    public bool $show_token_modal = false;
+    public bool $show_token_display = false;
+    public bool $show_revoke_confirmation = false;
+    public string $token_name = '';
+    public string $token_expiration = '';
+    public ?string $displayed_token = null;
+    public ?int $editing_token_id = null;
+    public ?string $editing_token_name = null;
 
-    public function boot(UserService $userService)
+    private UserService $userService;
+    private ApiTokenService $apiTokenService;
+
+    public function boot(UserService $userService, ApiTokenService $apiTokenService)
     {
         $this->userService = $userService;
+        $this->apiTokenService = $apiTokenService;
     }
 
     public function mount()
     {
         $this->loadPendingEmailChange();
         $this->loadPendingPasswordChange();
+        $this->token_expiration = '';
     }
 
     private function loadPendingEmailChange(): void
@@ -181,9 +196,143 @@ class UserAccountSecurity extends Component
         $this->resetErrorBag();
     }
 
+    // API Token Management Methods
+
+    public function openTokenModal()
+    {
+        $this->resetTokenForm();
+        $this->show_token_modal = true;
+    }
+
+    public function closeTokenModal()
+    {
+        $this->show_token_modal = false;
+        $this->resetTokenForm();
+    }
+
+    public function closeTokenDisplay()
+    {
+        $this->show_token_display = false;
+        $this->displayed_token = null;
+    }
+
+    public function resetTokenForm()
+    {
+        $this->token_name = '';
+        $this->token_expiration = '';
+        $this->editing_token_id = null;
+        $this->editing_token_name = null;
+        $this->resetErrorBag();
+    }
+
+    public function createToken()
+    {
+        $this->validate([
+            'token_name' => 'required|string|min:3|max:255',
+            'token_expiration' => 'nullable|date|after_or_equal:today',
+        ], [
+            'token_name.required' => 'Please enter a name for your token.',
+            'token_name.min' => 'Token name must be at least 3 characters.',
+            'token_expiration.after_or_equal' => 'Expiration date must be today or later.',
+        ]);
+
+        try {
+            $expirationDate = !empty($this->token_expiration) ? new \DateTime($this->token_expiration) : null;
+            $result = $this->apiTokenService->createToken(
+                Auth::user(),
+                $this->token_name,
+                $expirationDate
+            );
+
+            $this->displayed_token = $result->plainTextToken;
+            $this->show_token_modal = false;
+            $this->show_token_display = true;
+            $this->resetTokenForm();
+            $this->success('API token created successfully!');
+        } catch (\Exception $e) {
+            logger()->error('Failed to create API token', ['error' => $e->getMessage()]);
+            $this->error('Failed to create API token. Please try again.');
+        }
+    }
+
+    public function confirmRevokeToken(int $tokenId)
+    {
+        $this->editing_token_id = $tokenId;
+        $this->show_revoke_confirmation = true;
+    }
+
+    public function revokeToken(int $tokenId)
+    {
+        try {
+            $success = $this->apiTokenService->revokeToken(Auth::user(), $tokenId);
+
+            if ($success) {
+                $this->success('API token revoked successfully.');
+            } else {
+                $this->error('Token not found.');
+            }
+        } catch (\Exception $e) {
+            logger()->error('Failed to revoke API token', ['error' => $e->getMessage()]);
+            $this->error('Failed to revoke token. Please try again.');
+        }
+
+        $this->editing_token_id = null;
+        $this->show_revoke_confirmation = false;
+    }
+
+    public function renewToken(int $tokenId)
+    {
+        $token = $this->apiTokenService->getToken(Auth::user(), $tokenId);
+
+        if (!$token) {
+            $this->error('Token not found.');
+            return;
+        }
+
+        $this->editing_token_id = $tokenId;
+        $this->editing_token_name = $token->name;
+        $this->token_name = $token->name;
+        $this->token_expiration = '';
+        $this->show_token_modal = true;
+    }
+
+    public function updateTokenExpiration()
+    {
+        $this->validate([
+            'token_expiration' => 'nullable|date|after_or_equal:today',
+        ], [
+            'token_expiration.after_or_equal' => 'Expiration date must be today or later.',
+        ]);
+
+        try {
+            $newExpirationDate = !empty($this->token_expiration) ? new \DateTime($this->token_expiration) : null;
+            $success = $this->apiTokenService->renewToken(
+                Auth::user(),
+                $this->editing_token_id,
+                $newExpirationDate
+            );
+
+            if ($success) {
+                $this->success('Token expiration updated successfully.');
+            } else {
+                $this->error('Token not found.');
+            }
+        } catch (\Exception $e) {
+            logger()->error('Failed to renew API token', ['error' => $e->getMessage()]);
+            $this->error('Failed to update token expiration. Please try again.');
+        }
+
+        $this->closeTokenModal();
+    }
+
+    #[Computed]
+    public function tokens()
+    {
+        return $this->apiTokenService->getUserTokens(Auth::user());
+    }
+
     public function render()
     {
         return view('livewire.user-account-security');
     }
 }
-

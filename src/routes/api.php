@@ -1,10 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\TokenTestController;
 use App\Http\Controllers\Api\V1\TagController as TagControllerV1;
 use App\Http\Controllers\Api\V1\ProjectController as ProjectControllerV1;
 use App\Http\Controllers\Api\V1\ProjectVersionController as ProjectVersionControllerV1;
 use App\Http\Controllers\Api\V1\UserController as UserControllerV1;
+
+// Token Test Endpoint (requires authentication)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/test-token', TokenTestController::class);
+});
 
 Route::prefix('v1')->group(function () {
     // Tags
