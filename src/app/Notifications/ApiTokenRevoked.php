@@ -23,7 +23,7 @@ class ApiTokenRevoked extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail','database'];
     }
 
     /**
@@ -39,5 +39,18 @@ class ApiTokenRevoked extends Notification implements ShouldQueue
             ->line('This token can no longer be used to access the API.')
             ->line('If you did not revoke this token, please contact our support team immediately.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'token_name' => $this->tokenName,
+            'type' => 'api_token_revoked',
+        ];
     }
 }

@@ -19,7 +19,7 @@ class AuthorizeEmailChange extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -38,6 +38,19 @@ class AuthorizeEmailChange extends Notification implements ShouldQueue
             ->action('Authorize Email Change', $authorizationUrl)
             ->line('If you did not request this change, change your password immediately.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'new_email' => $this->pendingChange->new_email,
+            'type' => 'email_change_authorize',
+        ];
     }
 }
 

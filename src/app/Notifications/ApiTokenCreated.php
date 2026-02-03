@@ -24,7 +24,7 @@ class ApiTokenCreated extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail','database'];
     }
 
     /**
@@ -45,5 +45,19 @@ class ApiTokenCreated extends Notification implements ShouldQueue
             ->line('You can manage your API tokens in your account security settings.')
             ->line('If you did not create this token, please contact our support team immediately.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'token_name' => $this->tokenName,
+            'expiration_date' => $this->expirationDate?->format('Y-m-d H:i:s'),
+            'type' => 'api_token_created',
+        ];
     }
 }

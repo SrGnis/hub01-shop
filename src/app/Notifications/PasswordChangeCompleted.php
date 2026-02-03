@@ -13,7 +13,7 @@ class PasswordChangeCompleted extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -25,5 +25,16 @@ class PasswordChangeCompleted extends Notification implements ShouldQueue
             ->line('If you did not make this change, please contact our support team immediately and change your password.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
     }
-}
 
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'password_change_completed',
+        ];
+    }
+}
