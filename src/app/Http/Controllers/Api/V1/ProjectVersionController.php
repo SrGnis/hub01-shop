@@ -51,7 +51,7 @@ class ProjectVersionController extends Controller
         // Validate all query parameters
         $validated = $request->validate([
             'tags' => 'nullable|array',
-            'tags.*' => 'string|exists:project_version_tags,slug',
+            'tags.*' => 'string|exists:project_version_tag,slug',
             'order_by' => 'nullable|string|in:version,release_date,downloads',
             'order_direction' => 'nullable|string|in:asc,desc',
             'per_page' => 'nullable|integer|in:10,25,50,100',
@@ -129,14 +129,12 @@ class ProjectVersionController extends Controller
     #[BodyParameter('changelog', description: 'The changelog for this version', type: 'string', required: false, example: 'Initial release')]
     #[BodyParameter('files[]', description: 'Array of files to upload', type: 'array', required: true)]
     #[BodyParameter('files[].*', description: 'File to upload', type: 'file', required: true)]
-    #[BodyParameter('dependencies[]', description: 'Array of dependencies', type: 'array', required: false)]
-    #[BodyParameter('dependencies[].*.type', description: 'Dependency type: `required`, `optional` or `embedded`', type: 'string', required: true, example: 'required')]
-    #[BodyParameter('dependencies[].*.mode', description: 'Dependency mode: `linked` or `manual`', type: 'string', required: true, example: 'linked')]
-    #[BodyParameter('dependencies[].*.project_slug', description: 'Project slug for linked dependencies', type: 'string', required: false)]
-    #[BodyParameter('dependencies[].*.version_number', description: 'Version number for specific version dependencies', type: 'string', required: false)]
-    #[BodyParameter('dependencies[].*.dependency_name', description: 'Dependency name for manual dependencies', type: 'string', required: false)]
-    #[BodyParameter('dependencies[].*.dependency_version', description: 'Dependency version for manual dependencies', type: 'string', required: false)]
     #[BodyParameter('tags[]', description: 'Array of version tag slugs', type: 'array', required: false)]
+    #[BodyParameter('dependencies[]', description: 'Array of dependencies', type: 'array', required: false)]
+    #[BodyParameter('dependencies[].*.project', description: 'Project slug of the dependency', type: 'string', required: true)]
+    #[BodyParameter('dependencies[].*.version', description: 'Version slug of the dependency', type: 'string', required: false)]
+    #[BodyParameter('dependencies[].*.type', description: 'Dependency type: `required`, `optional` or `embedded`', type: 'string', required: true, example: 'required')]
+    #[BodyParameter('dependencies[].*.external', description: 'If the dependency is linked to a project in the platform or is external', type: 'boolean', required: true, default: true)]
     public function store(Request $request, string $slug)
     {
         logger()->debug($request);
@@ -163,8 +161,8 @@ class ProjectVersionController extends Controller
             'changelog' => $validated['changelog'] ?? null,
         ];
 
-        // Prepare dependencies
-        $dependencies = $validated['dependencies'] ?? [];
+        // Prepare dependencies - convert slugs to IDs
+        $dependencies = $this->convertDependencySlugsToIds($validated['dependencies'] ?? []);
 
         // Prepare tags
         $tags = $validated['tags'] ?? [];
@@ -213,18 +211,16 @@ class ProjectVersionController extends Controller
     #[BodyParameter('release_type', description: 'The release type', type: 'string', required: true, example: 'release')]
     #[BodyParameter('release_date', description: 'The release date', type: 'string', format: 'date', required: true, example: '2024-01-20')]
     #[BodyParameter('changelog', description: 'The changelog for this version', type: 'string', required: false, example: 'Bug fixes')]
+    #[BodyParameter('tags[]', description: 'Array of version tag slugs', type: 'array', required: false)]
     #[BodyParameter('files[]', description: 'Array of new files to upload', type: 'array', required: false)]
     #[BodyParameter('files[].*', description: 'File to upload', type: 'file', required: false)]
     #[BodyParameter('files_to_remove[]', description: 'Array of names of existing files to delete', type: 'array', required: false, example: ['file1.txt', 'file2.txt'])]
     #[BodyParameter('clean_existing_files', description: 'Boolean to indicate if existing files should be deleted', type: 'boolean', required: false)]
     #[BodyParameter('dependencies[]', description: 'Array of dependencies', type: 'array', required: false)]
-    #[BodyParameter('dependencies[].*.type', description: 'Dependency type', type: 'string', required: true, example: 'required')]
-    #[BodyParameter('dependencies[].*.mode', description: 'Dependency mode (linked or manual)', type: 'string', required: true, example: 'linked')]
-    #[BodyParameter('dependencies[].*.project_id', description: 'Project ID for linked dependencies', type: 'integer', required: false)]
-    #[BodyParameter('dependencies[].*.version_id', description: 'Version ID for specific version dependencies', type: 'integer', required: false)]
-    #[BodyParameter('dependencies[].*.dependency_name', description: 'Dependency name for manual dependencies', type: 'string', required: false)]
-    #[BodyParameter('dependencies[].*.dependency_version', description: 'Dependency version for manual dependencies', type: 'string', required: false)]
-    #[BodyParameter('tags[]', description: 'Array of version tag slugs', type: 'array', required: false)]
+    #[BodyParameter('dependencies[].*.project', description: 'Project slug of the dependency', type: 'string', required: true)]
+    #[BodyParameter('dependencies[].*.version', description: 'Version slug of the dependency', type: 'string', required: false)]
+    #[BodyParameter('dependencies[].*.type', description: 'Dependency type', type: 'string', required: true, default: 'required')]
+    #[BodyParameter('dependencies[].*.external', description: 'If the dependency is linked to a project in the platform or is external', type: 'boolean', required: true, default: true)]
     public function update(Request $request, string $slug, string $version)
     {
         logger()->debug('Update project version');
@@ -257,8 +253,8 @@ class ProjectVersionController extends Controller
             'changelog' => $validated['changelog'] ?? null,
         ];
 
-        // Prepare dependencies
-        $dependencies = $validated['dependencies'] ?? [];
+        // Prepare dependencies - convert slugs to IDs
+        $dependencies = $this->convertDependencySlugsToIds($validated['dependencies'] ?? []);
 
         // Prepare tags
         $tags = $validated['tags'] ?? [];
@@ -378,25 +374,19 @@ class ProjectVersionController extends Controller
                 'max:' . $quotaLimits['file_size_max'] / 1024,
             ],
             'dependencies' => 'nullable|array',
+            'dependencies.*.project' => 'required|exists:project,slug',
+            'dependencies.*.version' => 'nullable|exists:project_version,version',
             'dependencies.*.type' => 'required|in:required,optional,embedded',
-            'dependencies.*.mode' => 'required|in:linked,manual',
-            'dependencies.*.project_slug' => 'nullable|exists:project,slug',
-            'dependencies.*.version_slug' => 'nullable|exists:project_version,slug',
-            'dependencies.*.dependency_name' => 'nullable|string|max:255',
-            'dependencies.*.dependency_version' => 'nullable|string|max:50',
+            'dependencies.*.external' => 'required|boolean',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:project_version_tag,slug',
         ];
 
-        // Add dynamic validation for dependencies based on mode
-        //$this->addDependencyValidationRules($rules, []);
+        // Add dynamic validation for dependencies based on external flag
+        $this->addDependencyValidationRules($rules, $dependencies ?? []);
 
         return $rules;
     }
-
-    /**
-     * Get validation rules for updating an existing version
-     */
     private function getUpdateValidationRules(Project $project, ProjectVersion $version): array
     {
         $quotaLimits = $this->quotaService->getQuotaLimits(Auth::user(), $project->projectType, $project);
@@ -427,36 +417,87 @@ class ProjectVersionController extends Controller
             'files_to_remove.*' => 'string|exists:project_file,name',
             'clean_existing_files' => 'nullable|boolean',
             'dependencies' => 'nullable|array',
+            'dependencies.*.project' => 'required|exists:project,slug',
+            'dependencies.*.version' => 'nullable|exists:project_version,version',
             'dependencies.*.type' => 'required|in:required,optional,embedded',
-            'dependencies.*.mode' => 'required|in:linked,manual',
-            'dependencies.*.project_id' => 'nullable|exists:project,id',
-            'dependencies.*.version_id' => 'nullable|exists:project_version,id',
-            'dependencies.*.dependency_name' => 'nullable|string|max:255',
-            'dependencies.*.dependency_version' => 'nullable|string|max:50',
+            'dependencies.*.external' => 'required|boolean',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:project_version_tag,slug',
         ];
 
-        // Add dynamic validation for dependencies based on mode
-        //$this->addDependencyValidationRules($rules, []);
+        // Add dynamic validation for dependencies based on external flag
+        $this->addDependencyValidationRules($rules, $dependencies ?? []);
 
         return $rules;
     }
 
     /**
-     * Add dynamic validation rules for dependencies based on their mode
+     * Add dynamic validation rules for dependencies based on their external flag
      */
     private function addDependencyValidationRules(array &$rules, array $dependencies): void
     {
         foreach ($dependencies as $index => $dependency) {
-            if ($dependency['mode'] === 'linked') {
-                $rules["dependencies.{$index}.project_id"] = 'required|exists:project,id';
-                $rules["dependencies.{$index}.dependency_name"] = 'nullable|string|max:255';
-                $rules["dependencies.{$index}.dependency_version"] = 'nullable|string|max:50';
-            } else { // manual mode
+            if ($dependency['external'] === false) {
+                // External dependencies (not linked to platform project)
                 $rules["dependencies.{$index}.dependency_name"] = 'required|string|max:255';
                 $rules["dependencies.{$index}.dependency_version"] = 'nullable|string|max:50';
             }
         }
+    }
+
+    /**
+     * Convert dependency slugs to IDs for the service layer
+     */
+    private function convertDependencySlugsToIds(array $dependencies): array
+    {
+        if (empty($dependencies)) {
+            return [];
+        }
+
+        $converted = [];
+
+        foreach ($dependencies as $dependency) {
+            // Convert external flag to mode for service layer compatibility
+            $mode = $dependency['external'] === true ? 'linked' : 'manual';
+
+            $convertedDependency = [
+                'type' => $dependency['type'],
+                'mode' => $mode,
+            ];
+
+            // For platform-linked dependencies (external=true -> mode='linked')
+            if ($dependency['external'] === true) {
+                // Convert project slug to project_id
+                if (!empty($dependency['project'])) {
+                    $project = Project::where('slug', $dependency['project'])->first();
+                    if ($project) {
+                        $convertedDependency['project_id'] = $project->id;
+                    }
+                }
+
+                // Convert version slug to version_id
+                if (!empty($dependency['version'])) {
+                    $version = ProjectVersion::where('version', $dependency['version'])->first();
+                    if ($version) {
+                        $convertedDependency['version_id'] = $version->id;
+                        $convertedDependency['has_specific_version'] = true;
+                    } else {
+                        $convertedDependency['has_specific_version'] = false;
+                    }
+                } else {
+                    $convertedDependency['has_specific_version'] = false;
+                }
+            }
+            // For external dependencies (external=false -> mode='manual')
+            else {
+                $convertedDependency['dependency_name'] = $dependency['dependency_name'] ?? null;
+                $convertedDependency['dependency_version'] = $dependency['dependency_version'] ?? null;
+                $convertedDependency['has_manual_version'] = !empty($dependency['dependency_version']);
+            }
+
+            $converted[] = $convertedDependency;
+        }
+
+        return $converted;
     }
 }

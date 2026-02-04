@@ -32,10 +32,11 @@ class UserController extends Controller
         abort_if(!$user, 404, 'User not found');
 
         $projects = Project::exclude(['description'])
+            ->globalSearchScope()
             ->whereHas('memberships', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->where('status', 'active');
-            })->paginate();
+            })->paginate(10);
 
         return ProjectResource::collection($projects);
     }

@@ -18,7 +18,14 @@ class ProjectTagResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'icon' => $this->icon,
+            /**
+             * @var string | null
+             */
             'tag_group' => $this->tagGroup?->slug,
+            /**
+             * @var array<string>
+             * Array of project type slugs
+             */
             'project_types' => $this->projectTypes->pluck('value'),
             /**
              * Unset when the request does not have the `plain` query parameter or is a single query

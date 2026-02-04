@@ -63,7 +63,7 @@ class ProjectController extends Controller
      */
     #[Group('Projects')]
     public function getProjectBySlug(Request $request, string $slug){
-        $project = Project::where('slug', $slug)->first();
+        $project = Project::accessScope()->where('slug', $slug)->first();
 
         if(!$project){
             return response()->json(['message' => 'Project not found'], 404);
@@ -93,12 +93,12 @@ class ProjectController extends Controller
 
         // Validate all query parameters
         $validated = $request->validate([
-            'project_type' => 'nullable|string|exists:project_types,value',
+            'project_type' => 'nullable|string|exists:project_type,value',
             'search' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
-            'tags.*' => 'string|exists:project_tags,slug',
+            'tags.*' => 'string|exists:project_tag,slug',
             'version_tags' => 'nullable|array',
-            'version_tags.*' => 'string|exists:project_version_tags,slug',
+            'version_tags.*' => 'string|exists:project_version_tag,slug',
             'order_by' => 'nullable|string|in:name,created_at,latest_version,downloads',
             'order_direction' => 'nullable|string|in:asc,desc',
             'per_page' => 'nullable|integer|in:10,25,50,100',
