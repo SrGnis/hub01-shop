@@ -1,0 +1,15 @@
+#!/bin/bash
+
+export DUID=$UID
+export DGID=$(id -g)
+
+# Launch Development Composer
+#
+# Runs docker compose with the development compose file and the given commands as arguments, also sets the DUID environment variable to the current user id.
+dcdev() {
+  echo "Running docker compose with DUID=$DUID and DGID=$DGID"
+  DUID=$DUID DGID=$DGID docker compose -f docker-compose-dev.yml ${@:1}
+}
+
+# Launch Development Composer with the provided arguments
+dcdev "$@"

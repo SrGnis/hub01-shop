@@ -3,3 +3,5 @@
 !.env.testing
 ignore
 plans
+/bruno/v1/environments/*.bru
+!/bruno/v1/environments/*_example.bru

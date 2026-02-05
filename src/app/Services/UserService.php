@@ -90,9 +90,24 @@ class UserService
 
     /**
      * Delete a user (Admin function)
+     *
+     * Delete all the projects that he is the primary member
+     *
+     * Delete all the memberships
      */
     public function delete(User $user): void
     {
+        $memberships = $user->memberships()->get();
+
+        foreach ($user->ownedProjects as $project) {
+            $projectService = app(ProjectService::class);
+            $projectService->deleteProject($project);
+        }
+
+        foreach ($memberships as $membership) {
+            $membership->delete();
+        }
+
         $user->delete();
 
         Log::info('User deleted by admin', [

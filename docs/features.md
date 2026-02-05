@@ -15,6 +15,11 @@
     - Disable (Admin only)
         - No Profile Visibility
         - Cannot login
+    - API Tokens
+        - List
+        - Create
+        - Revoke
+        - Renew
 
 - Tags
     - Project Tags
@@ -88,6 +93,21 @@
     - Project
     - Project Version
     - User
+
+- API
+    - Project Types
+        - List
+    - Project Tags
+        - List
+    - Version Tags
+        - List
+    - Projects
+        - List
+    - Project Versions
+        - List
+        - Create
+        - Update
+        - Delete
 
 - Quotas
     - 3 pending projects at a time

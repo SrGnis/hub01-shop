@@ -19,7 +19,7 @@ class VerifyNewEmail extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -38,6 +38,19 @@ class VerifyNewEmail extends Notification implements ShouldQueue
             ->action('Verify New Email', $verificationUrl)
             ->line('If you did not request this change, please contact our support team immediately.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'new_email' => $this->pendingChange->new_email,
+            'type' => 'email_verify_new',
+        ];
     }
 }
 

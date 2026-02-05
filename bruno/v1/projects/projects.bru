@@ -1,0 +1,16 @@
+meta {
+  name: projects
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/projects
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

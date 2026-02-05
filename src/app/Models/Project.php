@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ApprovalStatus;
 use App\Models\Scopes\ProjectFullScope;
+use App\Traits\ExcludeScope;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,6 +30,8 @@ class Project extends Model
     use HasFactory;
 
     use SoftDeletes;
+
+    use ExcludeScope;
 
     /**
      * The table associated with the model.
@@ -397,6 +400,26 @@ class Project extends Model
     {
         return Attribute::make(
             get: fn () => Str::title($this->name)
+        );
+    }
+
+    /**
+     * Get number of downloads
+     */
+    public function downloads(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->versions->sum('downloads')
+        );
+    }
+
+    /**
+     * Get the recent release date attribute
+     */
+    public function recentReleaseDate(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->versions->sortByDesc('release_date')->first()?->release_date
         );
     }
 

@@ -1,0 +1,30 @@
+meta {
+  name: projects_query
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/projects
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~tags[]: sci-fi
+  ~tags[]: equipment
+  ~version_tags[]: dda
+  ~project_type: tile_set
+  ~search: test
+  ~order_by: name
+  ~order_direction: asc
+  ~per_page: 25
+  ~release_date_period: last_30_days
+  ~release_date_start: 
+  ~release_date_end: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

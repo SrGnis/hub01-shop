@@ -1,0 +1,11 @@
+meta {
+  name: project_version_tags
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/version_tags
+  body: none
+  auth: none
+}

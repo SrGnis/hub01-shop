@@ -10,14 +10,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
+    use HasFactory,
+        Notifiable,
+        TwoFactorAuthenticatable,
+        SoftDeletes,
+        HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -42,6 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'password',
+        'email',
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',

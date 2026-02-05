@@ -11,7 +11,6 @@ use App\Models\ProjectVersionTagGroup;
 use App\Models\ProjectType;
 use App\Notifications\BrokenDependencyNotification;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -331,5 +330,78 @@ class ProjectVersionService
                 ];
             })
             ->toArray();
+    }
+
+    /**
+     * Get paginated project versions with filters and sorting
+     */
+    public function getProjectVersions(
+        Project $project,
+        array $selectedVersionTags = [],
+        string $orderBy = 'release_date',
+        string $orderDirection = 'desc',
+        int $perPage = 10,
+        string $releaseDatePeriod = 'all',
+        ?string $releaseDateStart = null,
+        ?string $releaseDateEnd = null,
+        ?array $with = null
+    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
+        return $project->versions()
+            ->with($with ?? [
+                'tags.tagGroup',
+                'project.projectType',
+                'project.owner'
+            ])
+            ->when(!empty($selectedVersionTags) || $releaseDatePeriod !== 'all', function (\Illuminate\Database\Eloquent\Builder $query) use ($selectedVersionTags, $releaseDatePeriod, $releaseDateStart, $releaseDateEnd) {
+                // Filter by version tags
+                if (!empty($selectedVersionTags)) {
+                    $query->whereHas('tags', function (\Illuminate\Database\Eloquent\Builder $q) use ($selectedVersionTags) {
+                        $q->whereIn('project_version_tag.id', $selectedVersionTags);
+                    }, '>=', count($selectedVersionTags));
+                }
+
+                // Filter by release date
+                if ($releaseDatePeriod !== 'all') {
+                    $startDate = match ($releaseDatePeriod) {
+                        'last_30_days' => now()->subDays(30)->startOfDay(),
+                        'last_90_days' => now()->subDays(90)->startOfDay(),
+                        'last_year' => now()->subYear()->startOfDay(),
+                        'custom' => $releaseDateStart ? \Carbon\Carbon::parse($releaseDateStart)->startOfDay() : null,
+                        default => null,
+                    };
+
+                    $endDate = match ($releaseDatePeriod) {
+                        'custom' => $releaseDateEnd ? \Carbon\Carbon::parse($releaseDateEnd)->endOfDay() : null,
+                        default => null,
+                    };
+
+                    if ($startDate) {
+                        $query->where('release_date', '>=', $startDate);
+                    }
+
+                    if ($endDate) {
+                        $query->where('release_date', '<=', $endDate);
+                    }
+                }
+            })
+            ->orderBy($orderBy, $orderDirection)
+            ->paginate($perPage);
+    }
+
+    /**
+     * Get a specific project version by version string
+     */
+    public function getProjectVersionByVersionString(Project $project, string $version): ?ProjectVersion
+    {
+        return $project->versions()
+            ->with([
+                'tags.tagGroup',
+                'project.projectType',
+                'project.owner',
+                'files',
+                'dependencies'
+            ])
+            ->where('version', $version)
+            ->first();
     }
 }

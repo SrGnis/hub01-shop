@@ -18,7 +18,7 @@ class EmailChangeCompleted extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -31,6 +31,20 @@ class EmailChangeCompleted extends Notification implements ShouldQueue
             ->line('New email: ' . $this->newEmail)
             ->line('If you did not make this change, please contact our support team immediately.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'old_email' => $this->oldEmail,
+            'new_email' => $this->newEmail,
+            'type' => 'email_change_completed',
+        ];
     }
 }
 

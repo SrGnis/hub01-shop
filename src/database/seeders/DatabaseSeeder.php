@@ -339,5 +339,51 @@ class DatabaseSeeder extends Seeder
                 'versions'
             )
             ->create();
+
+        // Create a project of each type with versions and files with a static name for testing
+        Project::factory(1)
+            ->mod()
+            ->has(
+                ProjectVersion::factory(1)
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
+                'versions'
+            )
+            ->create([
+                'name' => 'Test Mod',
+                'slug' => 'test-mod',
+            ]);
+
+        Project::factory(1)
+            ->tileSet()
+            ->has(
+                ProjectVersion::factory(1)
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
+                'versions'
+            )
+            ->create([
+                'name' => 'Test Tile Set',
+                'slug' => 'test-tile-set',
+            ]);
+
+        Project::factory(1)
+            ->soundPack()
+            ->has(
+                ProjectVersion::factory(1)
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
+                'versions'
+            )
+            ->create([
+                'name' => 'Test Sound Pack',
+                'slug' => 'test-sound-pack',
+            ]);
     }
 }
