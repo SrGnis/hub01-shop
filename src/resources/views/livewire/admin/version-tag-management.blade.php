@@ -7,6 +7,7 @@
     {{-- Version Tags Table with Hierarchical Display --}}
     <x-table :headers="[
         ['key' => 'name', 'label' => 'Name'],
+        ['key' => 'slug', 'label' => 'Slug'],
         ['key' => 'icon', 'label' => 'Icon'],
         ['key' => 'group', 'label' => 'Group'],
         ['key' => 'sub_tags_count', 'label' => 'Sub-tags'],
@@ -21,6 +22,10 @@
                     <x-badge value="Sub-tag" class="badge-xs badge-info" />
                 @endif
             </div>
+        @endscope
+
+        @scope('cell_slug', $tag)
+            <code class="text-xs text-gray-500">{{ $tag->slug }}</code>
         @endscope
 
         @scope('cell_icon', $tag)
@@ -85,7 +90,10 @@
     {{-- Create/Edit Modal --}}
     <x-modal wire:model="showModal" title="{{ $isEditingVersionTag ? 'Edit Version Tag' : 'Create Version Tag' }}">
         <x-form wire:submit="saveVersionTag">
-            <x-input label="Name" wire:model="versionTagName" hint="Tag name (e.g., '1.20.1', 'Forge')" required />
+            <x-input label="Name" wire:model.live.debounce.500ms="versionTagName" hint="Tag name (e.g., '1.20.1', 'Forge')" required />
+
+            <x-input label="Slug" wire:model.live.debounce.500ms="versionTagSlug" spinner="versionTagName, versionTagSlug" />
+
             <x-input label="Icon" wire:model="versionTagIcon" hint="Lucide icon name (must start with 'lucide-')"
                 required />
 
@@ -93,18 +101,19 @@
                 Preview: <x-icon :name="$versionTagIcon" class="w-5 h-5 inline" />
             </div>
 
-            <x-select label="Version Tag Group" wire:model="versionTagGroupId" :options="$versionTagGroups"
-                placeholder="Select group (optional)" />
-
             <x-select
                 label="Parent Tag (Main Tag)"
-                wire:model="versionTagParentId"
+                wire:model.live="versionTagParentId"
                 :options="$mainVersionTags"
                 placeholder="None (this is a main tag)"
                 hint="Select a parent tag to make this a sub-tag"
             />
 
-            <div class="form-control">
+            @if(!$versionTagParentId)
+                <x-select label="Version Tag Group" wire:model="versionTagGroupId" :options="$versionTagGroups"
+                    placeholder="Select group (optional)" />
+
+                <div class="form-control">
                 <label class="label">
                     <span class="label-text">Associated Project Types</span>
                 </label>
@@ -114,6 +123,7 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             <x-slot:actions>
                 <x-button label="Cancel" wire:click="$set('showModal', false)" />

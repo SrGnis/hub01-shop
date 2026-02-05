@@ -16,6 +16,8 @@ class TagManagement extends Component
 
     public $projectTagName = '';
 
+    public $projectTagSlug = '';
+
     public $tagIcon = 'lucide-tag';
 
     public ?int $tagGroupId = null;
@@ -41,6 +43,7 @@ class TagManagement extends Component
     {
         return [
             'projectTagName' => 'required|string|max:50',
+            'projectTagSlug' => 'required|string|max:50|unique:project_tag,slug,' . $this->tagId,
             'tagIcon' => 'required|string|max:50|starts_with:lucide-',
             'tagParentId' => 'nullable|exists:project_tag,id',
         ];
@@ -52,6 +55,18 @@ class TagManagement extends Component
             'tagIcon.starts_with' => 'The icon must be a valid Lucide icon (starts with "lucide-").',
             'tagParentId.exists' => 'The selected parent tag does not exist.',
         ];
+    }
+
+    public function updatedProjectTagName(){
+        $this->projectTagSlug = ProjectTag::createSlug($this->projectTagName);
+
+        $this->resetValidation('projectTagSlug');
+        $this->validateOnly('projectTagSlug');
+    }
+
+    public function updatedProjectTagSlug(){
+        $this->resetValidation('projectTagSlug');
+        $this->validateOnly('projectTagSlug');
     }
 
     public function createTag()
@@ -72,6 +87,7 @@ class TagManagement extends Component
 
         $this->tagId = $tag->id;
         $this->projectTagName = $tag->name;
+        $this->projectTagSlug = $tag->slug;
         $this->tagIcon = $tag->icon;
         $this->tagGroupId = $tag->project_tag_group_id;
         $this->tagParentId = $tag->parent_id;
@@ -87,6 +103,7 @@ class TagManagement extends Component
         if ($this->isEditingTag) {
             $tag = ProjectTag::find($this->tagId);
             $tag->name = $this->projectTagName;
+            $tag->slug = $this->projectTagSlug;
             $tag->icon = $this->tagIcon;
             $tag->project_tag_group_id = $this->tagGroupId;
             $tag->parent_id = $this->tagParentId;
@@ -99,6 +116,7 @@ class TagManagement extends Component
         } else {
             $tag = ProjectTag::create([
                 'name' => $this->projectTagName,
+                'slug' => $this->projectTagSlug,
                 'icon' => $this->tagIcon,
                 'project_tag_group_id' => $this->tagGroupId,
                 'parent_id' => $this->tagParentId,
@@ -118,6 +136,7 @@ class TagManagement extends Component
     {
         $this->tagId = null;
         $this->projectTagName = '';
+        $this->projectTagSlug = '';
         $this->tagIcon = 'lucide-tag';
         $this->tagGroupId = null;
         $this->tagParentId = null;

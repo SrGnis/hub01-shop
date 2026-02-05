@@ -219,7 +219,7 @@ class ProjectForm extends Component
         $this->generateSlug();
     }
 
-    public function updatedslug(): void
+    public function updatedSlug(): void
     {
         $this->resetValidation('slug');
         $slug_rules = $this->rules()['slug'];

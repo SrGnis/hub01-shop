@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @mixin IdeHelperProjectFile
@@ -53,5 +55,38 @@ class ProjectFile extends Model
     public function projectVersion(): BelongsTo
     {
         return $this->belongsTo(ProjectVersion::class);
+    }
+
+    /**
+     * Get the url to download the file
+     */
+    public function downloadUrl() : Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return route('file.download', [
+                    'projectType' => $this->projectVersion->project->projectType,
+                    'project' => $this->projectVersion->project,
+                    'version' => $this->projectVersion,
+                    'file' => $this
+                ]);
+            }
+        );
+    }
+
+    /**
+     * Get the SHA1 hash of the file
+     */
+    public function sha1(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!Storage::disk(static::getDisk())->exists($this->path)) {
+                    return null;
+                }
+
+                return sha1_file(Storage::disk(static::getDisk())->path($this->path));
+            }
+        );
     }
 }

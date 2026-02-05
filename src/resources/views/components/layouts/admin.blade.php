@@ -96,6 +96,7 @@
 
                 <x-menu-title class="hidden-when-collapsed" title="Management" />
                 <x-menu-item title="Users" icon="lucide-users" link="{{ route('admin.users') }}" />
+                <x-menu-item title="Notifications" icon="lucide-bell" link="{{ route('admin.notifications') }}" />
                 <x-menu-sub title="Projects" icon="lucide-package" open>
                     <x-menu-item title="List" icon="list" link="{{ route('admin.projects.index') }}" />
                     <x-menu-item title="Approvals" icon="check-circle"

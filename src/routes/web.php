@@ -17,7 +17,9 @@ use App\Livewire\Welcome;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/admin.php';
+require __DIR__.'/api_docs.php';
 
+// Homepage
 Route::get('/', Welcome::class)->name('welcome');
 
 // Dynamic Pages
@@ -31,39 +33,49 @@ Route::get('/account/deactivated', AccountDeactivated::class)
 
 // User Profile
 Route::get('/user/{user}', UserProfile::class)->name('user.profile');
-Route::get('/profile/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
 
-// Email Change Routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
+    // User Profile Edit
+    Route::get('/profile/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
+
+    // Email Change Routes
     Route::get('/email-change/authorize/{token}', [EmailChangeController::class, 'authorize'])->name('email-change.authorize');
     Route::get('/email-change/verify/{token}', [EmailChangeController::class, 'verify'])->name('email-change.verify');
-});
 
-// Password Change Routes
-Route::middleware('auth')->group(function () {
+    // Password Change Routes
     Route::get('/password-change/verify/{token}', [PasswordChangeController::class, 'verify'])->name('password-change.verify');
+
+    // Membership Management
+    Route::get('/membership/{membership}/accept', [MembershipController::class, 'accept'])
+        ->middleware('signed')
+        ->name('membership.accept');
+
+    Route::get('/membership/{membership}/reject', [MembershipController::class, 'reject'])
+        ->middleware('signed')
+        ->name('membership.reject');
+
+    // Project Management
+    Route::get('/create/{projectType}', ProjectForm::class)->name('project.create');
 });
 
-// Membership Management
-Route::get('/membership/{membership}/accept', MembershipController::class.'@accept')
-    ->middleware('signed')
-    ->name('membership.accept');
 
-Route::get('/membership/{membership}/reject', MembershipController::class.'@reject')
-    ->middleware('signed')
-    ->name('membership.reject');
-
-Route::get('/create/{projectType}', ProjectForm::class)->middleware('verified')->name('project.create');
 Route::get('/search/{projectType}s', ProjectSearch::class)->name('project-search');
+
 // Dummy route to use in the project-form component
 Route::get('/{projectType}/', function () {
     return redirect(route('project-search', ['projectType' => request()->route('projectType')]));
 })->name('dummy.project.show');
 Route::get('/{projectType}/{project}', ProjectShow::class)->name('project.show');
-Route::get('/{projectType}/{project}/edit', ProjectForm::class)->middleware('verified')->name('project.edit');
-Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->middleware('verified')->name('project.version.create');
+
+// Project Management
+Route::middleware(['auth','verified'])->group(function () {
+    Route::get('/{projectType}/{project}/edit', ProjectForm::class)->name('project.edit');
+    Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->name('project.version.create');
+});
+
+// Project Version Management
 Route::get('/{projectType}/{project}/version/{version_key}', ProjectVersionShow::class)->name('project.version.show');
-Route::get('/{projectType}/{project}/version/{version_key}/edit', ProjectVersionForm::class)->middleware('verified')->name('project.version.edit');
+Route::get('/{projectType}/{project}/version/{version_key}/edit', ProjectVersionForm::class)->name('project.version.edit')->middleware(['auth','verified']);
 
 // File Downloads
 Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])

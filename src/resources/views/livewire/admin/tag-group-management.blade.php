@@ -7,6 +7,7 @@
     {{-- Tag Groups Table --}}
     <x-table :headers="[
         ['key' => 'name', 'label' => 'Name'],
+        ['key' => 'slug', 'label' => 'Slug'],
         ['key' => 'project_types', 'label' => 'Project Types'],
         ['key' => 'tags_count', 'label' => 'Tags'],
         ['key' => 'actions', 'label' => 'Actions'],
@@ -19,6 +20,10 @@
                     <span class="text-gray-400 text-sm">None</span>
                 @endforelse
             </div>
+        @endscope
+
+        @scope('cell_slug', $group)
+            <span class="text-gray-500">{{ $group->slug }}</span>
         @endscope
 
         @scope('cell_tags_count', $group)
@@ -38,8 +43,10 @@
     {{-- Create/Edit Modal --}}
     <x-modal wire:model="showModal" title="{{ $isEditingTagGroup ? 'Edit Tag Group' : 'Create Tag Group' }}">
         <x-form wire:submit="saveTagGroup">
-            <x-input label="Name" wire:model="tagGroupName" hint="Group name (e.g., 'Categories', 'Features')"
+            <x-input label="Name" wire:model.live.debounce.500ms="tagGroupName" hint="Group name (e.g., 'Categories', 'Features')"
                 required />
+
+            <x-input label="Slug" wire:model.live.debounce.500ms="tagGroupSlug" spinner="tagGroupName, tagGroupSlug" required />
 
             <div class="form-control">
                 <label class="label">

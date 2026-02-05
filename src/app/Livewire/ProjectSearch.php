@@ -20,25 +20,25 @@ class ProjectSearch extends Component
     public ProjectType $projectType;
 
     // Search and filter properties
-    #[Session]
+    #[Session(key: 'search-{projectType.value}')]
     public string $search = '';
-    #[Session]
+    #[Session(key: 'selected-tags-{projectType.value}')]
     public array $selectedTags = [];
-    #[Session]
+    #[Session(key: 'selected-version-tags-{projectType.value}')]
     public array $selectedVersionTags = [];
-    #[Session]
+    #[Session(key: 'order-by-{projectType.value}')]
     public string $orderBy = 'downloads';
-    #[Session]
+    #[Session(key: 'order-direction-{projectType.value}')]
     public string $orderDirection = 'desc';
-    #[Session]
+    #[Session(key: 'results-per-page-{projectType.value}')]
     public int $resultsPerPage = 10;
 
     // Date range filter properties
-    #[Session]
+    #[Session(key: 'release-date-period-{projectType.value}')]
     public string $releaseDatePeriod = 'all';
-    #[Session]
+    #[Session(key: 'release-date-start-{projectType.value}')]
     public ?string $releaseDateStart = null;
-    #[Session]
+    #[Session(key: 'release-date-end-{projectType.value}')]
     public ?string $releaseDateEnd = null;
 
     private ProjectService $projectService;

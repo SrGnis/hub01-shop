@@ -11,5 +11,8 @@ return [
             'Privacy Policy' => '/pages/privacy-policy',
             'Terms of Service' => '/pages/terms-of-service',
         ],
+        'Docs' =>[
+            'API Documentation' => '/docs/api',
+        ]
     ],
 ];

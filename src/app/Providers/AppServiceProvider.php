@@ -8,6 +8,8 @@ use App\Services\ProjectQuotaService;
 use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
 use App\Services\UserService;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectVersionService::class);
         $this->app->singleton(ProjectQuotaService::class);
         $this->app->singleton(PageService::class);
+
+        // Ignore default routes for Scramble
+        Scramble::ignoreDefaultRoutes();
     }
 
     /**
@@ -41,5 +46,12 @@ class AppServiceProvider extends ServiceProvider
         if($this->app->environment('production')) {
             \URL::forceScheme('https');
         }
+
+        // TODO: Add description to the API documentation
+        Scramble::configure()
+            ->withDocumentTransformers(function (OpenApi $document) {
+                $document->info->description = '# TODO';
+            })
+        ;
     }
 }

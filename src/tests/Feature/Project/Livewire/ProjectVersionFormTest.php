@@ -93,7 +93,7 @@ class ProjectVersionFormTest extends TestCase
             'projectType' => $this->projectType,
             'project' => $this->project,
         ]))
-            ->assertRedirect(route('verification.notice'));
+            ->assertRedirect(route('login'));
     }
 
     #[Test]

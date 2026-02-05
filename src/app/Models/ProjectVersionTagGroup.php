@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasUniqueSlug;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class ProjectVersionTagGroup extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUniqueSlug;
 
     /**
      * The table associated with the model.
@@ -24,6 +25,8 @@ class ProjectVersionTagGroup extends Model
 
     protected $fillable = [
         'name',
+        'slug',
+        'icon',
     ];
 
     /**

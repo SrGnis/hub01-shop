@@ -1,0 +1,15 @@
+meta {
+  name: project_version_tags-plain
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/version_tags?plain
+  body: none
+  auth: none
+}
+
+params:query {
+  plain: 
+}

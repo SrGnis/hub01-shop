@@ -11,9 +11,11 @@
   "require": {
     "php": "^8.2",
     "blade-ui-kit/blade-icons": "^1.8",
+    "dedoc/scramble": "^0.13.11",
     "graham-campbell/markdown": "^16.0",
     "laravel/fortify": "^1.31",
     "laravel/framework": "^12.0",
+    "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.10.1",
     "livewire/livewire": "^3.6",
     "mallardduck/blade-lucide-icons": "^1.23",
@@ -53,6 +55,7 @@
       "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve --host=0.0.0.0 --port=80\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names=server,queue,vite --kill-others"
     ],
     "test": [ "@php artisan config:clear --ansi", "@php artisan test" ],
+    "test:parallel": [ "@php artisan config:clear --ansi", "php artisan test --parallel --processes=$(( $(nproc) < 4 ? $(nproc) : 4 ))" ],
     "post-autoload-dump": [ "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump", "@php artisan package:discover --ansi" ],
     "post-update-cmd": [ "@php artisan vendor:publish --tag=laravel-assets --ansi --force" ],
     "post-root-package-install": [ "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"" ],

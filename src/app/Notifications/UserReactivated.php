@@ -13,7 +13,7 @@ class UserReactivated extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -27,6 +27,18 @@ class UserReactivated extends Notification implements ShouldQueue
             ->line('You can now log in to your account and access all features as before.')
             ->action('Log In Now', $loginUrl)
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'user_reactivated',
+        ];
     }
 }
 

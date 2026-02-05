@@ -13,7 +13,7 @@ class UserDeactivated extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -27,6 +27,18 @@ class UserDeactivated extends Notification implements ShouldQueue
             ->line('• Your projects and data remain intact')
             ->line('• If you believe this was done in error, please contact our support team')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'user_deactivated',
+        ];
     }
 }
 

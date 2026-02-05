@@ -18,7 +18,7 @@ class ProjectDeactivated extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -34,6 +34,20 @@ class ProjectDeactivated extends Notification implements ShouldQueue
             ->line('• Existing downloads and data remain intact')
             ->line('If you believe this was done in error, please contact our support team.')
             ->salutation('Regards,' . PHP_EOL . config('app.name'));
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'project_id' => $this->project->id,
+            'project_name' => $this->project->name,
+            'type' => 'project_deactivated',
+        ];
     }
 }
 

@@ -15,6 +15,8 @@ class VersionTagGroupManagement extends Component
 
     public $versionTagGroupName = '';
 
+    public $versionTagGroupSlug = '';
+
     public $versionTagGroupProjectTypes = [];
 
     public $isEditingVersionTagGroup = false;
@@ -31,7 +33,21 @@ class VersionTagGroupManagement extends Component
     {
         return [
             'versionTagGroupName' => 'required|string|max:50',
+            'versionTagGroupSlug' => 'required|string|max:50|unique:project_version_tag_group,slug,' . $this->versionTagGroupId,
+            'versionTagGroupProjectTypes' => 'required|array',
         ];
+    }
+
+    public function updatedVersionTagGroupName(){
+        $this->versionTagGroupSlug = ProjectVersionTagGroup::createSlug($this->versionTagGroupName);
+
+        $this->resetValidation('versionTagGroupSlug');
+        $this->validateOnly('versionTagGroupSlug');
+    }
+
+    public function updatedVersionTagGroupSlug(){
+        $this->resetValidation('versionTagGroupSlug');
+        $this->validateOnly('versionTagGroupSlug');
     }
 
     public function createVersionTagGroup()
@@ -52,6 +68,7 @@ class VersionTagGroupManagement extends Component
 
         $this->versionTagGroupId = $versionTagGroup->id;
         $this->versionTagGroupName = $versionTagGroup->name;
+        $this->versionTagGroupSlug = $versionTagGroup->slug;
         $this->versionTagGroupProjectTypes = $versionTagGroup->projectTypes->pluck('id')->toArray();
         $this->isEditingVersionTagGroup = true;
         $this->showModal = true;
@@ -64,6 +81,7 @@ class VersionTagGroupManagement extends Component
         if ($this->isEditingVersionTagGroup) {
             $versionTagGroup = ProjectVersionTagGroup::find($this->versionTagGroupId);
             $versionTagGroup->name = $this->versionTagGroupName;
+            $versionTagGroup->slug = $this->versionTagGroupSlug;
             $versionTagGroup->save();
 
             // Sync project types
@@ -73,6 +91,7 @@ class VersionTagGroupManagement extends Component
         } else {
             $versionTagGroup = ProjectVersionTagGroup::create([
                 'name' => $this->versionTagGroupName,
+                'slug' => $this->versionTagGroupSlug,
             ]);
 
             // Sync project types
@@ -89,6 +108,7 @@ class VersionTagGroupManagement extends Component
     {
         $this->versionTagGroupId = null;
         $this->versionTagGroupName = '';
+        $this->versionTagGroupSlug = '';
         $this->versionTagGroupProjectTypes = [];
         $this->isEditingVersionTagGroup = false;
     }

@@ -1,0 +1,20 @@
+meta {
+  name: versions
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://{{HOST}}:{{PORT}}/api/v1/project/:slug/versions
+  body: none
+  auth: inherit
+}
+
+params:path {
+  slug: oven-selection
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

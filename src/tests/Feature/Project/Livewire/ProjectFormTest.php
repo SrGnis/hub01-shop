@@ -59,7 +59,7 @@ class ProjectFormTest extends TestCase
     {
         $this->actingAsGuest()
             ->get(route('project.create', ['projectType' => $this->projectType]))
-            ->assertRedirect(route('verification.notice'));
+            ->assertRedirect(route('login'));
     }
 
     #[Test]
@@ -76,7 +76,7 @@ class ProjectFormTest extends TestCase
     public function test_create_project_in_draft_mode()
     {
         Config::set('projects.auto_approve', false);
-        
+
         $tag = ProjectTag::factory()->create();
         $tag->projectTypes()->attach($this->projectType);
 
@@ -102,7 +102,7 @@ class ProjectFormTest extends TestCase
     public function test_create_project_with_auto_approve()
     {
         Config::set('projects.auto_approve', true);
-        
+
         $tag = ProjectTag::factory()->create();
         $tag->projectTypes()->attach($this->projectType);
 
@@ -153,7 +153,7 @@ class ProjectFormTest extends TestCase
     public function test_slug_must_be_unique()
     {
         $existingProject = Project::factory()->owner($this->user)->create(['slug' => 'existing-slug']);
-        
+
         $tag = ProjectTag::factory()->create();
         $tag->projectTypes()->attach($this->projectType);
 
@@ -396,7 +396,7 @@ class ProjectFormTest extends TestCase
         $project = Project::factory()->owner($this->user)->create([
             'logo_path' => 'project-logos/test.png'
         ]);
-        
+
         Storage::disk('public')->put('project-logos/test.png', 'fake content');
 
         Livewire::actingAs($this->user)
@@ -542,7 +542,7 @@ class ProjectFormTest extends TestCase
     {
         $project = Project::factory()->owner($this->user)->create();
         $member = User::factory()->create();
-        
+
         $membership = new Membership([
             'role' => 'contributor',
             'primary' => false,
@@ -583,7 +583,7 @@ class ProjectFormTest extends TestCase
     {
         $project = Project::factory()->owner($this->user)->create();
         $newOwner = User::factory()->create();
-        
+
         $membership = new Membership([
             'role' => 'owner',
             'primary' => false,

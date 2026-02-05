@@ -4,8 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectTag;
+use App\Models\ProjectTagGroup;
 use App\Models\ProjectVersion;
-use App\Models\ProjectVersionTag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -106,18 +107,13 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Theme'],
         ];
 
-        $now = now();
         $tagGroupsToInsert = [];
 
         foreach ($tagGroupData as $group) {
-            $tagGroupsToInsert[] = [
+            ProjectTagGroup::create([
                 'name' => $group['name'],
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            ]);
         }
-
-        DB::table('project_tag_group')->insert($tagGroupsToInsert);
 
         // Get the inserted IDs
         $tagGroups = DB::table('project_tag_group')
@@ -171,15 +167,10 @@ class DatabaseSeeder extends Seeder
                 'name' => $tagData['name'],
                 'icon' => $tagData['icon'],
                 'project_tag_group_id' => $tagGroups[$tagData['group']],
-                'created_at' => $now,
-                'updated_at' => $now,
             ];
 
-            $tagsToInsert[] = $tag;
+            ProjectTag::create($tag);
         }
-
-        // Bulk insert tags
-        DB::table('project_tag')->insert($tagsToInsert);
 
         // Get inserted tags
         $insertedTags = DB::table('project_tag')
@@ -293,28 +284,18 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
-        $now = now();
-        $subTagsToInsert = [];
-
         foreach ($subTagsData as $parentName => $subTags) {
             $parentTag = $insertedTags->where('name', $parentName)->first();
 
             if ($parentTag) {
                 foreach ($subTags as $subTagData) {
-                    $subTagsToInsert[] = [
-                        'name' => $subTagData['name'],
-                        'icon' => $subTagData['icon'],
-                        'parent_id' => $parentTag->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
+                    $subTagData['parent_id'] = $parentTag->id;
+
+                    ProjectTag::create($subTagData);
                 }
             }
         }
 
-        if (! empty($subTagsToInsert)) {
-            DB::table('project_tag')->insert($subTagsToInsert);
-        }
     }
 
     /**
@@ -358,5 +339,51 @@ class DatabaseSeeder extends Seeder
                 'versions'
             )
             ->create();
+
+        // Create a project of each type with versions and files with a static name for testing
+        Project::factory(1)
+            ->mod()
+            ->has(
+                ProjectVersion::factory(1)
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
+                'versions'
+            )
+            ->create([
+                'name' => 'Test Mod',
+                'slug' => 'test-mod',
+            ]);
+
+        Project::factory(1)
+            ->tileSet()
+            ->has(
+                ProjectVersion::factory(1)
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
+                'versions'
+            )
+            ->create([
+                'name' => 'Test Tile Set',
+                'slug' => 'test-tile-set',
+            ]);
+
+        Project::factory(1)
+            ->soundPack()
+            ->has(
+                ProjectVersion::factory(1)
+                    ->has(
+                        ProjectFile::factory(1),
+                        'files'
+                    ),
+                'versions'
+            )
+            ->create([
+                'name' => 'Test Sound Pack',
+                'slug' => 'test-sound-pack',
+            ]);
     }
 }

@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Cache;
  */
 class ProjectVersion extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProjectVersionFactory> */
     use HasFactory;
 
     /**
