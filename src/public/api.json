@@ -2,11 +2,12 @@
     "openapi": "3.1.0",
     "info": {
         "title": "Hub01 Shop",
-        "version": "0.0.1"
+        "version": "0.0.1",
+        "description": "## Introduction\n\nThe **Hub01 Shop API** enables users to interact programmatically with the platform, allowing you to explore projects and manage your own resources.\n\nYou can query all available resources in the application, but currently, management capabilities are limited to project versions. Future updates will expand support for managing additional resources.\n\n---\n\n## Authentication\n\nAccess to certain API endpoints requires authentication using **API tokens**. These tokens can be generated directly from your user profile.\n\n---\n\n### Generating API Tokens\n\n1. **Navigate** to your user profile.\n2. **Select** the **API Tokens** section.\n3. **Click** on **Create API Token**.\n4. **Provide** a custom name and, optionally, set an expiration date.\n5. **Include** the generated token in the `Authorization` header of your API requests as a **Bearer token**."
     },
     "servers": [
         {
-            "url": "http://0.0.0.0:8000/api"
+            "url": "https://hub01-shop.srgnis.com/api"
         }
     ],
     "tags": [
@@ -20,7 +21,7 @@
     "paths": {
         "/v1/project_types": {
             "get": {
-                "operationId": "project.getProjectTypes",
+                "operationId": "v1.project_types",
                 "description": "Returns all the project types defined in the application",
                 "summary": "List project types",
                 "tags": [
@@ -53,7 +54,7 @@
         },
         "/v1/project_type/{slug}": {
             "get": {
-                "operationId": "project.getProjectTypeBySlug",
+                "operationId": "v1.project_type",
                 "description": "Returns the project type with the given slug",
                 "summary": "Get a project type",
                 "tags": [
@@ -96,7 +97,7 @@
         },
         "/v1/projects": {
             "get": {
-                "operationId": "project.getProjects",
+                "operationId": "v1.projects",
                 "description": "Returns a filtered list of projects",
                 "summary": "Search projects",
                 "tags": [
@@ -391,7 +392,7 @@
         },
         "/v1/project/{slug}": {
             "get": {
-                "operationId": "project.getProjectBySlug",
+                "operationId": "v1.project",
                 "description": "Returns the project with the given slug",
                 "summary": "Get a project",
                 "tags": [
@@ -452,7 +453,7 @@
         },
         "/v1/project/{slug}/versions": {
             "get": {
-                "operationId": "projectVersion.getProjectVersions",
+                "operationId": "v1.project_versions",
                 "summary": "List all versions of a project",
                 "tags": [
                     "ProjectVersion"
@@ -719,11 +720,224 @@
                         "$ref": "#/components/responses/ValidationException"
                     }
                 }
+            },
+            "post": {
+                "operationId": "v1.project_version.store",
+                "summary": "Create a new project version",
+                "tags": [
+                    "ProjectVersion"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Bearer {token}"
+                    },
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "dependencies": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The name of the version",
+                                        "example": "Version 1.0.0"
+                                    },
+                                    "version": {
+                                        "type": "string",
+                                        "description": "The version number (must be unique for the project)",
+                                        "example": "1.0.0"
+                                    },
+                                    "release_type": {
+                                        "type": "string",
+                                        "description": "The release type: `release`, `rc`, `beta`, or `alpha`",
+                                        "example": "release"
+                                    },
+                                    "release_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "The release date",
+                                        "example": "2024-01-15"
+                                    },
+                                    "changelog": {
+                                        "type": "string",
+                                        "description": "The changelog for this version",
+                                        "example": "Initial release"
+                                    },
+                                    "tags[]": {
+                                        "type": "array",
+                                        "description": "Array of version tag slugs",
+                                        "items": {}
+                                    },
+                                    "files[]": {
+                                        "type": "array",
+                                        "description": "Array of files to upload",
+                                        "items": {
+                                            "type": "object",
+                                            "description": "File to upload"
+                                        }
+                                    },
+                                    "dependencies[]": {
+                                        "type": "array",
+                                        "description": "Array of dependencies",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "project": {
+                                                    "type": "string",
+                                                    "description": "Project slug of the dependency"
+                                                },
+                                                "version": {
+                                                    "type": "string",
+                                                    "description": "Version slug of the dependency"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "description": "Dependency type: `required`, `optional` or `embedded`",
+                                                    "example": "required"
+                                                },
+                                                "external": {
+                                                    "type": "boolean",
+                                                    "description": "If the dependency is linked to a project in the platform or is external",
+                                                    "default": true
+                                                }
+                                            },
+                                            "required": [
+                                                "project",
+                                                "type",
+                                                "external"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "version",
+                                    "release_type",
+                                    "release_date",
+                                    "files[]"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`ProjectVersionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectVersionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Version created successfully"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error\n\nAn error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "description": "Error overview.",
+                                                    "example": "This project has been deactivated and versions cannot be created."
+                                                }
+                                            },
+                                            "required": [
+                                                "message"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "description": "Error overview.",
+                                                    "example": "You do not have permission to upload versions to this project."
+                                                }
+                                            },
+                                            "required": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/v1/project/{slug}/version/{version}": {
             "get": {
-                "operationId": "projectVersion.getProjectVersionBySlug",
+                "operationId": "v1.project_version",
                 "summary": "Get a project version",
                 "tags": [
                     "ProjectVersion"
@@ -771,11 +985,332 @@
                         "$ref": "#/components/responses/ModelNotFoundException"
                     }
                 }
+            },
+            "post": {
+                "operationId": "v1.project_version.update",
+                "summary": "Update an existing project version",
+                "tags": [
+                    "ProjectVersion"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Bearer {token}"
+                    },
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project version",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "dependencies": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The name of the version",
+                                        "example": "Version 1.0.1"
+                                    },
+                                    "version": {
+                                        "type": "string",
+                                        "description": "The version number (must be unique for the project)",
+                                        "example": "1.0.1"
+                                    },
+                                    "release_type": {
+                                        "type": "string",
+                                        "description": "The release type",
+                                        "example": "release"
+                                    },
+                                    "release_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "The release date",
+                                        "example": "2024-01-20"
+                                    },
+                                    "changelog": {
+                                        "type": "string",
+                                        "description": "The changelog for this version",
+                                        "example": "Bug fixes"
+                                    },
+                                    "tags[]": {
+                                        "type": "array",
+                                        "description": "Array of version tag slugs",
+                                        "items": {}
+                                    },
+                                    "files_to_remove[]": {
+                                        "type": "array",
+                                        "description": "Array of names of existing files to delete",
+                                        "example": [
+                                            "file1.txt",
+                                            "file2.txt"
+                                        ],
+                                        "items": {}
+                                    },
+                                    "clean_existing_files": {
+                                        "type": "boolean",
+                                        "description": "Boolean to indicate if existing files should be deleted"
+                                    },
+                                    "files[]": {
+                                        "type": "array",
+                                        "description": "Array of new files to upload",
+                                        "items": {
+                                            "type": "object",
+                                            "description": "File to upload"
+                                        }
+                                    },
+                                    "dependencies[]": {
+                                        "type": "array",
+                                        "description": "Array of dependencies",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "project": {
+                                                    "type": "string",
+                                                    "description": "Project slug of the dependency"
+                                                },
+                                                "version": {
+                                                    "type": "string",
+                                                    "description": "Version slug of the dependency"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "description": "Dependency type",
+                                                    "default": "required"
+                                                },
+                                                "external": {
+                                                    "type": "boolean",
+                                                    "description": "If the dependency is linked to a project in the platform or is external",
+                                                    "default": true
+                                                }
+                                            },
+                                            "required": [
+                                                "project",
+                                                "type",
+                                                "external"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "version",
+                                    "release_type",
+                                    "release_date"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`ProjectVersionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProjectVersionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Version updated successfully"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "An error\n\nAn error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "description": "Error overview.",
+                                                    "example": "This project has been deactivated and versions cannot be edited."
+                                                }
+                                            },
+                                            "required": [
+                                                "message"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "description": "Error overview.",
+                                                    "example": "You do not have permission to edit versions of this project."
+                                                }
+                                            },
+                                            "required": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.project_version.destroy",
+                "summary": "Delete a project version",
+                "tags": [
+                    "ProjectVersion"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
+                        "description": "Bearer token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Bearer {token}"
+                    },
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "description": "The project version",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview.",
+                                            "example": "You do not have permission to delete versions of this project."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Error overview."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/v1/project_tags": {
             "get": {
-                "operationId": "tag.getProjectTags",
+                "operationId": "v1.project_tags",
                 "description": "Returns a list of project tags",
                 "summary": "List project tags",
                 "tags": [
@@ -816,7 +1351,7 @@
         },
         "/v1/project_tag/{slug}": {
             "get": {
-                "operationId": "tag.getProjectTagsBySlug",
+                "operationId": "v1.project_tag",
                 "description": "Returns the project tag with the given slug",
                 "summary": "Get a project tag",
                 "tags": [
@@ -859,7 +1394,7 @@
         },
         "/v1/version_tags": {
             "get": {
-                "operationId": "tag.getProjectVersionTags",
+                "operationId": "v1.version_tags",
                 "description": "Returns a list of project version tags",
                 "summary": "List project version tags",
                 "tags": [
@@ -900,7 +1435,7 @@
         },
         "/v1/version_tag/{slug}": {
             "get": {
-                "operationId": "tag.getProjectVersionTagBySlug",
+                "operationId": "v1.version_tag",
                 "description": "Returns the project version tag with the given slug",
                 "summary": "Get a project version tag",
                 "tags": [
@@ -941,9 +1476,85 @@
                 }
             }
         },
+        "/test-token": {
+            "get": {
+                "operationId": "token.test",
+                "description": "Returns basic information about the authenticated user and their token.",
+                "summary": "Test endpoint to verify API token authentication",
+                "tags": [
+                    "TokenTest"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Token is valid"
+                                            ]
+                                        },
+                                        "user": {
+                                            "type": "object",
+                                            "properties": {
+                                                "uername": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "uername"
+                                            ]
+                                        },
+                                        "token": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "created_at": {
+                                                    "type": "string"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string"
+                                                },
+                                                "last_used_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "name",
+                                                "created_at",
+                                                "expires_at",
+                                                "last_used_at"
+                                            ]
+                                        },
+                                        "request_time": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message",
+                                        "user",
+                                        "token",
+                                        "request_time"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/v1/user/{name}": {
             "get": {
-                "operationId": "user.getUserByName",
+                "operationId": "v1.user",
                 "summary": "Get a user by name",
                 "tags": [
                     "User"
@@ -985,7 +1596,7 @@
         },
         "/v1/user/{name}/projects": {
             "get": {
-                "operationId": "user.getUserProjects",
+                "operationId": "v1.user.projects",
                 "summary": "Get a user's projects",
                 "tags": [
                     "User"
@@ -1309,11 +1920,17 @@
                         "type": "string"
                     },
                     "tag_group": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "project_types": {
                         "type": "array",
-                        "items": {}
+                        "description": "Array of project type slugs",
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "sub_tags": {
                         "type": "array",
@@ -1453,11 +2070,17 @@
                         "type": "string"
                     },
                     "tag_group": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "project_types": {
                         "type": "array",
-                        "items": {}
+                        "description": "Array of project type slugs",
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "sub_tags": {
                         "type": "array",
@@ -1524,6 +2147,25 @@
             }
         },
         "responses": {
+            "AuthenticationException": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
             "ModelNotFoundException": {
                 "description": "Not found",
                 "content": {
