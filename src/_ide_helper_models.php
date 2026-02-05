@@ -481,7 +481,7 @@ namespace App\Models{
  * @property int $project_version_id
  * @property int|null $dependency_project_version_id
  * @property int|null $dependency_project_id
- * @property string $dependency_type
+ * @property \App\Enums\DependencyType $dependency_type
  * @property string|null $dependency_name
  * @property string|null $dependency_version
  * @property \Illuminate\Support\Carbon|null $created_at

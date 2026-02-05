@@ -150,7 +150,7 @@ class ProjectVersionController extends Controller
         abort_unless(Gate::allows('uploadVersion', $project), 403, 'You do not have permission to upload versions to this project.');
 
         // Validate request
-        $validated = $request->validate($this->getStoreValidationRules($project));
+        $validated = $request->validate($this->getStoreValidationRules($project, $request->input('dependencies', [])));
 
         // Prepare version data
         $versionData = [
@@ -174,8 +174,6 @@ class ProjectVersionController extends Controller
 
         // Prepare files
         $files = $validated['files'] ?? [];
-
-        abort(419,'');
 
         try {
             // Create version using service
@@ -223,9 +221,7 @@ class ProjectVersionController extends Controller
     #[BodyParameter('dependencies[].*.external', description: 'If the dependency is linked to a project in the platform or is external', type: 'boolean', required: true, default: true)]
     public function update(Request $request, string $slug, string $version)
     {
-        logger()->debug('Update project version');
-        logger()->debug($request);
-
+        // Find the project
         $project = Project::where('slug', $slug)->first();
 
         abort_if(!$project, 404, 'Project not found');
@@ -242,7 +238,7 @@ class ProjectVersionController extends Controller
         abort_if(!$projectVersion, 404, 'Project version not found');
 
         // Validate request
-        $validated = $request->validate($this->getUpdateValidationRules($project, $projectVersion));
+        $validated = $request->validate($this->getUpdateValidationRules($project, $projectVersion, $request->input('dependencies', [])));
 
         // Prepare version data
         $versionData = [
@@ -293,8 +289,6 @@ class ProjectVersionController extends Controller
                     ];
                 })->toArray();
         }
-
-        logger()->debug($existingFiles);
 
         try {
             // Update version using service
@@ -348,7 +342,7 @@ class ProjectVersionController extends Controller
     /**
      * Get validation rules for creating a new version
      */
-    private function getStoreValidationRules(Project $project): array
+    private function getStoreValidationRules(Project $project, array $dependencies = []): array
     {
         $quotaLimits = $this->quotaService->getQuotaLimits(Auth::user(), $project->projectType, $project);
 
@@ -374,8 +368,6 @@ class ProjectVersionController extends Controller
                 'max:' . $quotaLimits['file_size_max'] / 1024,
             ],
             'dependencies' => 'nullable|array',
-            'dependencies.*.project' => 'required|exists:project,slug',
-            'dependencies.*.version' => 'nullable|exists:project_version,version',
             'dependencies.*.type' => 'required|in:required,optional,embedded',
             'dependencies.*.external' => 'required|boolean',
             'tags' => 'nullable|array',
@@ -387,7 +379,7 @@ class ProjectVersionController extends Controller
 
         return $rules;
     }
-    private function getUpdateValidationRules(Project $project, ProjectVersion $version): array
+    private function getUpdateValidationRules(Project $project, ProjectVersion $version, array $dependencies = []): array
     {
         $quotaLimits = $this->quotaService->getQuotaLimits(Auth::user(), $project->projectType, $project);
 
@@ -417,8 +409,6 @@ class ProjectVersionController extends Controller
             'files_to_remove.*' => 'string|exists:project_file,name',
             'clean_existing_files' => 'nullable|boolean',
             'dependencies' => 'nullable|array',
-            'dependencies.*.project' => 'required|exists:project,slug',
-            'dependencies.*.version' => 'nullable|exists:project_version,version',
             'dependencies.*.type' => 'required|in:required,optional,embedded',
             'dependencies.*.external' => 'required|boolean',
             'tags' => 'nullable|array',
@@ -437,10 +427,14 @@ class ProjectVersionController extends Controller
     private function addDependencyValidationRules(array &$rules, array $dependencies): void
     {
         foreach ($dependencies as $index => $dependency) {
-            if ($dependency['external'] === false) {
-                // External dependencies (not linked to platform project)
-                $rules["dependencies.{$index}.dependency_name"] = 'required|string|max:255';
-                $rules["dependencies.{$index}.dependency_version"] = 'nullable|string|max:50';
+            if ($dependency['external'] === true) {
+                // External/manual dependencies require dependency name and version fields
+                $rules["dependencies.{$index}.project"] = 'required|string|max:255';
+                $rules["dependencies.{$index}.version"] = 'nullable|string|max:50';
+            } else {
+                // Platform-linked dependencies require project slug validation
+                $rules["dependencies.{$index}.project"] = 'required|exists:project,slug';
+                $rules["dependencies.{$index}.version"] = 'nullable|exists:project_version,version';
             }
         }
     }
@@ -456,17 +450,17 @@ class ProjectVersionController extends Controller
 
         $converted = [];
 
-        foreach ($dependencies as $dependency) {
+        foreach ($dependencies as $index => $dependency) {
             // Convert external flag to mode for service layer compatibility
-            $mode = $dependency['external'] === true ? 'linked' : 'manual';
+            $mode = $dependency['external'] === true ? 'manual' : 'linked';
 
             $convertedDependency = [
                 'type' => $dependency['type'],
                 'mode' => $mode,
             ];
 
-            // For platform-linked dependencies (external=true -> mode='linked')
-            if ($dependency['external'] === true) {
+            // For platform-linked dependencies (external=false -> mode='linked')
+            if ($dependency['external'] === false) {
                 // Convert project slug to project_id
                 if (!empty($dependency['project'])) {
                     $project = Project::where('slug', $dependency['project'])->first();
@@ -477,7 +471,9 @@ class ProjectVersionController extends Controller
 
                 // Convert version slug to version_id
                 if (!empty($dependency['version'])) {
-                    $version = ProjectVersion::where('version', $dependency['version'])->first();
+                    $projectIdForLookup = $convertedDependency['project_id'] ?? null;
+                    $versionLookup = $dependency['version'];
+                    $version = ProjectVersion::where('project_id', $projectIdForLookup)->where('version', $versionLookup)->first();
                     if ($version) {
                         $convertedDependency['version_id'] = $version->id;
                         $convertedDependency['has_specific_version'] = true;
@@ -488,11 +484,11 @@ class ProjectVersionController extends Controller
                     $convertedDependency['has_specific_version'] = false;
                 }
             }
-            // For external dependencies (external=false -> mode='manual')
+            // For external dependencies (external=true -> mode='manual')
             else {
-                $convertedDependency['dependency_name'] = $dependency['dependency_name'] ?? null;
-                $convertedDependency['dependency_version'] = $dependency['dependency_version'] ?? null;
-                $convertedDependency['has_manual_version'] = !empty($dependency['dependency_version']);
+                $convertedDependency['dependency_name'] = $dependency['project'] ?? null;
+                $convertedDependency['dependency_version'] = $dependency['version'] ?? null;
+                $convertedDependency['has_manual_version'] = !empty($dependency['version']);
             }
 
             $converted[] = $convertedDependency;
