@@ -372,6 +372,7 @@ class ProjectVersionForm extends Component
             'required',
             'string',
             'max:50',
+            'regex:/^[a-zA-Z0-9_.+-]+$/',
             $uniqueVersionRule,
         ];
 

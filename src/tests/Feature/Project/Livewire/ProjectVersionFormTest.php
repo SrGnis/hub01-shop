@@ -203,6 +203,65 @@ class ProjectVersionFormTest extends TestCase
     }
 
     #[Test]
+    public function test_validation_accepts_valid_version_formats()
+    {
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $validVersions = [
+            '1.0.0',
+            '1.0.0-beta',
+            '1.0.0_beta',
+            'v1.0.0+build123',
+            'release-1',
+        ];
+
+        foreach ($validVersions as $version) {
+            Livewire::actingAs($this->user)
+                ->test(ProjectVersionForm::class, [
+                    'projectType' => $this->projectType,
+                    'project' => $this->project,
+                ])
+                ->set('name', 'Test Version')
+                ->set('version_number', $version)
+                ->set('release_type', 'release')
+                ->set('release_date', now()->format('Y-m-d'))
+                ->set('files', [$file])
+                ->call('save')
+                ->assertHasNoErrors(['version_number']);
+        }
+    }
+
+    #[Test]
+    public function test_validation_rejects_invalid_version_format()
+    {
+        $file = UploadedFile::fake()->create('test.zip', 1024);
+
+        $invalidVersions = [
+            '1.0.0!',
+            'version@1.0',
+            '1.0#0',
+            '$1.0.0',
+            '1.0.0 version',
+            'v/1.0.0',
+        ];
+
+        foreach ($invalidVersions as $version) {
+            Livewire::actingAs($this->user)
+                ->test(ProjectVersionForm::class, [
+                    'projectType' => $this->projectType,
+                    'project' => $this->project,
+                ])
+                ->set('name', 'Test Version')
+                ->set('version_number', $version)
+                ->set('release_type', 'release')
+                ->set('release_date', now()->format('Y-m-d'))
+                ->set('files', [$file])
+                ->call('save')
+                ->assertHasErrors(['version_number']);
+        }
+    }
+
+    #[Test]
     public function test_validation_requires_unique_version_number()
     {
         ProjectVersion::factory()->create([

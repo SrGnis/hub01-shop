@@ -1043,6 +1043,71 @@ class ProjectVersionTest extends TestCase
     }
 
     #[Test]
+    public function test_store_version_with_invalid_version_format_returns_validation_error()
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        $token = $user->createToken('test-token', ['*'])->plainTextToken;
+
+        $invalidVersions = ['1.0.0!', 'version@1.0', '1.0#0', '$1.0.0'];
+
+        foreach ($invalidVersions as $version) {
+            $response = $this->withToken($token)
+                ->postJson(route('api.v1.project_version.store', [
+                    'slug' => $project->slug,
+                ]), [
+                    'name' => 'Version 1.0.0',
+                    'version' => $version,
+                    'release_type' => 'release',
+                    'release_date' => now()->format('Y-m-d'),
+                ]);
+
+            $response->assertStatus(422)
+                ->assertJsonValidationErrors(['version']);
+        }
+    }
+
+    #[Test]
+    public function test_store_version_with_valid_version_format_succeeds()
+    {
+        Storage::fake('projects');
+
+        $user = User::factory()->create();
+        $project = Project::factory()->owner($user)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        $token = $user->createToken('test-token', ['*'])->plainTextToken;
+        $file = UploadedFile::fake()->create('test-file.zip', 100);
+
+        $validVersions = [
+            '1.0.0',
+            '1.0.0-beta',
+            '1.0.0_beta',
+            'v1.0.0+build123',
+            'release-1',
+        ];
+
+        foreach ($validVersions as $version) {
+            $response = $this->withToken($token)
+                ->postJson(route('api.v1.project_version.store', [
+                    'slug' => $project->slug,
+                ]), [
+                    'name' => 'Version '.$version,
+                    'version' => $version,
+                    'release_type' => 'release',
+                    'release_date' => now()->format('Y-m-d'),
+                    'files' => [$file],
+                ]);
+
+            $response->assertStatus(201);
+        }
+    }
+
+    #[Test]
     public function test_store_version_with_duplicate_version_returns_validation_error()
     {
         $user = User::factory()->create();

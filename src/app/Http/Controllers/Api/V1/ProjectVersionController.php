@@ -352,6 +352,7 @@ class ProjectVersionController extends Controller
                 'required',
                 'string',
                 'max:50',
+                'regex:/^[a-zA-Z0-9_.+-]+$/',
                 Rule::unique(ProjectVersion::class, 'version')->where('project_id', $project->id),
             ],
             'release_type' => 'required|in:alpha,beta,rc,release',
@@ -389,6 +390,7 @@ class ProjectVersionController extends Controller
                 'required',
                 'string',
                 'max:50',
+                'regex:/^[a-zA-Z0-9_.+-]+$/',
                 Rule::unique(ProjectVersion::class, 'version')
                     ->where('project_id', $project->id)
                     ->ignore($version),
