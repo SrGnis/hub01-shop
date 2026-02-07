@@ -21,16 +21,41 @@ class TagController extends Controller
      * Returns a list of project tags
      */
     #[QueryParameter(name: 'plain', description: 'Whether to return the tags in a hierarchical structure or a flat list', default: false)]
+    #[QueryParameter(name: 'project_type', description: 'The project type to filter by (subtags of main tags with this project type will be included)', default: null)]
     public function getProjectTags(Request $request){
+
+        $validated = $request->validate([
+            'project_type' => 'string|nullable|exists:project_type,value'
+        ]);
+
+        $projectType = $request->query('project_type');
 
         $with = ['mainTag','projectTypes'];
 
+        $query = ProjectTag::query();
+
         if($request->has('plain')){
-            $tags = ProjectTag::with($with)->get();
+            $query = ProjectTag::with($with);
         }else{
             $with[] = 'subTags';
-            $tags = ProjectTag::onlyMain()->with($with)->get();
+            $query = ProjectTag::onlyMain()->with($with);
         }
+
+        // Where has the project type or the parent has the project type
+        if($projectType){
+            $query->where(function($query) use ($projectType){
+                // Tag has the project type directly
+                $query->whereHas('projectTypes', function($query) use ($projectType){
+                    $query->where('value', $projectType);
+                })
+                // OR the parent tag has the project type
+                ->orWhereHas('parent.projectTypes', function($query) use ($projectType){
+                    $query->where('value', $projectType);
+                });
+            });
+        }
+
+        $tags = $query->get();
 
         return ProjectTagResource::collection($tags);
     }
@@ -57,16 +82,40 @@ class TagController extends Controller
      * Returns a list of project version tags
      */
     #[QueryParameter(name: 'plain', description: 'Whether to return the tags in a hierarchical structure or a flat list', default: false)]
+    #[QueryParameter(name: 'project_type', description: 'The project type to filter by (subtags of main tags with this project type will be included)', default: null)]
     public function getProjectVersionTags(Request $request){
+
+        $validated = $request->validate([
+            'project_type' => 'string|nullable|exists:project_type,value'
+        ]);
 
         $with = ['mainTag','projectTypes'];
 
+        $projectType = $request->input('project_type');
+
+        $query = ProjectVersionTag::query();
+
         if($request->has('plain')){
-            $tags = ProjectVersionTag::with($with)->get();
+            $query = ProjectVersionTag::with($with);
         }else{
             $with[] = 'subTags';
-            $tags = ProjectVersionTag::onlyMain()->with($with)->get();
+            $query = ProjectVersionTag::onlyMain()->with($with);
         }
+
+        if($projectType){
+            $query->where(function($query) use ($projectType){
+                // Tag has the project type directly
+                $query->whereHas('projectTypes', function($query) use ($projectType){
+                    $query->where('value', $projectType);
+                })
+                // OR the parent tag has the project type
+                ->orWhereHas('parent.projectTypes', function($query) use ($projectType){
+                    $query->where('value', $projectType);
+                });
+            });
+        }
+
+        $tags = $query->get();
 
         return ProjectVersionTagResource::collection($tags);
     }
