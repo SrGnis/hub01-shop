@@ -40,7 +40,7 @@
                         <img src="{{ asset('images/logo.svg') }}" alt="" class="w-full h-full object-contain">
                     </div>
                     <div class="hidden md:block text-xl font-bold text-primary hidden-when-collapsed">
-                        {{ config('app.name') }}
+                        <span>{{ config('app.name') }}</span><span class="text-secondary"> ᵇᵉᵗᵃ</span>
                     </div>
                 </a>
             </div>

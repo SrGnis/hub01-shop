@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+use App\Enums\DependencyType;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectVersionDependencyResource extends JsonResource
@@ -26,7 +27,7 @@ class ProjectVersionDependencyResource extends JsonResource
              */
             'version' => $this->dependency_version ? $this->dependency_version : $this->dependencyProjectVersion?->version,
             /**
-             * @
+             * @var DependencyType
              */
             'type' => $this->dependency_type,
             /**

@@ -454,7 +454,7 @@ class ProjectVersionController extends Controller
 
         foreach ($dependencies as $index => $dependency) {
             // Convert external flag to mode for service layer compatibility
-            $mode = $dependency['external'] === true ? 'manual' : 'linked';
+            $mode = $dependency['external'] ? 'manual' : 'linked';
 
             $convertedDependency = [
                 'type' => $dependency['type'],
@@ -462,7 +462,7 @@ class ProjectVersionController extends Controller
             ];
 
             // For platform-linked dependencies (external=false -> mode='linked')
-            if ($dependency['external'] === false) {
+            if (!$dependency['external']) {
                 // Convert project slug to project_id
                 if (!empty($dependency['project'])) {
                     $project = Project::where('slug', $dependency['project'])->first();

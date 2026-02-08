@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <h1 class="text-5xl font-bold tracking-tight text-base-content lg:text-6xl mb-4">
-                    {{ config('app.name') }}
+                    <span>{{ config('app.name') }}</span><span class="text-secondary"> ᵇᵉᵗᵃ</span>
                 </h1>
                 <p class="text-xl text-base-content/60 max-w-3xl mx-auto">
                     Your ultimate destination for Cataclysm mods and extensions.
