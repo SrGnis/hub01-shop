@@ -347,7 +347,7 @@ class ProjectVersionForm extends Component
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'release_type' => 'required|in:alpha,beta,rc,release',
+            'release_type' => 'required|in:alpha,beta,rc,prerelease,release',
             'release_date' => 'required|date',
             'changelog' => 'nullable|string',
             'dependencies' => 'array',

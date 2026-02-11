@@ -7,6 +7,7 @@ enum ReleaseType: string
     case ALPHA = 'alpha';
     case BETA = 'beta';
     case RC = 'rc';
+    case PRERELEASE = 'prerelease';
     case RELEASE = 'release';
 
     /**
@@ -17,6 +18,7 @@ enum ReleaseType: string
         return match ($this) {
             self::ALPHA => 'error',
             self::BETA => 'warning',
+            self::PRERELEASE => 'info',
             self::RC => 'primary',
             self::RELEASE => 'success',
         };
@@ -30,6 +32,7 @@ enum ReleaseType: string
         return match ($this) {
             self::ALPHA => 'Alpha',
             self::BETA => 'Beta',
+            self::PRERELEASE => 'Pre-Release',
             self::RC => 'RC',
             self::RELEASE => 'Release',
         };
@@ -43,6 +46,7 @@ enum ReleaseType: string
         return match (strtolower($value)) {
             'alpha' => self::ALPHA,
             'beta' => self::BETA,
+            'prerelease' => self::PRERELEASE,
             'rc' => self::RC,
             'release' => self::RELEASE,
             default => throw new \ValueError("Unknown release type: {$value}"),
