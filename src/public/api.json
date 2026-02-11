@@ -2015,7 +2015,6 @@
                         "description": "The version of the dependency"
                     },
                     "type": {
-                        "description": "@",
                         "$ref": "#/components/schemas/DependencyType"
                     },
                     "external": {
@@ -2139,6 +2138,7 @@
                     "alpha",
                     "beta",
                     "rc",
+                    "prerelease",
                     "release"
                 ],
                 "title": "ReleaseType"
