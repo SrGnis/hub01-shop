@@ -48,7 +48,7 @@ class ProjectVersionFactory extends Factory
             'name' => fake()->words(rand(1, 3), true),
             'version' => fake()->unique()->numerify('#.#.#'),
             'changelog' => fake()->paragraphs(rand(1, 3), true),
-            'release_type' => fake()->randomElement(['alpha', 'beta', 'release']),
+            'release_type' => fake()->randomElement(['alpha', 'beta', 'prerelease', 'rc','release']),
             'release_date' => $relese_date,
             'downloads' => fake()->numberBetween(0, 10000),
             'project_id' => Project::factory(),
@@ -74,6 +74,16 @@ class ProjectVersionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'release_type' => 'beta',
+        ]);
+    }
+
+    /**
+     * Indicate that the project version is a pre-release.
+     */
+    public function prerelease(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'release_type' => 'prerelease',
         ]);
     }
 

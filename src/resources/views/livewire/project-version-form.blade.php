@@ -25,6 +25,7 @@
                 ['id' => 'alpha', 'name' => 'Alpha'],
                 ['id' => 'beta', 'name' => 'Beta'],
                 ['id' => 'rc', 'name' => 'Release Candidate'],
+                ['id' => 'prerelease', 'name' => 'Pre-Release'],
                 ['id' => 'release', 'name' => 'Release'],
             ]" required />
 

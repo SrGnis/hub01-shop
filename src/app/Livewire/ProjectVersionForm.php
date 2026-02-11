@@ -145,7 +145,7 @@ class ProjectVersionForm extends Component
         foreach ($dependencies as $dependency) {
             if ($dependency->dependency_project_id || $dependency->dependency_project_version_id) {
                 $dependencyData = [
-                    'type' => $dependency->dependency_type,
+                    'type' => $dependency->dependency_type->value,
                     'mode' => 'linked',
                     'project_slug' => '',
                     'project_id' => null,
@@ -173,7 +173,7 @@ class ProjectVersionForm extends Component
                 }
             } else {
                 $dependencyData = [
-                    'type' => $dependency->dependency_type,
+                    'type' => $dependency->dependency_type->value,
                     'mode' => 'manual',
                     'project_slug' => '',
                     'project_id' => null,
@@ -347,7 +347,7 @@ class ProjectVersionForm extends Component
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'release_type' => 'required|in:alpha,beta,rc,release',
+            'release_type' => 'required|in:alpha,beta,rc,prerelease,release',
             'release_date' => 'required|date',
             'changelog' => 'nullable|string',
             'dependencies' => 'array',
