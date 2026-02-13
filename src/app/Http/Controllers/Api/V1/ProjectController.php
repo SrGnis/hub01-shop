@@ -99,7 +99,7 @@ class ProjectController extends Controller
             'tags.*' => 'string|exists:project_tag,slug',
             'version_tags' => 'nullable|array',
             'version_tags.*' => 'string|exists:project_version_tag,slug',
-            'order_by' => 'nullable|string|in:name,created_at,latest_version,downloads',
+            'order_by' => 'nullable|string|in:name,created_at,updated_at,downloads',
             'order_direction' => 'nullable|string|in:asc,desc',
             'per_page' => 'nullable|integer|in:10,25,50,100',
             'release_date_period' => 'nullable|string|in:all,last_30_days,last_90_days,last_year,custom',

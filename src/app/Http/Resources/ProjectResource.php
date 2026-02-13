@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
 class ProjectResource extends JsonResource
 {
@@ -53,10 +54,16 @@ class ProjectResource extends JsonResource
             'last_release_date' => $this->recentReleaseDate?->toDateString(),
             'version_count' => $this->when($this->whenLoaded('versions'), fn () => $this->versions->count()),
             /**
+             * Last update time of the project or one of its versions
              * @var string | null
-             * @format date
+             * @format datetime
              */
-            'created_at' => $this->created_at?->toDateString(),
+            'updated_at' => Carbon::parse($this->last_update_time)->toDateTimeString(),
+            /**
+             * @var string | null
+             * @format datetime
+             */
+            'created_at' => Carbon::parse($this->created_at)->toDateTimeString(),
         ];
     }
 }

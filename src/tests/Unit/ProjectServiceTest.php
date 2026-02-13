@@ -523,7 +523,7 @@ class ProjectServiceTest extends TestCase
         $this->assertContains('name', $optionIds);
         $this->assertContains('downloads', $optionIds);
         $this->assertContains('created_at', $optionIds);
-        $this->assertContains('latest_version', $optionIds);
+        $this->assertContains('updated_at', $optionIds);
     }
 
     #[Test]

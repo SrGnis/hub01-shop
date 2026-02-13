@@ -46,12 +46,5 @@ class AppServiceProvider extends ServiceProvider
         if($this->app->environment('production')) {
             \URL::forceScheme('https');
         }
-
-        // TODO: Add description to the API documentation
-        Scramble::configure()
-            ->withDocumentTransformers(function (OpenApi $document) {
-                $document->info->description = '# TODO';
-            })
-        ;
     }
 }
