@@ -29,7 +29,7 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '',
+        'description' => "## Introduction\n\nThe **Hub01 Shop API** enables users to interact programmatically with the platform, allowing you to explore projects and manage your own resources.\n\nYou can query all available resources in the application, but currently, management capabilities are limited to project versions. Future updates will expand support for managing additional resources.\n\n---\n\n## Authentication\n\nAccess to certain API endpoints requires authentication using **API tokens**. These tokens can be generated directly from your user profile.\n\n---\n\n### Generating API Tokens\n\n1. **Navigate** to your user profile.\n2. **Select** the **API Tokens** section.\n3. **Click** on **Create API Token**.\n4. **Provide** a custom name and, optionally, set an expiration date.\n5. **Include** the generated token in the `Authorization` header of your API requests as a **Bearer token**.",
     ],
 
     /*
