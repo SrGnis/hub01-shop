@@ -220,19 +220,24 @@ class Project extends Model
         $user = Auth::user();
 
         // Return only approved projects and non-deactivated projects by default
+        // If the user is a admin, no restrictions apply
         // If the user is a member of the project, no restrictions apply
         if ($user) {
-            $query->where(function (Builder $query) use ($user) {
-                // Show approved and non-deactivated projects to everyone
-                $query->where(function (Builder $query) {
-                    $query->approved()
-                        ->whereNull('deactivated_at');
-                })
-                // OR show projects where the user is a member (regardless of status)
-                ->orWhereHas('memberships', function (Builder $query) use ($user) {
-                    $query->where('user_id', $user->id);
+            if ($user->isAdmin()) {
+                return;
+            }else{
+                $query->where(function (Builder $query) use ($user) {
+                    // Show approved and non-deactivated projects to everyone
+                    $query->where(function (Builder $query) {
+                        $query->approved()
+                            ->whereNull('deactivated_at');
+                    })
+                    // OR show projects where the user is a member (regardless of status)
+                    ->orWhereHas('memberships', function (Builder $query) use ($user) {
+                        $query->where('user_id', $user->id);
+                    });
                 });
-            });
+            }
         } else {
             // Guest users only see approved and non-deactivated projects
             $query->approved()
