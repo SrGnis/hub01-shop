@@ -247,6 +247,12 @@ class Project extends Model
     {
         $query->withSum('versions as downloads', 'downloads');
         $query->withMax('versions as recent_release_date', 'release_date');
+        // Add last update time as the greatest of the project updated_at and the maximum of all version updated_at
+        $query->addSelect([
+            'last_update_time' => ProjectVersion::selectRaw(
+                'GREATEST(project.updated_at, COALESCE(MAX(project_version.updated_at), project.updated_at))'
+            )->whereColumn('project_version.project_id', 'project.id'),
+        ]);
     }
 
     /**
