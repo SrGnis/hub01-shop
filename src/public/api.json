@@ -160,7 +160,7 @@
                             "enum": [
                                 "name",
                                 "created_at",
-                                "latest_version",
+                                "updated_at",
                                 "downloads"
                             ],
                             "default": "downloads"
@@ -1913,12 +1913,20 @@
                         "type": "integer",
                         "minimum": 0
                     },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "datetime",
+                        "description": "Last update time of the project or one of its versions"
+                    },
                     "created_at": {
                         "type": [
                             "string",
                             "null"
                         ],
-                        "format": "date"
+                        "format": "datetime"
                     }
                 },
                 "required": [
@@ -1933,6 +1941,7 @@
                     "status",
                     "downloads",
                     "last_release_date",
+                    "updated_at",
                     "created_at"
                 ],
                 "title": "ProjectResource"

@@ -119,8 +119,8 @@ class ProjectService
                 return $query->orderBy('name', $orderDirection);
             case 'created_at':
                 return $query->orderBy('created_at', $orderDirection);
-            case 'latest_version':
-                return $query->orderBy('recent_release_date', $orderDirection);
+            case 'updated_at':
+                return $query->orderBy('last_update_time', $orderDirection);
             case 'downloads':
             default:
                 return $query->orderBy('downloads', $orderDirection);
@@ -171,7 +171,7 @@ class ProjectService
         return [
             ['id' => 'name', 'name' => 'Project Name', 'icon' => 'lucide-text'],
             ['id' => 'created_at', 'name' => 'Creation Date', 'icon' => 'lucide-calendar'],
-            ['id' => 'latest_version', 'name' => 'Update Date', 'icon' => 'lucide-refresh-cw'],
+            ['id' => 'updated_at', 'name' => 'Update Date', 'icon' => 'lucide-refresh-cw'],
             ['id' => 'downloads', 'name' => 'Downloads', 'icon' => 'lucide-download'],
         ];
     }

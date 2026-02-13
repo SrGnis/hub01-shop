@@ -69,10 +69,10 @@
                 </span>
             </div>
 
-            @if ($project->recent_release_date)
+            @if ($project->last_update_time)
                 <div class="flex items-center gap-1">
                     <x-icon name="lucide-calendar" class="w-3 h-3" />
-                    <span>Updated {{ \Carbon\Carbon::parse($project->recent_release_date)->diffForHumans() }}</span>
+                    <span>Updated {{ \Carbon\Carbon::parse($project->last_update_time)->diffForHumans() }}</span>
                 </div>
             @endif
 
@@ -158,14 +158,13 @@
                     </span>
                 </div>
 
-                @php
-                    $recentReleaseDate = $project->recent_release_date ?? $project->created_at;
-                @endphp
-                <div class="flex items-center gap-2">
-                    <x-icon name="lucide-calendar" />
-                    <span>Updated
-                        {{ \Carbon\Carbon::parse($recentReleaseDate)->diffForHumans() }}</span>
-                </div>
+                @if ($project->last_update_time)
+                    <div class="flex items-center gap-2">
+                        <x-icon name="lucide-calendar" />
+                        <span>Updated
+                            {{ \Carbon\Carbon::parse($project->last_update_time)->diffForHumans() }}</span>
+                    </div>
+                @endif
 
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-calendar-plus" />
