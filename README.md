@@ -20,6 +20,11 @@ Hub01 Shop is a web application designed to serve as a centralized repository fo
 - **Project Management**: Create and manage your mod projects
 - **Dependency Tracking**: Manage mod dependencies to ensure compatibility
 - **Tagging System**: Organize projects with tags for better discoverability
+- **REST API**: Access project data programmatically
+    - **API Documentation**: [https://hub01-shop.srgnis.com/docs/api/](https://hub01-shop.srgnis.com/docs/api/)
+    - **API Specification**: [OpenAPI](https://raw.githubusercontent.com/SrGnis/hub01-shop/refs/heads/main/src/public/api.json)
+    - **API Client**: [Hub01 Shop API libs](https://github.com/SrGnis/Hub01-Shop-API-libs)
+    - **API Tools**: [Hub01 Shop API Tools](https://github.com/SrGnis/Hub01-Shop-API-Tools)
 
 ## Tech Stack
 
