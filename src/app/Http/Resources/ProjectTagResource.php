@@ -31,6 +31,9 @@ class ProjectTagResource extends JsonResource
              * Unset when the request does not have the `plain` query parameter or is a single query
              */
             'sub_tags' => $this->when($this->whenLoaded('subTags', default: null), fn () => ProjectTagResource::collection($this->subTags)),
+            /**
+             * @var string | null
+             */
             'main_tag' => $this->mainTag?->slug,
         ];
     }

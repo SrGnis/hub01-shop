@@ -23,7 +23,7 @@ class ProjectVersionDependencyResource extends JsonResource
             'project' => $this->dependency_name ? $this->dependency_name : ($this->dependencyProjectVersion ? $this->dependencyProjectVersion->project?->slug : $this->dependencyProject?->slug),
             /**
              * The version of the dependency
-             * @var string
+             * @var string | null
              */
             'version' => $this->dependency_version ? $this->dependency_version : $this->dependencyProjectVersion?->version,
             /**
