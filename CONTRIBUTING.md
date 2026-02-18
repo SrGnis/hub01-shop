@@ -4,8 +4,6 @@ Thank you for your interest in contributing to **Hub01 Shop**
 
 Hub01 Shop is a repository and management platform for Cataclysm Games projects, built with Laravel, Livewire, and Docker. Contributions of all kinds are welcome — bug fixes, features, documentation improvements, refactoring, and feedback.
 
----
-
 ## Table of Contents
 
 - [Getting Started](#getting-started)
@@ -16,8 +14,6 @@ Hub01 Shop is a repository and management platform for Cataclysm Games projects,
 - [Pull Request Process](#pull-request-process)
 - [Reporting Issues](#reporting-issues)
 - [Security Vulnerabilities](#security-vulnerabilities)
-
----
 
 ## Getting Started
 
@@ -34,8 +30,6 @@ cd hub01-shop
 ```bash
 git remote add upstream https://github.com/srgnis/hub01-shop.git
 ```
-
----
 
 ## Development Setup
 
@@ -64,8 +58,6 @@ http://localhost:8000
 - `mailpit` — Mail testing
 
 You may also run it as a standard Laravel application without Docker if preferred.
-
----
 
 ## Branching Strategy
 
@@ -134,8 +126,6 @@ Common types:
 - `chore`
 - `test`
 
----
-
 ## Pull Request Process
 
 1. Ensure your branch is up to date with `staging`.
@@ -150,8 +140,6 @@ Common types:
 
 Small, focused PRs are preferred over large ones.
 
----
-
 ## Reporting Issues
 
 Before opening an issue:
@@ -163,8 +151,6 @@ Before opening an issue:
 
 Use the provided issue templates when creating new issues.
 
----
-
 ## Security Vulnerabilities
 
 If you discover a security vulnerability:
@@ -173,8 +159,6 @@ If you discover a security vulnerability:
 - Contact the maintainer privately.
 
 Security issues will be handled with priority.
-
----
 
 ## Areas Where Contributions Are Welcome
 
@@ -186,8 +170,6 @@ Security issues will be handled with priority.
 - Docker optimizations
 - CI/CD enhancements
 
----
-
-## 💬 Questions?
+## Questions?
 
 If you're unsure whether something should be implemented, feel free to open a [discussion](https://github.com/SrGnis/hub01-shop/discussions) or draft [PR](https://github.com/SrGnis/hub01-shop/pulls).
