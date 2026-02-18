@@ -1,0 +1,64 @@
+name: "Bug Report"
+description: Report a bug in Hub01 Shop
+title: "[Bug]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug in Hub01 Shop.
+        Please provide as much detail as possible so we can reproduce and fix the issue quickly.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Where does the issue occur?
+      options:
+        - Web UI
+        - REST API
+        - Authentication / Accounts
+        - Project / Version Management
+        - Docker / Dev Environment
+        - CI/CD
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clearly describe what happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: |
+        Paste relevant logs or attach screenshots.
+

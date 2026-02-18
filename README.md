@@ -26,6 +26,14 @@ Hub01 Shop is a web application designed to serve as a centralized repository fo
     - **API Client**: [Hub01 Shop API libs](https://github.com/SrGnis/Hub01-Shop-API-libs)
     - **API Tools**: [Hub01 Shop API Tools](https://github.com/SrGnis/Hub01-Shop-API-Tools)
 
+## Support Forum
+
+For questions, feedback, or support, please visit our GitHub Discussions forum: [https://github.com/SrGnis/hub01-shop/discussions](https://github.com/SrGnis/hub01-shop/discussions)
+
+## Contributing
+
+Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project.
+
 ## Tech Stack
 
 The application is built with:
@@ -60,7 +68,7 @@ cp .env.example .env
 ./scripts/dcdev up -d
 
 # Run migrations and seed the database
-./scripts/cr php artisan migrate:fresh --seed
+./scripts/cr app php artisan migrate:fresh --seed
 ```
 
 The application will be available at [http://localhost:8000](http://localhost:8000).

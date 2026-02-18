@@ -1,0 +1,49 @@
+name: "Refactor / Improvement"
+description: Internal code improvements, cleanup, or structural changes
+title: "[Refactor]: "
+labels: ["refactor"]
+assignees: []
+
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      options:
+        - Models
+        - Services
+        - Controllers
+        - Livewire Components
+        - API
+        - Docker / Infrastructure
+        - Database
+        - Tests
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current Situation
+      description: What is wrong, messy, duplicated, or hard to maintain?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Refactor
+      description: How should it be improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected Impact
+      description: |
+        - Performance improvement?
+        - Code clarity?
+        - Reduced duplication?
+        - Breaking changes?
