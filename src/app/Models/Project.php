@@ -81,6 +81,7 @@ class Project extends Model
         'projectType',
         'tags.tagGroup',
         'owner',
+        'externalCredits',
     ];
 
     /**
@@ -142,6 +143,14 @@ class Project extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(Membership::class);
+    }
+
+    /**
+     * Get the external contributors associated with the project.
+     */
+    public function externalCredits(): HasMany
+    {
+        return $this->hasMany(ProjectExternalCredit::class)->orderBy('id');
     }
 
     /**
@@ -270,6 +279,7 @@ class Project extends Model
             'projectType',
             'tags.tagGroup',
             'owner',
+            'externalCredits',
         ]);
     }
 

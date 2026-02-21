@@ -149,6 +149,53 @@
                     placeholder="https://github.com/user/repo" />
             </div>
 
+            <!-- External Credits -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold">External Credits</h2>
+                        <p class="text-sm text-gray-400">Credit external collaborators that are not project members.</p>
+                    </div>
+                    <x-button type="button" wire:click="addExternalCredit" label="Add Credit" icon="lucide-plus"
+                        class="btn-sm btn-outline" />
+                </div>
+
+                @foreach ($externalCredits as $index => $credit)
+                    <div wire:key="external-credit-{{ $index }}" class="rounded-lg border border-base-300 p-4 space-y-3">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                            <div class="lg:col-span-4">
+                                <x-input label="Name" wire:model="externalCredits.{{ $index }}.name"
+                                    placeholder="Contributor name" />
+                                @error("externalCredits.$index.name")
+                                    <span class="text-error text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-4">
+                                <x-input label="Role" wire:model="externalCredits.{{ $index }}.role"
+                                    placeholder="Composer, Artist, Voice Actor..." />
+                                @error("externalCredits.$index.role")
+                                    <span class="text-error text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-4">
+                                <x-input label="URL (optional)" wire:model="externalCredits.{{ $index }}.url" type="url"
+                                    placeholder="https://example.com/profile" />
+                                @error("externalCredits.$index.url")
+                                    <span class="text-error text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <x-button type="button" wire:click="removeExternalCredit({{ $index }})" label="Remove"
+                                icon="lucide-trash-2" class="btn-sm btn-error btn-outline" />
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
             <!-- Status -->
             <div>
                 <x-custom-toggle hint="Set a project as inactive to inform users that it is no longer maintained."

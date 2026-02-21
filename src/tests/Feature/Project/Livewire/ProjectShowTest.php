@@ -443,4 +443,24 @@ class ProjectShowTest extends TestCase
             ->set('releaseDatePeriod', 'last_30_days') // Change release date filter
             ->assertSet('paginators.versionsPage', 1); // Should reset to page 1
     }
+
+    #[Test]
+    public function test_external_credits_section_is_rendered_separately_from_creators()
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->owner($user)->create();
+
+        $project->externalCredits()->create([
+            'name' => 'Jane Doe',
+            'role' => 'Composer',
+            'url' => 'https://example.com/jane',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ProjectShow::class, ['project' => $project->slug])
+            ->assertSee('Creators')
+            ->assertSee('External Credits')
+            ->assertSee('Jane Doe')
+            ->assertSee('Composer');
+    }
 }
