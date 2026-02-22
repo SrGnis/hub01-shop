@@ -204,4 +204,61 @@ class ProjectTagTest extends TestCase
         $this->assertCount(1, $data);
         $this->assertEquals($mainTag->slug, $data[0]['slug']);
     }
+
+    #[Test]
+    public function test_project_tags_are_ordered_by_priority_then_slug_and_do_not_expose_display_priority()
+    {
+        $mainAlpha = ProjectTag::factory()->create([
+            'name' => 'Main Alpha',
+            'slug' => 'main-alpha',
+            'display_priority' => 10,
+        ]);
+        $mainAlpha->projectTypes()->attach($this->projectType);
+
+        $mainBeta = ProjectTag::factory()->create([
+            'name' => 'Main Beta',
+            'slug' => 'main-beta',
+            'display_priority' => 10,
+        ]);
+        $mainBeta->projectTypes()->attach($this->projectType);
+
+        $mainLow = ProjectTag::factory()->create([
+            'name' => 'Main Low',
+            'slug' => 'main-low',
+            'display_priority' => 1,
+        ]);
+        $mainLow->projectTypes()->attach($this->projectType);
+
+        $subB = ProjectTag::factory()->create([
+            'name' => 'Sub B',
+            'slug' => 'sub-b',
+            'display_priority' => 7,
+            'parent_id' => $mainAlpha->id,
+        ]);
+        $subB->projectTypes()->attach($this->projectType);
+
+        $subA = ProjectTag::factory()->create([
+            'name' => 'Sub A',
+            'slug' => 'sub-a',
+            'display_priority' => 7,
+            'parent_id' => $mainAlpha->id,
+        ]);
+        $subA->projectTypes()->attach($this->projectType);
+
+        $response = $this->getJson('/api/v1/project_tags');
+        $response->assertOk();
+
+        $data = $response->json('data');
+
+        $this->assertSame(['main-alpha', 'main-beta', 'main-low'], array_column($data, 'slug'));
+        $this->assertSame(['sub-a', 'sub-b'], array_column($data[0]['sub_tags'], 'slug'));
+
+        foreach ($data as $tag) {
+            $this->assertArrayNotHasKey('display_priority', $tag);
+
+            foreach ($tag['sub_tags'] ?? [] as $subTag) {
+                $this->assertArrayNotHasKey('display_priority', $subTag);
+            }
+        }
+    }
 }

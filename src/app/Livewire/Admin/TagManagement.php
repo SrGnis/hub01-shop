@@ -24,6 +24,8 @@ class TagManagement extends Component
 
     public ?int $tagParentId = null;
 
+    public int $tagDisplayPriority = 0;
+
     public $tagProjectTypes = [];
 
     public $isEditingTag = false;
@@ -46,6 +48,7 @@ class TagManagement extends Component
             'projectTagSlug' => 'required|string|max:50|unique:project_tag,slug,' . $this->tagId,
             'tagIcon' => 'required|string|max:50|starts_with:lucide-',
             'tagParentId' => 'nullable|exists:project_tag,id',
+            'tagDisplayPriority' => 'required|integer|min:0',
         ];
     }
 
@@ -91,6 +94,7 @@ class TagManagement extends Component
         $this->tagIcon = $tag->icon;
         $this->tagGroupId = $tag->project_tag_group_id;
         $this->tagParentId = $tag->parent_id;
+        $this->tagDisplayPriority = $tag->display_priority;
         $this->tagProjectTypes = $tag->projectTypes->pluck('id')->toArray();
         $this->isEditingTag = true;
         $this->showModal = true;
@@ -107,6 +111,7 @@ class TagManagement extends Component
             $tag->icon = $this->tagIcon;
             $tag->project_tag_group_id = $this->tagGroupId;
             $tag->parent_id = $this->tagParentId;
+            $tag->display_priority = $this->tagDisplayPriority;
             $tag->save();
 
             // Sync project types
@@ -120,6 +125,7 @@ class TagManagement extends Component
                 'icon' => $this->tagIcon,
                 'project_tag_group_id' => $this->tagGroupId,
                 'parent_id' => $this->tagParentId,
+                'display_priority' => $this->tagDisplayPriority,
             ]);
 
             // Sync project types
@@ -140,6 +146,7 @@ class TagManagement extends Component
         $this->tagIcon = 'lucide-tag';
         $this->tagGroupId = null;
         $this->tagParentId = null;
+        $this->tagDisplayPriority = 0;
         $this->tagProjectTypes = [];
         $this->isEditingTag = false;
     }

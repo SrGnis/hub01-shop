@@ -30,8 +30,13 @@ class ProjectVersionTag extends Model
         'name',
         'slug',
         'icon',
+        'display_priority',
         'project_version_tag_group_id',
         'parent_id',
+    ];
+
+    protected $casts = [
+        'display_priority' => 'integer',
     ];
 
     /**
@@ -41,6 +46,12 @@ class ProjectVersionTag extends Model
      */
     protected static function booted()
     {
+        static::addGlobalScope('display_priority_order', function (Builder $builder) {
+            $builder
+                ->orderByDesc('display_priority')
+                ->orderBy('slug');
+        });
+
         static::saved(function ($tag) {
             foreach (ProjectType::all() as $projectType) {
                 Cache::forget('project_version_tags_by_type_'.$projectType->value);
