@@ -166,25 +166,16 @@
                             <div class="lg:col-span-4">
                                 <x-input label="Name" wire:model="externalCredits.{{ $index }}.name"
                                     placeholder="Contributor name" />
-                                @error("externalCredits.$index.name")
-                                    <span class="text-error text-sm">{{ $message }}</span>
-                                @enderror
                             </div>
 
                             <div class="lg:col-span-4">
                                 <x-input label="Role" wire:model="externalCredits.{{ $index }}.role"
                                     placeholder="Composer, Artist, Voice Actor..." />
-                                @error("externalCredits.$index.role")
-                                    <span class="text-error text-sm">{{ $message }}</span>
-                                @enderror
                             </div>
 
                             <div class="lg:col-span-4">
                                 <x-input label="URL (optional)" wire:model="externalCredits.{{ $index }}.url" type="url"
                                     placeholder="https://example.com/profile" />
-                                @error("externalCredits.$index.url")
-                                    <span class="text-error text-sm">{{ $message }}</span>
-                                @enderror
                             </div>
                         </div>
 
