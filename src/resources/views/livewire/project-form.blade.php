@@ -54,7 +54,7 @@
             @endif
         @endif
 
-        <form wire:submit="save" class="space-y-6">
+        <form class="space-y-6">
             <!-- Name -->
             @if ($isEditing)
                 <x-input label="Name" wire:model="name" placeholder="Project name" required />
@@ -209,7 +209,7 @@
                     <x-button spinner wire:click="sendToReview" label="Send to Review" class="btn-success"
                         icon="lucide-send" />
                 @endif
-                <x-button spinner type="submit" label="{{ $isEditing ? 'Save Changes' : 'Create Project' }}"
+                <x-button spinner wire:click="save" label="{{ $isEditing ? 'Save Changes' : 'Create Project' }}"
                     class="btn-primary" />
             </div>
         </form>
