@@ -94,6 +94,9 @@
             <!-- Creators Section -->
             <x-project-creators :project="$project" />
 
+            <!-- External Credits Section -->
+            <x-project-external-credits :project="$project" />
+
             <!-- Links Section -->
             <x-project-links :project="$project" />
         </div>

@@ -208,6 +208,58 @@ class ProjectServiceTest extends TestCase
             'role' => 'owner',
             'primary' => true,
         ]);
+
+        $this->assertDatabaseCount('project_external_credit', 0);
+    }
+
+    #[Test]
+    public function test_create_project_with_external_credits()
+    {
+        Config::set('projects.auto_approve', false);
+
+        $tag = ProjectTag::factory()->create();
+        $tag->projectTypes()->attach($this->projectType);
+
+        $data = [
+            'name' => 'Test Project',
+            'slug' => 'test-project-external-credits',
+            'summary' => 'Test summary',
+            'description' => 'Test description',
+            'website' => 'https://example.com',
+            'issues' => 'https://github.com/test/issues',
+            'source' => 'https://github.com/test/source',
+            'status' => 'active',
+            'selectedTags' => [$tag->id],
+            'project_type_id' => $this->projectType->id,
+            'externalCredits' => [
+                [
+                    'name' => 'Jane Doe',
+                    'role' => 'Composer',
+                    'url' => 'https://example.com/jane',
+                ],
+                [
+                    'name' => 'John Roe',
+                    'role' => 'Concept Artist',
+                    'url' => null,
+                ],
+            ],
+        ];
+
+        $project = $this->projectService->saveProject(null, $this->user, $data);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Jane Doe',
+            'role' => 'Composer',
+            'url' => 'https://example.com/jane',
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'John Roe',
+            'role' => 'Concept Artist',
+            'url' => null,
+        ]);
     }
 
     #[Test]
@@ -264,6 +316,77 @@ class ProjectServiceTest extends TestCase
 
         $this->assertEquals('Updated Name', $updatedProject->name);
         $this->assertEquals('Updated summary', $updatedProject->summary);
+    }
+
+    #[Test]
+    public function test_update_existing_project_replaces_external_credits_deterministically()
+    {
+        $project = Project::factory()->owner($this->user)->create();
+        $tag = ProjectTag::factory()->create();
+        $tag->projectTypes()->attach($this->projectType);
+
+        $project->externalCredits()->createMany([
+            [
+                'name' => 'Old One',
+                'role' => 'Old Role 1',
+                'url' => 'https://example.com/old-one',
+            ],
+            [
+                'name' => 'Old Two',
+                'role' => 'Old Role 2',
+                'url' => null,
+            ],
+        ]);
+
+        $data = [
+            'name' => 'Updated Name',
+            'slug' => $project->slug,
+            'summary' => 'Updated summary',
+            'description' => $project->description,
+            'website' => $project->website,
+            'issues' => $project->issues,
+            'source' => $project->source,
+            'status' => $project->status,
+            'selectedTags' => [$tag->id],
+            'externalCredits' => [
+                [
+                    'name' => 'New One',
+                    'role' => 'New Role 1',
+                    'url' => null,
+                ],
+                [
+                    'name' => 'New Two',
+                    'role' => 'New Role 2',
+                    'url' => 'https://example.com/new-two',
+                ],
+            ],
+        ];
+
+        $this->projectService->saveProject($project, null, $data);
+
+        $this->assertDatabaseMissing('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Old One',
+        ]);
+
+        $this->assertDatabaseMissing('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Old Two',
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'New One',
+            'role' => 'New Role 1',
+            'url' => null,
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'New Two',
+            'role' => 'New Role 2',
+            'url' => 'https://example.com/new-two',
+        ]);
     }
 
     #[Test]

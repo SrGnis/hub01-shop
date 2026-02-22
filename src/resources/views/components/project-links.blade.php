@@ -1,8 +1,8 @@
 @props(['project'])
 
 @php
-    $hasLinks = (isset($project->website) && $project->website) || 
-                (isset($project->issues) && $project->issues) || 
+    $hasLinks = (isset($project->website) && $project->website) ||
+                (isset($project->issues) && $project->issues) ||
                 (isset($project->source) && $project->source);
 @endphp
 
@@ -12,6 +12,7 @@
             @if (isset($project->website) && $project->website)
                 <x-button
                     link="{{ $project->website }}"
+                    tooltip="{{ $project->website }}"
                     external
                     icon="globe"
                     label="Website"
@@ -22,6 +23,7 @@
             @if (isset($project->issues) && $project->issues)
                 <x-button
                     link="{{ $project->issues }}"
+                    tooltip="{{ $project->issues }}"
                     external
                     icon="bug"
                     label="Issue Tracker"
@@ -32,6 +34,7 @@
             @if (isset($project->source) && $project->source)
                 <x-button
                     link="{{ $project->source }}"
+                    tooltip="{{ $project->source }}"
                     external
                     icon="code"
                     label="Source Code"

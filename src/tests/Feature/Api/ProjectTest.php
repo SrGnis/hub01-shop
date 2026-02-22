@@ -793,6 +793,40 @@ class ProjectTest extends TestCase
     }
 
     #[Test]
+    public function test_project_single_resource_includes_external_credits()
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->owner($user)->create();
+
+        $project->externalCredits()->createMany([
+            [
+                'name' => 'Jane Doe',
+                'role' => 'Composer',
+                'url' => 'https://example.com/jane',
+            ],
+            [
+                'name' => 'John Roe',
+                'role' => 'Concept Artist',
+                'url' => null,
+            ],
+        ]);
+
+        $response = $this->getJson(route('api.v1.project', ['slug' => $project->slug]));
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        $this->assertArrayHasKey('external_credits', $data);
+        $this->assertIsArray($data['external_credits']);
+        $this->assertCount(2, $data['external_credits']);
+        $this->assertEquals('Jane Doe', $data['external_credits'][0]['name']);
+        $this->assertEquals('Composer', $data['external_credits'][0]['role']);
+        $this->assertEquals('https://example.com/jane', $data['external_credits'][0]['url']);
+        $this->assertEquals('John Roe', $data['external_credits'][1]['name']);
+        $this->assertNull($data['external_credits'][1]['url']);
+    }
+
+    #[Test]
     public function test_project_single_resource_includes_tags()
     {
         $user = User::factory()->create();

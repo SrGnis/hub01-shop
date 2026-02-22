@@ -680,6 +680,115 @@ class ProjectFormTest extends TestCase
             ->set('source', 'not-a-url')
             ->call('save')
             ->assertHasErrors(['source']);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('externalCredits', [[
+                'name' => 'Jane Doe',
+                'role' => 'Composer',
+                'url' => 'not-a-url',
+            ]])
+            ->call('save')
+            ->assertHasErrors(['externalCredits.0.url']);
+    }
+
+    #[Test]
+    public function test_create_project_with_external_credits()
+    {
+        $tag = ProjectTag::factory()->create();
+        $tag->projectTypes()->attach($this->projectType);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('name', 'Test Project')
+            ->set('slug', 'test-project')
+            ->set('summary', 'A test summary')
+            ->set('description', 'A test description')
+            ->set('selectedTags', [$tag->id])
+            ->set('externalCredits', [
+                [
+                    'name' => 'Jane Doe',
+                    'role' => 'Composer',
+                    'url' => 'https://example.com/jane',
+                ],
+                [
+                    'name' => 'John Roe',
+                    'role' => 'Concept Artist',
+                    'url' => null,
+                ],
+            ])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $project = Project::where('slug', 'test-project')->firstOrFail();
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Jane Doe',
+            'role' => 'Composer',
+            'url' => 'https://example.com/jane',
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'John Roe',
+            'role' => 'Concept Artist',
+            'url' => null,
+        ]);
+    }
+
+    #[Test]
+    public function test_can_add_external_credit_row_in_form()
+    {
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->assertSet('externalCredits', [])
+            ->call('addExternalCredit')
+            ->assertSet('externalCredits.0.name', '')
+            ->assertSet('externalCredits.0.role', '')
+            ->assertSet('externalCredits.0.url', '');
+    }
+
+    #[Test]
+    public function test_can_remove_external_credit_row_and_reindex_form_data()
+    {
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->set('externalCredits', [
+                ['name' => 'Jane Doe', 'role' => 'Composer', 'url' => 'https://example.com/jane'],
+                ['name' => 'John Roe', 'role' => 'Artist', 'url' => 'https://example.com/john'],
+            ])
+            ->call('removeExternalCredit', 0)
+            ->assertSet('externalCredits.0.name', 'John Roe')
+            ->assertSet('externalCredits.0.role', 'Artist')
+            ->assertSet('externalCredits.0.url', 'https://example.com/john');
+    }
+
+    #[Test]
+    public function test_edit_form_loads_existing_external_credits()
+    {
+        $project = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
+
+        $project->externalCredits()->create([
+            'name' => 'Jane Doe',
+            'role' => 'Composer',
+            'url' => 'https://example.com/jane',
+        ]);
+
+        $project->externalCredits()->create([
+            'name' => 'John Roe',
+            'role' => 'Concept Artist',
+            'url' => null,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectForm::class, ['projectType' => $this->projectType, 'project' => $project])
+            ->assertSet('externalCredits.0.name', 'Jane Doe')
+            ->assertSet('externalCredits.0.role', 'Composer')
+            ->assertSet('externalCredits.0.url', 'https://example.com/jane')
+            ->assertSet('externalCredits.1.name', 'John Roe')
+            ->assertSet('externalCredits.1.role', 'Concept Artist')
+            ->assertSet('externalCredits.1.url', null);
     }
 
     #[Test]

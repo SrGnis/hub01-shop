@@ -302,6 +302,10 @@ class ProjectService
             $resolvedTags = $this->resolveParentTags($data['selectedTags'] ?? []);
             $project->tags()->sync($resolvedTags);
 
+            // External credits are managed with full-replacement semantics.
+            // The provided list becomes the source of truth for deterministic updates.
+            $this->replaceExternalCredits($project, $data['externalCredits'] ?? []);
+
             Log::info('Project updated', [
                 'project_id' => $project->id,
                 'project_name' => $project->name,
@@ -347,6 +351,10 @@ class ProjectService
         $resolvedTags = $this->resolveParentTags($data['selectedTags'] ?? []);
         $project->tags()->attach($resolvedTags);
 
+        // External credits are managed with full-replacement semantics.
+        // On create this effectively inserts the provided list.
+        $this->replaceExternalCredits($project, $data['externalCredits'] ?? []);
+
         Log::info('Project created', [
             'project_id' => $project->id,
             'project_name' => $project->name,
@@ -363,6 +371,34 @@ class ProjectService
         $membership->save();
 
         return $project;
+    }
+
+    /**
+     * Replace all external credits for a project in a deterministic way.
+     *
+     * Existing records are deleted and recreated in request order.
+     *
+     * @param  array<int, array{name:string,role:string,url:?string}>  $externalCredits
+     */
+    private function replaceExternalCredits(Project $project, array $externalCredits): void
+    {
+        $project->externalCredits()->delete();
+
+        if (empty($externalCredits)) {
+            return;
+        }
+
+        $payload = collect($externalCredits)
+            ->map(function (array $credit): array {
+                return [
+                    'name' => $credit['name'],
+                    'role' => $credit['role'],
+                    'url' => $credit['url'] ?? null,
+                ];
+            })
+            ->all();
+
+        $project->externalCredits()->createMany($payload);
     }
 
     /**
@@ -736,4 +772,3 @@ class ProjectService
         }
     }
 }
-

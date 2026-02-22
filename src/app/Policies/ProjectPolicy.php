@@ -117,6 +117,17 @@ class ProjectPolicy extends BasePolicy
     }
 
     /**
+     * Determine whether the user can manage external credits for the project.
+     */
+    public function manageExternalCredits(User $user, Project $project): bool
+    {
+        return $project->users()->where('user_id', $user->id)
+            ->wherePivot('status', 'active')
+            ->wherePivot('primary', true)
+            ->exists();
+    }
+
+    /**
      * Determine whether the user can upload versions to the project.
      */
     public function uploadVersion(User $user, Project $project): bool

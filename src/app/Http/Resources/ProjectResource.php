@@ -44,6 +44,17 @@ class ProjectResource extends JsonResource
                 ];
             })),
             /**
+             * External contributors declared by the project team.
+             * @var array<int, array{name:string,role:string,url:string|null}> | null
+             */
+            'external_credits' => $this->when($this->whenLoaded('externalCredits'), fn () => $this->externalCredits->map(function ($credit) {
+                return [
+                    'name' => $credit->name,
+                    'role' => $credit->role,
+                    'url' => $credit->url,
+                ];
+            })),
+            /**
              * @var int
              */
             'downloads' => $this->downloads ?? 0,
