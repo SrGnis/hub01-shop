@@ -48,6 +48,16 @@
 
             <x-input label="Slug" wire:model.live.debounce.500ms="tagGroupSlug" spinner="tagGroupName, tagGroupSlug" required />
 
+            <x-input
+                label="Display Priority"
+                type="number"
+                min="0"
+                step="1"
+                wire:model="tagGroupDisplayPriority"
+                hint="Lower values are shown first"
+                required
+            />
+
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Associated Project Types</span>

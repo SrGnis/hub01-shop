@@ -19,6 +19,8 @@ class TagGroupManagement extends Component
 
     public $tagGroupProjectTypes = [];
 
+    public int $tagGroupDisplayPriority = 0;
+
     public $isEditingTagGroup = false;
 
     // Modal state
@@ -35,6 +37,7 @@ class TagGroupManagement extends Component
             'tagGroupName' => 'required|string|max:50',
             'tagGroupSlug' => 'required|string|max:50|unique:project_tag_group,slug,' . $this->tagGroupId,
             'tagGroupProjectTypes' => 'required|array',
+            'tagGroupDisplayPriority' => 'required|integer|min:0',
         ];
     }
 
@@ -69,6 +72,7 @@ class TagGroupManagement extends Component
         $this->tagGroupId = $tagGroup->id;
         $this->tagGroupName = $tagGroup->name;
         $this->tagGroupSlug = $tagGroup->slug;
+        $this->tagGroupDisplayPriority = $tagGroup->display_priority;
         $this->tagGroupProjectTypes = $tagGroup->projectTypes->pluck('id')->toArray();
         $this->isEditingTagGroup = true;
         $this->showModal = true;
@@ -82,6 +86,7 @@ class TagGroupManagement extends Component
             $tagGroup = ProjectTagGroup::find($this->tagGroupId);
             $tagGroup->name = $this->tagGroupName;
             $tagGroup->slug = $this->tagGroupSlug;
+            $tagGroup->display_priority = $this->tagGroupDisplayPriority;
             $tagGroup->save();
 
             // Sync project types
@@ -92,6 +97,7 @@ class TagGroupManagement extends Component
             $tagGroup = ProjectTagGroup::create([
                 'name' => $this->tagGroupName,
                 'slug' => $this->tagGroupSlug,
+                'display_priority' => $this->tagGroupDisplayPriority,
             ]);
 
             // Sync project types
@@ -109,6 +115,7 @@ class TagGroupManagement extends Component
         $this->tagGroupId = null;
         $this->tagGroupName = '';
         $this->tagGroupSlug = '';
+        $this->tagGroupDisplayPriority = 0;
         $this->tagGroupProjectTypes = [];
         $this->isEditingTagGroup = false;
     }

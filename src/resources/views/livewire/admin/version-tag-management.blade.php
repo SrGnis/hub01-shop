@@ -109,6 +109,16 @@
                 hint="Select a parent tag to make this a sub-tag"
             />
 
+            <x-input
+                label="Display Priority"
+                type="number"
+                min="0"
+                step="1"
+                wire:model="versionTagDisplayPriority"
+                hint="Lower values are shown first"
+                required
+            />
+
             @if(!$versionTagParentId)
                 <x-select label="Version Tag Group" wire:model="versionTagGroupId" :options="$versionTagGroups"
                     placeholder="Select group (optional)" />

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasUniqueSlug;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -27,6 +28,11 @@ class ProjectVersionTagGroup extends Model
         'name',
         'slug',
         'icon',
+        'display_priority',
+    ];
+
+    protected $casts = [
+        'display_priority' => 'integer',
     ];
 
     /**
@@ -36,6 +42,12 @@ class ProjectVersionTagGroup extends Model
      */
     protected static function booted()
     {
+        static::addGlobalScope('display_priority_order', function (Builder $builder) {
+            $builder
+                ->orderByDesc('display_priority')
+                ->orderBy('slug');
+        });
+
         static::saved(function ($tagGroup) {
             if ($tagGroup->projectTypes->isNotEmpty()) {
                 foreach ($tagGroup->projectTypes as $projectType) {

@@ -24,6 +24,8 @@ class VersionTagManagement extends Component
 
     public ?int $versionTagParentId = null;
 
+    public int $versionTagDisplayPriority = 0;
+
     public $versionTagProjectTypes = [];
 
     public $isEditingVersionTag = false;
@@ -46,6 +48,7 @@ class VersionTagManagement extends Component
             'versionTagSlug' => 'required|string|max:50|unique:project_version_tag,slug,' . $this->versionTagId,
             'versionTagIcon' => 'required|string|max:50|starts_with:lucide-',
             'versionTagParentId' => 'nullable|exists:project_version_tag,id',
+            'versionTagDisplayPriority' => 'required|integer|min:0',
         ];
     }
 
@@ -91,6 +94,7 @@ class VersionTagManagement extends Component
         $this->versionTagIcon = $versionTag->icon;
         $this->versionTagGroupId = $versionTag->project_version_tag_group_id;
         $this->versionTagParentId = $versionTag->parent_id;
+        $this->versionTagDisplayPriority = $versionTag->display_priority;
         $this->versionTagProjectTypes = $versionTag->projectTypes->pluck('id')->toArray();
         $this->isEditingVersionTag = true;
         $this->showModal = true;
@@ -107,6 +111,7 @@ class VersionTagManagement extends Component
             $versionTag->icon = $this->versionTagIcon;
             $versionTag->project_version_tag_group_id = $this->versionTagGroupId;
             $versionTag->parent_id = $this->versionTagParentId;
+            $versionTag->display_priority = $this->versionTagDisplayPriority;
             $versionTag->save();
 
             // Sync project types
@@ -120,6 +125,7 @@ class VersionTagManagement extends Component
                 'icon' => $this->versionTagIcon,
                 'project_version_tag_group_id' => $this->versionTagGroupId,
                 'parent_id' => $this->versionTagParentId,
+                'display_priority' => $this->versionTagDisplayPriority,
             ]);
 
             // Sync project types
@@ -140,6 +146,7 @@ class VersionTagManagement extends Component
         $this->versionTagIcon = 'lucide-tag';
         $this->versionTagGroupId = null;
         $this->versionTagParentId = null;
+        $this->versionTagDisplayPriority = 0;
         $this->versionTagProjectTypes = [];
         $this->isEditingVersionTag = false;
     }

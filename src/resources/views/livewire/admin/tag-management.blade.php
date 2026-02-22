@@ -109,6 +109,16 @@
                 hint="Select a parent tag to make this a sub-tag"
             />
 
+            <x-input
+                label="Display Priority"
+                type="number"
+                min="0"
+                step="1"
+                wire:model="tagDisplayPriority"
+                hint="Lower values are shown first"
+                required
+            />
+
             @if(!$tagParentId)
                 <x-select label="Tag Group" wire:model="tagGroupId" :options="$tagGroups"
                     placeholder="Select group (optional)" />
