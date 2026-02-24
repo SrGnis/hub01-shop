@@ -95,6 +95,14 @@ class ProjectVersion extends Model
     }
 
     /**
+     * Get daily download rows for this project version.
+     */
+    public function dailyDownloads(): HasMany
+    {
+        return $this->hasMany(ProjectVersionDailyDownload::class);
+    }
+
+    /**
      * Get all dependencies of this project version
      */
     public function dependencies(): HasMany

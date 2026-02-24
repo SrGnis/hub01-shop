@@ -25,6 +25,8 @@
                                 label="{{ $this->ownedProjectsCount }} {{ Str::plural('project', $this->ownedProjectsCount) }} owned" />
                             <x-icon name="lucide-users"
                                 label="{{ $this->contributionsCount }} {{ Str::plural('contribution', $this->contributionsCount) }}" />
+                            <x-icon name="lucide-download"
+                                label="{{ number_format($this->aggregateDownloads) }} {{ Str::plural('download', $this->aggregateDownloads) }}" />
                         </div>
                     </x-slot:subtitle>
                 </x-avatar>

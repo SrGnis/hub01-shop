@@ -20,7 +20,7 @@ class UserProfileTest extends TestCase
     public function test_user_profile_component_renders()
     {
         $user = User::factory()->create();
-        
+
         Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])
             ->assertOk()
@@ -31,11 +31,11 @@ class UserProfileTest extends TestCase
     public function test_active_projects_computed_property()
     {
         $user = User::factory()->create();
-        
+
         // Create 2 active projects owned by user
         $project1 = Project::factory()->owner($user)->create(['created_at' => now()->subDay()]);
         $project2 = Project::factory()->owner($user)->create(['created_at' => now()]);
-        
+
         // Create 1 project NOT owned by user
         Project::factory()->create();
 
@@ -49,11 +49,11 @@ class UserProfileTest extends TestCase
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
-        
+
         // Create deleted project owned by user
         $project1 = Project::factory()->owner($user)->create();
         $project1->delete();
-        
+
         // Create active project
         Project::factory()->owner($user)->create();
 
@@ -72,11 +72,11 @@ class UserProfileTest extends TestCase
     public function test_owned_projects_count()
     {
         $user = User::factory()->create();
-        
+
         // 2 Owned projects
         Project::factory()->owner($user)->create();
         Project::factory()->owner($user)->create();
-        
+
         // 1 Contribution (not owned)
         $project3 = Project::factory()->create();
         $membership = new Membership([
@@ -97,10 +97,10 @@ class UserProfileTest extends TestCase
     public function test_contributions_count()
     {
         $user = User::factory()->create();
-        
+
         // 1 Owned project
         Project::factory()->owner($user)->create();
-        
+
         // 2 Contributions (not owned)
         $project2 = Project::factory()->create();
         $membership = new Membership([
@@ -111,7 +111,7 @@ class UserProfileTest extends TestCase
         $membership->user()->associate($user);
         $membership->project()->associate($project2);
         $membership->save();
-        
+
         $project3 = Project::factory()->create();
         $membership = new Membership([
             'role' => 'viewer',
@@ -128,6 +128,56 @@ class UserProfileTest extends TestCase
     }
 
     #[Test]
+    public function test_aggregate_downloads_includes_owned_and_active_contributor_projects()
+    {
+        $user = User::factory()->create();
+
+        $ownedProject = Project::factory()->owner($user)->create();
+        $ownedProject->versions()->create([
+            'name' => 'Owned v1',
+            'version' => '1.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->toDateString(),
+            'downloads' => 12,
+        ]);
+
+        $contributorProject = Project::factory()->create();
+        Membership::factory()->create([
+            'user_id' => $user->id,
+            'project_id' => $contributorProject->id,
+            'primary' => false,
+            'status' => 'active',
+        ]);
+        $contributorProject->versions()->create([
+            'name' => 'Contributor v1',
+            'version' => '2.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->toDateString(),
+            'downloads' => 7,
+        ]);
+
+        $inactiveContributorProject = Project::factory()->create();
+        Membership::factory()->create([
+            'user_id' => $user->id,
+            'project_id' => $inactiveContributorProject->id,
+            'primary' => false,
+            'status' => 'pending',
+        ]);
+        $inactiveContributorProject->versions()->create([
+            'name' => 'Pending v1',
+            'version' => '3.0.0',
+            'release_type' => 'release',
+            'release_date' => now()->toDateString(),
+            'downloads' => 100,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(UserProfile::class, ['user' => $user])
+            ->assertSet('aggregateDownloads', 19)
+            ->assertSee('19 downloads');
+    }
+
+    #[Test]
     public function test_restore_project()
     {
         $user = User::factory()->create();
@@ -135,7 +185,7 @@ class UserProfileTest extends TestCase
         $project->delete();
 
         $this->assertTrue($project->fresh()->trashed());
-        
+
         Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])
             ->call('restoreProject', $project->id)

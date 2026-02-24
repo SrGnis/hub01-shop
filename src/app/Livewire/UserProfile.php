@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Project;
+use App\Models\ProjectVersion;
 use App\Models\Scopes\ProjectFullScope;
 use App\Models\User;
 use App\Services\ProjectService;
@@ -80,6 +81,22 @@ class UserProfile extends Component
             ->count();
     }
 
+    #[Computed]
+    public function aggregateDownloads()
+    {
+        $projectIds = Project::withoutGlobalScopes()
+            ->whereNull('project.deleted_at')
+            ->whereHas('memberships', function ($query) {
+                $query->where('membership.user_id', $this->user->id)
+                    ->where('membership.status', 'active');
+            })
+            ->pluck('project.id');
+
+        return ProjectVersion::query()
+            ->whereIn('project_id', $projectIds)
+            ->sum('downloads');
+    }
+
     // TODO: move it to service
     public function restoreProject($projectId)
     {
@@ -127,4 +144,3 @@ class UserProfile extends Component
             ->title($this->user->name);
     }
 }
-
