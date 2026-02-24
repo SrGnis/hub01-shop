@@ -346,7 +346,7 @@ class ProjectVersionService
         ?string $releaseDateEnd = null,
         ?array $with = null
     ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
-        return $project->versions()
+        $query = $project->versions()
             ->with($with ?? [
                 'tags.tagGroup',
                 'project.projectType',
@@ -356,6 +356,8 @@ class ProjectVersionService
                 // Filter by version tags
                 if (!empty($selectedVersionTags)) {
                     $query->whereHas('tags', function (\Illuminate\Database\Eloquent\Builder $q) use ($selectedVersionTags) {
+                        $q->withoutGlobalScope('display_priority_order');
+
                         $q->whereIn('project_version_tag.id', $selectedVersionTags);
                     }, '>=', count($selectedVersionTags));
                 }
@@ -383,9 +385,11 @@ class ProjectVersionService
                         $query->where('release_date', '<=', $endDate);
                     }
                 }
-            })
-            ->orderBy($orderBy, $orderDirection)
-            ->paginate($perPage);
+            });
+
+        $query->orderBy($orderBy, $orderDirection);
+
+        return $query->paginate($perPage);
     }
 
     /**

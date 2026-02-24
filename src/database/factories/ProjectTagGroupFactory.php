@@ -18,6 +18,7 @@ class ProjectTagGroupFactory extends Factory
     {
         return [
             'name' => fake()->unique()->words(2, true),
+            'display_priority' => 0,
             'created_at' => now(),
             'updated_at' => now(),
         ];

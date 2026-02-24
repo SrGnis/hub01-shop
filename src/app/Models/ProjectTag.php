@@ -30,8 +30,13 @@ class ProjectTag extends Model
         'name',
         'slug',
         'icon',
+        'display_priority',
         'project_tag_group_id',
         'parent_id',
+    ];
+
+    protected $casts = [
+        'display_priority' => 'integer',
     ];
 
     /**
@@ -41,6 +46,12 @@ class ProjectTag extends Model
      */
     protected static function booted()
     {
+        static::addGlobalScope('display_priority_order', function (Builder $builder) {
+            $builder
+                ->orderByDesc('display_priority')
+                ->orderBy('slug');
+        });
+
         // Clear the tags cache when a tag is created, updated, or deleted
         static::saved(function ($tag) {
             foreach (ProjectType::all() as $projectType) {

@@ -19,6 +19,7 @@ class ProjectVersionTagFactory extends Factory
         return [
             'name' => fake()->unique()->word(),
             'icon' => 'lucide-tag',
+            'display_priority' => 0,
             'project_version_tag_group_id' => null,
             'created_at' => now(),
             'updated_at' => now(),

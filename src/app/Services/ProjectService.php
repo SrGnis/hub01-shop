@@ -62,6 +62,7 @@ class ProjectService
         // Filter by project tags, ensuring all selected tags are present
         if (count($selectedTags)) {
             $projects->whereHas('tags', function ($query) use ($selectedTags) {
+                $query->withoutGlobalScope('display_priority_order');
                 $query->whereIn('tag_id', $selectedTags);
             }, '>=', count($selectedTags));
         }
@@ -73,6 +74,7 @@ class ProjectService
                 // Filter by version tags
                 if (count($selectedVersionTags)) {
                     $versionQuery->whereHas('tags', function ($tagQuery) use ($selectedVersionTags) {
+                        $tagQuery->withoutGlobalScope('display_priority_order');
                         $tagQuery->whereIn('tag_id', $selectedVersionTags);
                     }, '>=', count($selectedVersionTags));
                 }
