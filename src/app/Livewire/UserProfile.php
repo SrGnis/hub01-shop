@@ -93,8 +93,9 @@ class UserProfile extends Component
             ->pluck('project.id');
 
         return ProjectVersion::query()
-            ->whereIn('project_id', $projectIds)
-            ->sum('downloads');
+            ->join('project_version_daily_download', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
+            ->whereIn('project_version.project_id', $projectIds)
+            ->sum('project_version_daily_download.downloads');
     }
 
     // TODO: move it to service

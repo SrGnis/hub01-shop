@@ -6,6 +6,7 @@ use App\Livewire\UserProfile;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Membership;
+use App\Models\ProjectVersionDailyDownload;
 use App\Services\ProjectService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -138,6 +139,10 @@ class UserProfileTest extends TestCase
             'version' => '1.0.0',
             'release_type' => 'release',
             'release_date' => now()->toDateString(),
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $ownedProject->versions()->first()->id,
+            'date' => now()->toDateString(),
             'downloads' => 12,
         ]);
 
@@ -153,6 +158,10 @@ class UserProfileTest extends TestCase
             'version' => '2.0.0',
             'release_type' => 'release',
             'release_date' => now()->toDateString(),
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $contributorProject->versions()->first()->id,
+            'date' => now()->toDateString(),
             'downloads' => 7,
         ]);
 
@@ -168,6 +177,10 @@ class UserProfileTest extends TestCase
             'version' => '3.0.0',
             'release_type' => 'release',
             'release_date' => now()->toDateString(),
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $inactiveContributorProject->versions()->first()->id,
+            'date' => now()->toDateString(),
             'downloads' => 100,
         ]);
 

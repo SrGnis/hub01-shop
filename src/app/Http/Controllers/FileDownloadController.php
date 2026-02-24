@@ -7,6 +7,7 @@ use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -56,14 +57,22 @@ class FileDownloadController extends Controller
         $shouldCount = Cache::add($dedupeKey, true, now()->addHours(3));
 
         if ($shouldCount) {
-            $version->increment('downloads');
-
-            $dailyDownload = $version->dailyDownloads()->firstOrCreate(
-                ['date' => today()->toDateString()],
-                ['downloads' => 0]
+            $now = now();
+            $today = $now->toDateString();
+            DB::table('project_version_daily_download')->upsert(
+                [[
+                    'project_version_id' => $version->id,
+                    'date' => $today,
+                    'downloads' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]],
+                ['project_version_id', 'date'],
+                [
+                    'downloads' => DB::raw('downloads + 1'),
+                    'updated_at' => $now,
+                ]
             );
-
-            $dailyDownload->increment('downloads');
         }
 
         return Storage::disk(ProjectFile::getDisk())->download(

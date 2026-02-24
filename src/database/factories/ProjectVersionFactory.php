@@ -50,7 +50,6 @@ class ProjectVersionFactory extends Factory
             'changelog' => fake()->paragraphs(rand(1, 3), true),
             'release_type' => fake()->randomElement(['alpha', 'beta', 'prerelease', 'rc','release']),
             'release_date' => $relese_date,
-            'downloads' => fake()->numberBetween(0, 10000),
             'project_id' => Project::factory(),
             'created_at' => $relese_date,
             'updated_at' => $relese_date,

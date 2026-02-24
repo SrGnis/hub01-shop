@@ -7,6 +7,7 @@ use App\Models\ProjectFile;
 use App\Models\ProjectQuota;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersionDependency;
 use App\Models\ProjectVersionTag;
 use App\Models\User;
@@ -288,6 +289,10 @@ class ProjectVersionTest extends TestCase
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $versionLow->id,
+            'date' => now()->toDateString(),
             'downloads' => 10,
         ]);
 
@@ -296,6 +301,10 @@ class ProjectVersionTest extends TestCase
             'version' => '2.0.0',
             'release_date' => now(),
             'release_type' => 'release',
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $versionHigh->id,
+            'date' => now()->toDateString(),
             'downloads' => 1000,
         ]);
 

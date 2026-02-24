@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectTagGroup;
 use App\Models\ProjectType;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
@@ -88,20 +89,28 @@ class ProjectServiceTest extends TestCase
     public function test_order_projects_by_downloads()
     {
         $projectLow = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
-        $projectLow->versions()->create([
+        $versionLow = $projectLow->versions()->create([
             'name' => 'Low Downloads Version',
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $versionLow->id,
+            'date' => now()->toDateString(),
             'downloads' => 10,
         ]);
 
         $projectHigh = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
-        $projectHigh->versions()->create([
+        $versionHigh = $projectHigh->versions()->create([
             'name' => 'High Downloads Version',
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
+        ]);
+        ProjectVersionDailyDownload::create([
+            'project_version_id' => $versionHigh->id,
+            'date' => now()->toDateString(),
             'downloads' => 1000,
         ]);
 
