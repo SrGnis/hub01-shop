@@ -140,11 +140,11 @@ class UserProfileTest extends TestCase
             'release_type' => 'release',
             'release_date' => now()->toDateString(),
         ]);
-        ProjectVersionDailyDownload::create([
-            'project_version_id' => $ownedProject->versions()->first()->id,
-            'date' => now()->toDateString(),
-            'downloads' => 12,
-        ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($ownedProject->versions()->first())
+            ->forDate(now()->toDateString())
+            ->withDownloads(12)
+            ->create();
 
         $contributorProject = Project::factory()->create();
         Membership::factory()->create([
@@ -159,11 +159,11 @@ class UserProfileTest extends TestCase
             'release_type' => 'release',
             'release_date' => now()->toDateString(),
         ]);
-        ProjectVersionDailyDownload::create([
-            'project_version_id' => $contributorProject->versions()->first()->id,
-            'date' => now()->toDateString(),
-            'downloads' => 7,
-        ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($contributorProject->versions()->first())
+            ->forDate(now()->toDateString())
+            ->withDownloads(7)
+            ->create();
 
         $inactiveContributorProject = Project::factory()->create();
         Membership::factory()->create([
@@ -178,11 +178,11 @@ class UserProfileTest extends TestCase
             'release_type' => 'release',
             'release_date' => now()->toDateString(),
         ]);
-        ProjectVersionDailyDownload::create([
-            'project_version_id' => $inactiveContributorProject->versions()->first()->id,
-            'date' => now()->toDateString(),
-            'downloads' => 100,
-        ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($inactiveContributorProject->versions()->first())
+            ->forDate(now()->toDateString())
+            ->withDownloads(100)
+            ->create();
 
         Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])

@@ -297,11 +297,11 @@ class ProjectTest extends TestCase
             'release_date' => now(),
             'release_type' => 'release',
         ]);
-        ProjectVersionDailyDownload::create([
-            'project_version_id' => $versionLow->id,
-            'date' => now()->toDateString(),
-            'downloads' => 10,
-        ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionLow)
+            ->forDate(now()->toDateString())
+            ->withDownloads(10)
+            ->create();
 
         $projectHigh = Project::factory()->owner($user)->create([
             'project_type_id' => $this->projectType->id,
@@ -313,11 +313,11 @@ class ProjectTest extends TestCase
             'release_date' => now(),
             'release_type' => 'release',
         ]);
-        ProjectVersionDailyDownload::create([
-            'project_version_id' => $versionHigh->id,
-            'date' => now()->toDateString(),
-            'downloads' => 1000,
-        ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionHigh)
+            ->forDate(now()->toDateString())
+            ->withDownloads(1000)
+            ->create();
 
         $response = $this->getJson(route('api.v1.projects', ['order_by' => 'downloads', 'order_direction' => 'desc', 'project_type' => $this->projectType->value]));
 

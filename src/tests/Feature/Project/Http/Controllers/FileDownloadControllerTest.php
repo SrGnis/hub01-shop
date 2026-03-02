@@ -34,7 +34,7 @@ class FileDownloadControllerTest extends TestCase
         $this->project = Project::factory()->owner($this->user)->create([
             'project_type_id' => $this->projectType->id,
         ]);
-        $this->version = ProjectVersion::factory()->create([
+        $this->version = ProjectVersion::factory()->withoutDailyDownloads()->create([
             'project_id' => $this->project->id,
             'version' => '1.0.0',
         ]);
