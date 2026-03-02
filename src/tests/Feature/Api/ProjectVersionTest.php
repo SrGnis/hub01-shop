@@ -7,6 +7,7 @@ use App\Models\ProjectFile;
 use App\Models\ProjectQuota;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersionDependency;
 use App\Models\ProjectVersionTag;
 use App\Models\User;
@@ -288,16 +289,24 @@ class ProjectVersionTest extends TestCase
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 10,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionLow)
+            ->forDate(now()->toDateString())
+            ->withDownloads(10)
+            ->create();
 
         $versionHigh = $project->versions()->create([
             'name' => 'Version 2.0.0',
             'version' => '2.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 1000,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionHigh)
+            ->forDate(now()->toDateString())
+            ->withDownloads(1000)
+            ->create();
 
         $response = $this->getJson(route('api.v1.project_versions', [
             'slug' => $project->slug,

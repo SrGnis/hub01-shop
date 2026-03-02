@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersionTag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -295,8 +296,12 @@ class ProjectTest extends TestCase
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 10,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionLow)
+            ->forDate(now()->toDateString())
+            ->withDownloads(10)
+            ->create();
 
         $projectHigh = Project::factory()->owner($user)->create([
             'project_type_id' => $this->projectType->id,
@@ -307,8 +312,12 @@ class ProjectTest extends TestCase
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 1000,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionHigh)
+            ->forDate(now()->toDateString())
+            ->withDownloads(1000)
+            ->create();
 
         $response = $this->getJson(route('api.v1.projects', ['order_by' => 'downloads', 'order_direction' => 'desc', 'project_type' => $this->projectType->value]));
 

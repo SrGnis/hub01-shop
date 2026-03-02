@@ -6,6 +6,7 @@ use App\Livewire\ProjectSearch;
 use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectType;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersionTag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -153,8 +154,12 @@ class ProjectSearchTest extends TestCase
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 10,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionLow)
+            ->forDate(now()->toDateString())
+            ->withDownloads(10)
+            ->create();
 
         $projectHigh = Project::factory()->owner($user)->create([
             'project_type_id' => $this->projectType->id,
@@ -165,8 +170,12 @@ class ProjectSearchTest extends TestCase
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 1000,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionHigh)
+            ->forDate(now()->toDateString())
+            ->withDownloads(1000)
+            ->create();
 
         $component = Livewire::test(ProjectSearch::class, ['projectType' => $this->projectType])
             ->set('orderBy', 'downloads')

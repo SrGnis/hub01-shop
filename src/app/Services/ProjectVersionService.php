@@ -387,7 +387,13 @@ class ProjectVersionService
                 }
             });
 
-        $query->orderBy($orderBy, $orderDirection);
+        if ($orderBy === 'downloads') {
+            $query
+                ->withSum('dailyDownloads as downloads', 'downloads')
+                ->orderBy('downloads', $orderDirection);
+        } else {
+            $query->orderBy($orderBy, $orderDirection);
+        }
 
         return $query->paginate($perPage);
     }

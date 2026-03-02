@@ -6,8 +6,10 @@ use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectType;
 use App\Models\ProjectVersion;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -25,13 +27,14 @@ class FileDownloadControllerTest extends TestCase
     {
         parent::setUp();
         Storage::fake('public');
+        Cache::flush();
 
         $this->projectType = ProjectType::factory()->create();
         $this->user = User::factory()->create();
         $this->project = Project::factory()->owner($this->user)->create([
             'project_type_id' => $this->projectType->id,
         ]);
-        $this->version = ProjectVersion::factory()->create([
+        $this->version = ProjectVersion::factory()->withoutDailyDownloads()->create([
             'project_id' => $this->project->id,
             'version' => '1.0.0',
         ]);
@@ -83,6 +86,70 @@ class FileDownloadControllerTest extends TestCase
 
         $this->version->refresh();
         $this->assertEquals($initialDownloads + 1, $this->version->downloads);
+    }
+
+    #[Test]
+    public function test_download_is_deduplicated_for_three_hours_but_still_served()
+    {
+        $file = $this->version->files()->create([
+            'name' => 'dedupe.zip',
+            'path' => 'project-files/dedupe.zip',
+            'size' => 512,
+        ]);
+
+        $initialDownloads = $this->version->downloads;
+
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
+
+        $route = route('file.download', [
+            'projectType' => $this->projectType,
+            'project' => $this->project,
+            'version' => $this->version->version,
+            'file' => $file->name,
+        ]);
+
+        $responseOne = $this->withHeader('User-Agent', 'Hub01-Test-Agent')->get($route);
+        $responseTwo = $this->withHeader('User-Agent', 'Hub01-Test-Agent')->get($route);
+
+        $responseOne->assertOk()->assertDownload($file->name);
+        $responseTwo->assertOk()->assertDownload($file->name);
+
+        $this->version->refresh();
+        $this->assertEquals($initialDownloads + 1, $this->version->downloads);
+    }
+
+    #[Test]
+    public function test_counted_download_increments_daily_download_row()
+    {
+        $file = $this->version->files()->create([
+            'name' => 'daily.zip',
+            'path' => 'project-files/daily.zip',
+            'size' => 128,
+        ]);
+
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
+
+        $this->withHeader('User-Agent', 'Hub01-Daily-Agent')
+            ->get(route('file.download', [
+                'projectType' => $this->projectType,
+                'project' => $this->project,
+                'version' => $this->version->version,
+                'file' => $file->name,
+            ]))
+            ->assertOk();
+
+        $this->assertDatabaseHas('project_version_daily_download', [
+            'project_version_id' => $this->version->id,
+            'date' => today()->toDateString(),
+            'downloads' => 1,
+        ]);
+
+        $this->assertEquals(
+            1,
+            ProjectVersionDailyDownload::where('project_version_id', $this->version->id)
+                ->whereDate('date', today())
+                ->value('downloads')
+        );
     }
 
     #[Test]
@@ -182,6 +249,8 @@ class FileDownloadControllerTest extends TestCase
     #[Test]
     public function test_cannot_download_nonexistent_file()
     {
+        $initialDownloads = $this->version->downloads;
+
         $this->get(route('file.download', [
             'projectType' => $this->projectType,
             'project' => $this->project,
@@ -189,6 +258,13 @@ class FileDownloadControllerTest extends TestCase
             'file' => 'nonexistent.zip',
         ]))
             ->assertNotFound();
+
+        $this->version->refresh();
+        $this->assertEquals($initialDownloads, $this->version->downloads);
+        $this->assertDatabaseMissing('project_version_daily_download', [
+            'project_version_id' => $this->version->id,
+            'date' => today()->toDateString(),
+        ]);
     }
 
     #[Test]
@@ -200,6 +276,8 @@ class FileDownloadControllerTest extends TestCase
             'size' => 1024,
         ]);
 
+        $initialDownloads = $this->version->downloads;
+
         // Don't put file in storage
 
         $this->get(route('file.download', [
@@ -209,6 +287,13 @@ class FileDownloadControllerTest extends TestCase
             'file' => $file->name,
         ]))
             ->assertNotFound();
+
+        $this->version->refresh();
+        $this->assertEquals($initialDownloads, $this->version->downloads);
+        $this->assertDatabaseMissing('project_version_daily_download', [
+            'project_version_id' => $this->version->id,
+            'date' => today()->toDateString(),
+        ]);
     }
 
     #[Test]
