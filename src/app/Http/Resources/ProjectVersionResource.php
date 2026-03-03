@@ -23,7 +23,10 @@ class ProjectVersionResource extends JsonResource
              */
             'release_date' => $this->release_date->toDateString(),
             'changelog' => $this->changelog,
-            'downloads' => $this->downloads,
+            /**
+             * @var int
+             */
+            'downloads' => $this->downloads ? $this->downloads : 0,
             /**
              * List of version tag slugs
              * @var string[]

@@ -1979,7 +1979,10 @@
                         }
                     },
                     "main_tag": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -2020,7 +2023,10 @@
                         "description": "The project slug of the dependency"
                     },
                     "version": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "description": "The version of the dependency"
                     },
                     "type": {
@@ -2128,7 +2134,10 @@
                         }
                     },
                     "main_tag": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [

@@ -38,6 +38,7 @@ class ProjectForm extends Component
     public string $source = '';
     public string $status = 'active';
     public array $selectedTags = [];
+    public array $externalCredits = [];
 
     // Membership management
     public string $newMemberName = '';
@@ -67,6 +68,10 @@ class ProjectForm extends Component
                     $this->validateTagsForProjectType($value, $fail);
                 },
             ],
+            'externalCredits' => 'nullable|array',
+            'externalCredits.*.name' => 'required|string|max:255',
+            'externalCredits.*.role' => 'required|string|max:255',
+            'externalCredits.*.url' => 'nullable|url|max:255',
         ];
 
         if ($this->isEditing) {
@@ -165,7 +170,7 @@ class ProjectForm extends Component
                 return;
             }
 
-            $this->project->load(['owner', 'tags.tagGroup', 'memberships.user']);
+            $this->project->load(['owner', 'tags.tagGroup', 'memberships.user', 'externalCredits']);
             $this->loadProjectData();
         } else {
             if (!Gate::allows('create', Project::class)) {
@@ -188,6 +193,13 @@ class ProjectForm extends Component
         $this->source = $this->project->source;
         $this->status = $this->project->status;
         $this->selectedTags = $this->project->tags->pluck('id')->toArray();
+        $this->externalCredits = $this->project->externalCredits
+            ->map(fn ($credit) => [
+                'name' => $credit->name,
+                'role' => $credit->role,
+                'url' => $credit->url,
+            ])
+            ->toArray();
     }
 
     public function render()
@@ -228,6 +240,21 @@ class ProjectForm extends Component
 
     // dummy method for attaching the loading state
     public function refreshMarkdown(): void {}
+
+    public function addExternalCredit(): void
+    {
+        $this->externalCredits[] = [
+            'name' => '',
+            'role' => '',
+            'url' => '',
+        ];
+    }
+
+    public function removeExternalCredit(int $index): void
+    {
+        unset($this->externalCredits[$index]);
+        $this->externalCredits = array_values($this->externalCredits);
+    }
 
     public function generateSlug(): void
     {
@@ -304,6 +331,7 @@ class ProjectForm extends Component
                 'source' => $this->source,
                 'status' => $this->status,
                 'selectedTags' => $this->selectedTags,
+                'externalCredits' => $this->externalCredits,
             ];
 
             if (!$this->isEditing) {

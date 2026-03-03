@@ -81,6 +81,7 @@ class Project extends Model
         'projectType',
         'tags.tagGroup',
         'owner',
+        'externalCredits',
     ];
 
     /**
@@ -142,6 +143,14 @@ class Project extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(Membership::class);
+    }
+
+    /**
+     * Get the external contributors associated with the project.
+     */
+    public function externalCredits(): HasMany
+    {
+        return $this->hasMany(ProjectExternalCredit::class)->orderBy('id');
     }
 
     /**
@@ -250,7 +259,12 @@ class Project extends Model
     #[Scope]
     protected function withStats(Builder $query): void
     {
-        $query->withSum('versions as downloads', 'downloads');
+        $query->addSelect([
+            'downloads' => ProjectVersionDailyDownload::query()
+                ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
+                ->selectRaw('COALESCE(SUM(project_version_daily_download.downloads), 0)')
+                ->whereColumn('project_version.project_id', 'project.id'),
+        ]);
         $query->withMax('versions as recent_release_date', 'release_date');
         // Add last update time as the greatest of the project updated_at and the maximum of all version release dates
         $query->addSelect([
@@ -270,6 +284,7 @@ class Project extends Model
             'projectType',
             'tags.tagGroup',
             'owner',
+            'externalCredits',
         ]);
     }
 
@@ -420,7 +435,16 @@ class Project extends Model
     public function downloads(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->versions->sum('downloads')
+            get: function ($value, array $attributes) {
+                if (array_key_exists('downloads', $attributes)) {
+                    return (int) ($attributes['downloads'] ?? 0);
+                }
+
+                return (int) ProjectVersionDailyDownload::query()
+                    ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
+                    ->where('project_version.project_id', $this->id)
+                    ->sum('project_version_daily_download.downloads');
+            }
         );
     }
 

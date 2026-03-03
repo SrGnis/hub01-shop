@@ -10,7 +10,7 @@
                             {{ $version->name }} - {{ $version->version }}
                         </div>
                         <div class="text-xs text-base-content/60 mt-1">
-                            Released: {{ $version->release_date }}
+                            Released: {{ $version->release_date->format('Y-m-d') }}
                         </div>
                         <div class="text-xs text-base-content/60">
                             {{ number_format($version->downloads) }} downloads

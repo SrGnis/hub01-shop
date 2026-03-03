@@ -7,6 +7,9 @@ use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectTagGroup;
 use App\Models\ProjectType;
+use App\Models\ProjectVersionDailyDownload;
+use App\Models\ProjectVersionTag;
+use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
 use App\Services\ProjectService;
 use App\Services\ProjectQuotaService;
@@ -86,22 +89,30 @@ class ProjectServiceTest extends TestCase
     public function test_order_projects_by_downloads()
     {
         $projectLow = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
-        $projectLow->versions()->create([
+        $versionLow = $projectLow->versions()->create([
             'name' => 'Low Downloads Version',
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 10,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionLow)
+            ->forDate(now()->toDateString())
+            ->withDownloads(10)
+            ->create();
 
         $projectHigh = Project::factory()->owner($this->user)->create(['project_type_id' => $this->projectType->id]);
-        $projectHigh->versions()->create([
+        $versionHigh = $projectHigh->versions()->create([
             'name' => 'High Downloads Version',
             'version' => '1.0.0',
             'release_date' => now(),
             'release_type' => 'release',
-            'downloads' => 1000,
         ]);
+        ProjectVersionDailyDownload::factory()
+            ->forVersion($versionHigh)
+            ->forDate(now()->toDateString())
+            ->withDownloads(1000)
+            ->create();
 
         $results = $this->projectService->searchProjects(
             projectType: $this->projectType,
@@ -152,6 +163,117 @@ class ProjectServiceTest extends TestCase
         $tagGroups = $this->projectService->getTagGroups($this->projectType);
 
         $this->assertGreaterThan(0, $tagGroups->count());
+    }
+
+    #[Test]
+    public function test_get_tag_groups_are_ordered_by_priority_then_slug_with_ordered_tags_and_children()
+    {
+        $groupBeta = ProjectTagGroup::factory()->create([
+            'name' => 'Group Beta',
+            'slug' => 'group-beta',
+            'display_priority' => 10,
+        ]);
+        $groupBeta->projectTypes()->attach($this->projectType);
+
+        $groupAlpha = ProjectTagGroup::factory()->create([
+            'name' => 'Group Alpha',
+            'slug' => 'group-alpha',
+            'display_priority' => 10,
+        ]);
+        $groupAlpha->projectTypes()->attach($this->projectType);
+
+        $groupLow = ProjectTagGroup::factory()->create([
+            'name' => 'Group Low',
+            'slug' => 'group-low',
+            'display_priority' => 1,
+        ]);
+        $groupLow->projectTypes()->attach($this->projectType);
+
+        $mainB = ProjectTag::factory()->create([
+            'name' => 'Main B',
+            'slug' => 'main-b',
+            'display_priority' => 5,
+            'project_tag_group_id' => $groupAlpha->id,
+        ]);
+        $mainB->projectTypes()->attach($this->projectType);
+
+        $mainA = ProjectTag::factory()->create([
+            'name' => 'Main A',
+            'slug' => 'main-a',
+            'display_priority' => 5,
+            'project_tag_group_id' => $groupAlpha->id,
+        ]);
+        $mainA->projectTypes()->attach($this->projectType);
+
+        $childB = ProjectTag::factory()->create([
+            'name' => 'Child B',
+            'slug' => 'child-b',
+            'display_priority' => 7,
+            'project_tag_group_id' => $groupAlpha->id,
+            'parent_id' => $mainA->id,
+        ]);
+        $childB->projectTypes()->attach($this->projectType);
+
+        $childA = ProjectTag::factory()->create([
+            'name' => 'Child A',
+            'slug' => 'child-a',
+            'display_priority' => 7,
+            'project_tag_group_id' => $groupAlpha->id,
+            'parent_id' => $mainA->id,
+        ]);
+        $childA->projectTypes()->attach($this->projectType);
+
+        $groups = $this->projectService->getTagGroups($this->projectType);
+
+        $this->assertSame(['group-alpha', 'group-beta', 'group-low'], $groups->pluck('slug')->values()->all());
+        $this->assertSame(['child-a', 'child-b', 'main-a', 'main-b'], $groups->firstWhere('slug', 'group-alpha')->tags->pluck('slug')->values()->all());
+        $this->assertSame(['child-a', 'child-b'], $groups->firstWhere('slug', 'group-alpha')->tags->firstWhere('slug', 'main-a')->children->pluck('slug')->values()->all());
+    }
+
+    #[Test]
+    public function test_get_version_tag_groups_are_ordered_by_priority_then_slug_with_ordered_tags()
+    {
+        $groupBeta = ProjectVersionTagGroup::factory()->create([
+            'name' => 'Version Group Beta',
+            'slug' => 'version-group-beta',
+            'display_priority' => 10,
+        ]);
+        $groupBeta->projectTypes()->attach($this->projectType);
+
+        $groupAlpha = ProjectVersionTagGroup::factory()->create([
+            'name' => 'Version Group Alpha',
+            'slug' => 'version-group-alpha',
+            'display_priority' => 10,
+        ]);
+        $groupAlpha->projectTypes()->attach($this->projectType);
+
+        $groupLow = ProjectVersionTagGroup::factory()->create([
+            'name' => 'Version Group Low',
+            'slug' => 'version-group-low',
+            'display_priority' => 1,
+        ]);
+        $groupLow->projectTypes()->attach($this->projectType);
+
+        $tagB = ProjectVersionTag::factory()->create([
+            'name' => 'Version Tag B',
+            'slug' => 'version-tag-b',
+            'display_priority' => 5,
+            'project_version_tag_group_id' => $groupAlpha->id,
+        ]);
+        $tagB->projectTypes()->attach($this->projectType);
+
+        $tagA = ProjectVersionTag::factory()->create([
+            'name' => 'Version Tag A',
+            'slug' => 'version-tag-a',
+            'display_priority' => 5,
+            'project_version_tag_group_id' => $groupAlpha->id,
+        ]);
+        $tagA->projectTypes()->attach($this->projectType);
+
+        $groups = $this->projectService->getVersionTagGroups($this->projectType);
+
+        $this->assertSame(['version-group-alpha', 'version-group-beta', 'version-group-low'], $groups->pluck('slug')->values()->all());
+        $this->assertSame(['version-tag-a', 'version-tag-b'], $groups->firstWhere('slug', 'version-group-alpha')->tags->pluck('slug')->values()->all());
     }
 
     #[Test]
@@ -207,6 +329,58 @@ class ProjectServiceTest extends TestCase
             'user_id' => $this->user->id,
             'role' => 'owner',
             'primary' => true,
+        ]);
+
+        $this->assertDatabaseCount('project_external_credit', 0);
+    }
+
+    #[Test]
+    public function test_create_project_with_external_credits()
+    {
+        Config::set('projects.auto_approve', false);
+
+        $tag = ProjectTag::factory()->create();
+        $tag->projectTypes()->attach($this->projectType);
+
+        $data = [
+            'name' => 'Test Project',
+            'slug' => 'test-project-external-credits',
+            'summary' => 'Test summary',
+            'description' => 'Test description',
+            'website' => 'https://example.com',
+            'issues' => 'https://github.com/test/issues',
+            'source' => 'https://github.com/test/source',
+            'status' => 'active',
+            'selectedTags' => [$tag->id],
+            'project_type_id' => $this->projectType->id,
+            'externalCredits' => [
+                [
+                    'name' => 'Jane Doe',
+                    'role' => 'Composer',
+                    'url' => 'https://example.com/jane',
+                ],
+                [
+                    'name' => 'John Roe',
+                    'role' => 'Concept Artist',
+                    'url' => null,
+                ],
+            ],
+        ];
+
+        $project = $this->projectService->saveProject(null, $this->user, $data);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Jane Doe',
+            'role' => 'Composer',
+            'url' => 'https://example.com/jane',
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'John Roe',
+            'role' => 'Concept Artist',
+            'url' => null,
         ]);
     }
 
@@ -264,6 +438,77 @@ class ProjectServiceTest extends TestCase
 
         $this->assertEquals('Updated Name', $updatedProject->name);
         $this->assertEquals('Updated summary', $updatedProject->summary);
+    }
+
+    #[Test]
+    public function test_update_existing_project_replaces_external_credits_deterministically()
+    {
+        $project = Project::factory()->owner($this->user)->create();
+        $tag = ProjectTag::factory()->create();
+        $tag->projectTypes()->attach($this->projectType);
+
+        $project->externalCredits()->createMany([
+            [
+                'name' => 'Old One',
+                'role' => 'Old Role 1',
+                'url' => 'https://example.com/old-one',
+            ],
+            [
+                'name' => 'Old Two',
+                'role' => 'Old Role 2',
+                'url' => null,
+            ],
+        ]);
+
+        $data = [
+            'name' => 'Updated Name',
+            'slug' => $project->slug,
+            'summary' => 'Updated summary',
+            'description' => $project->description,
+            'website' => $project->website,
+            'issues' => $project->issues,
+            'source' => $project->source,
+            'status' => $project->status,
+            'selectedTags' => [$tag->id],
+            'externalCredits' => [
+                [
+                    'name' => 'New One',
+                    'role' => 'New Role 1',
+                    'url' => null,
+                ],
+                [
+                    'name' => 'New Two',
+                    'role' => 'New Role 2',
+                    'url' => 'https://example.com/new-two',
+                ],
+            ],
+        ];
+
+        $this->projectService->saveProject($project, null, $data);
+
+        $this->assertDatabaseMissing('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Old One',
+        ]);
+
+        $this->assertDatabaseMissing('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'Old Two',
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'New One',
+            'role' => 'New Role 1',
+            'url' => null,
+        ]);
+
+        $this->assertDatabaseHas('project_external_credit', [
+            'project_id' => $project->id,
+            'name' => 'New Two',
+            'role' => 'New Role 2',
+            'url' => 'https://example.com/new-two',
+        ]);
     }
 
     #[Test]

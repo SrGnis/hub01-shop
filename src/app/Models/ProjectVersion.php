@@ -31,13 +31,32 @@ class ProjectVersion extends Model
         'changelog',
         'release_type',
         'release_date',
-        'downloads',
     ];
 
     protected $casts = [
         'release_date' => 'date',
         'release_type' => ReleaseType::class,
     ];
+
+    /**
+     * Get total downloads from project_version_daily_download rows.
+     */
+    public function downloads(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value, array $attributes): int {
+                if (array_key_exists('downloads', $attributes)) {
+                    return (int) ($attributes['downloads'] ?? 0);
+                }
+
+                if ($this->relationLoaded('dailyDownloads')) {
+                    return (int) $this->dailyDownloads->sum('downloads');
+                }
+
+                return (int) $this->dailyDownloads()->sum('downloads');
+            }
+        );
+    }
 
     /**
      * Get the route key for the model.
@@ -92,6 +111,14 @@ class ProjectVersion extends Model
     public function files(): HasMany
     {
         return $this->hasMany(ProjectFile::class);
+    }
+
+    /**
+     * Get daily download rows for this project version.
+     */
+    public function dailyDownloads(): HasMany
+    {
+        return $this->hasMany(ProjectVersionDailyDownload::class);
     }
 
     /**

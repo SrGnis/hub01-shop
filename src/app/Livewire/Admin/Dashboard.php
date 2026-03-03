@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersion;
 use App\Models\User;
 use Livewire\Attributes\Layout;
@@ -19,7 +20,7 @@ class Dashboard extends Component
             'projects' => Project::count(),
             'versions' => ProjectVersion::count(),
             'files' => ProjectFile::count(),
-            'downloads' => ProjectVersion::sum('downloads'),
+            'downloads' => ProjectVersionDailyDownload::sum('downloads'),
             'admins' => User::where('role', 'admin')->count(),
         ];
 

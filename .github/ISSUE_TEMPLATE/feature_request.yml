@@ -1,0 +1,58 @@
+name: "Feature Request"
+description: Suggest a new feature or enhancement for Hub01 Shop
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an improvement to Hub01 Shop!
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Related Area
+      options:
+        - User Interface
+        - Project Search
+        - Project Management
+        - Version Management
+        - Dependency System
+        - Tagging System
+        - REST API
+        - User Accounts
+        - Admin Features
+        - Docker / Deployment
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered other approaches?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add mockups, API examples, or references if applicable.
