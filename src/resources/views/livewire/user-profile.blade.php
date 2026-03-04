@@ -5,7 +5,7 @@
     <x-card class="mb-6">
         <div class="flex flex-col-reverse md:flex-row items-end md:items-center">
             <!-- User Avatar with Info -->
-            <div class="w-full md:max-w-2xl">
+            <div class="w-full md:max-w-3xl">
                 <x-avatar placeholder="{{ strtoupper(substr($user->name, 0, 1)) }}"
                     placeholder-text-class="text-3xl font-bold" placeholder-bg-class="bg-primary text-primary-content"
                     class="!w-24" image="{{ $user->getAvatarUrl() }}">
@@ -23,8 +23,6 @@
                                 label="Member since {{ $user->created_at->format('F Y') }}" />
                             <x-icon name="lucide-package"
                                 label="{{ $this->ownedProjectsCount }} {{ Str::plural('project', $this->ownedProjectsCount) }} owned" />
-                            <x-icon name="lucide-users"
-                                label="{{ $this->contributionsCount }} {{ Str::plural('contribution', $this->contributionsCount) }}" />
                             <x-icon name="lucide-download"
                                 label="{{ number_format($this->aggregateDownloads) }} {{ Str::plural('download', $this->aggregateDownloads) }}" />
                         </div>
