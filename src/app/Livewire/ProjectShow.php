@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithProjectCollections;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use App\Models\Project;
@@ -19,6 +20,7 @@ class ProjectShow extends Component
 {
     use WithPagination;
     use Toast;
+    use InteractsWithProjectCollections;
 
     #[Locked]
     public string $projectSlug;
@@ -135,4 +137,3 @@ class ProjectShow extends Component
         ]);
     }
 }
-

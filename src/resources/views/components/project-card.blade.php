@@ -1,4 +1,8 @@
-@props(['project'])
+@props([
+    'project',
+    'actionFavorite' => null,
+    'actionAddCollection' => null,
+])
 
 <x-card class="!py-3 !px-5" id="{{ $project->id }}">
     <!-- Mobile Layout (default) -->
@@ -20,6 +24,28 @@
             </div>
 
             <div class="flex-grow min-w-0">
+                @if ($actionFavorite || $actionAddCollection)
+                    <div class="flex justify-end gap-2 mb-2">
+                        @if ($actionFavorite)
+                            <x-button
+                                icon="{{ (bool) ($project->is_favorited ?? false) ? 'lucide-heart-off' : 'lucide-heart' }}"
+                                class="btn-ghost btn-sm"
+                                wire:click="{{ $actionFavorite }}({{ $project->id }})"
+                                title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
+                            />
+                        @endif
+
+                        @if ($actionAddCollection)
+                            <x-button
+                                icon="lucide-folder-plus"
+                                class="btn-ghost btn-sm"
+                                wire:click="{{ $actionAddCollection }}({{ $project->id }})"
+                                title="Add to collection"
+                            />
+                        @endif
+                    </div>
+                @endif
+
                 <h3 class="text-xl font-bold mb-1">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         class="text-primary hover:text-primary-focus transition-colors">
@@ -63,6 +89,13 @@
         <!-- Stats at bottom for mobile -->
         <div class="flex flex-wrap gap-3 text-xs border-t pt-3">
             <div class="flex items-center gap-1">
+                <x-icon name="lucide-heart" class="w-3 h-3" />
+                <span>
+                    {{ (int) ($project->favorite_count ?? 0) }} favorites
+                </span>
+            </div>
+
+            <div class="flex items-center gap-1">
                 <x-icon name="lucide-download" class="w-3 h-3" />
                 <span>
                     {{ $project->downloads }} downloads
@@ -103,6 +136,28 @@
 
             <!-- Center Column: Content -->
             <div class="flex-grow min-w-0">
+                @if ($actionFavorite || $actionAddCollection)
+                    <div class="flex justify-end gap-2 mb-2">
+                        @if ($actionFavorite)
+                            <x-button
+                                icon="{{ (bool) ($project->is_favorited ?? false) ? 'lucide-heart-off' : 'lucide-heart' }}"
+                                class="btn-ghost btn-sm"
+                                wire:click="{{ $actionFavorite }}({{ $project->id }})"
+                                title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
+                            />
+                        @endif
+
+                        @if ($actionAddCollection)
+                            <x-button
+                                icon="lucide-folder-plus"
+                                class="btn-ghost btn-sm"
+                                wire:click="{{ $actionAddCollection }}({{ $project->id }})"
+                                title="Add to collection"
+                            />
+                        @endif
+                    </div>
+                @endif
+
                 <!-- Title and Byline -->
                 <div class="mb-3">
                     <h3 class="text-xl font-bold mb-1">
@@ -151,6 +206,13 @@
 
             <!-- Right Column: Stats -->
             <div class="flex-shrink-0 w-48 flex flex-col justify-evenly text-sm">
+                <div class="flex items-center gap-2">
+                    <x-icon name="lucide-heart" />
+                    <span>
+                        {{ (int) ($project->favorite_count ?? 0) }} favorites
+                    </span>
+                </div>
+
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-download" />
                     <span>

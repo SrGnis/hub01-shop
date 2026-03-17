@@ -63,7 +63,15 @@
         <div class="lg:col-span-8">
             <!-- Project Card -->
             <div class="mb-6">
-                <x-project-card :project="$project" />
+                @if (auth()->check())
+                    <x-project-card
+                        :project="$project"
+                        action-favorite="toggleFavorite"
+                        action-add-collection="openAddToCollectionModal"
+                    />
+                @else
+                    <x-project-card :project="$project" />
+                @endif
             </div>
 
             <!-- Navigation Tabs -->
@@ -101,4 +109,10 @@
             <x-project-links :project="$project" />
         </div>
     </div>
+
+    <x-project-collection-modal
+        wire:model="showCollectionModal"
+        :target-project-name="$collectionTargetProjectName"
+        :available-collections="$this->availableCollections"
+    />
 </div>

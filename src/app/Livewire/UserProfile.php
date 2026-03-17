@@ -2,24 +2,31 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithProjectCollections;
+use App\Models\Collection;
 use App\Models\Project;
 use App\Models\ProjectVersion;
-use App\Models\Scopes\ProjectFullScope;
 use App\Models\User;
+use App\Services\CollectionService;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
 class UserProfile extends Component
 {
     use Toast;
+    use InteractsWithProjectCollections;
 
     protected ProjectService $projectService;
 
     public User $user;
+
+    #[Url(as: 'tab')]
+    public string $activeTab = 'projects';
 
     public function boot(ProjectService $projectService)
     {
@@ -41,6 +48,22 @@ class UserProfile extends Component
         $query->orderBy('project.created_at', 'desc');
 
         return $query->get();
+    }
+
+    #[Computed]
+    public function visibleCollections()
+    {
+        $query = Collection::query()
+            ->where('user_id', $this->user->id)
+            ->whereNull('system_type')
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('uid');
+
+        if (!Auth::check() || Auth::id() !== $this->user->id) {
+            $query->where('visibility', 'public');
+        }
+
+        return $query->with(['entries.project'])->get();
     }
 
     // TODO: move it for reusing it in API
@@ -143,5 +166,35 @@ class UserProfile extends Component
         /** @disregard P1013 */
         return view('livewire.user-profile')
             ->title($this->user->name);
+    }
+
+    #[Computed]
+    public function favoritesCollection(): ?Collection
+    {
+        if (!Auth::check() || Auth::id() !== $this->user->id) {
+            return null;
+        }
+
+        return Collection::query()
+            ->where('user_id', $this->user->id)
+            ->where('system_type', 'favorites')
+            ->withCount('entries')
+            ->first();
+    }
+
+    public function deleteCollection(string $uid): void
+    {
+        $collection = Collection::query()
+            ->where('uid', $uid)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        try {
+            app(CollectionService::class)->deleteCollection($collection);
+            $this->success('Collection deleted successfully.');
+            unset($this->visibleCollections);
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage());
+        }
     }
 }

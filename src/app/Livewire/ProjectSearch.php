@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithProjectCollections;
 use App\Models\ProjectType;
 use App\Services\ProjectService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -16,6 +17,7 @@ class ProjectSearch extends Component
 {
     use WithPagination;
     use Toast;
+    use InteractsWithProjectCollections;
 
     public ProjectType $projectType;
 
