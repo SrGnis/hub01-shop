@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ProjectIndexRequest;
 use App\Http\Resources\ProjectCollection;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ProjectTypeCollection;
@@ -88,24 +89,9 @@ class ProjectController extends Controller
     #[QueryParameter(name: 'release_date_period', description: 'The release date period to filter by', default: 'all')]
     #[QueryParameter(name: 'release_date_start', description: 'The start date to filter by, only used if release_date_period is custom')]
     #[QueryParameter(name: 'release_date_end', description: 'The end date to filter by, only used if release_date_period is custom')]
-    public function getProjects(Request $request)
+    public function getProjects(ProjectIndexRequest $request)
     {
-
-        // Validate all query parameters
-        $validated = $request->validate([
-            'project_type' => 'nullable|string|exists:project_type,value',
-            'search' => 'nullable|string|max:255',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|exists:project_tag,slug',
-            'version_tags' => 'nullable|array',
-            'version_tags.*' => 'string|exists:project_version_tag,slug',
-            'order_by' => 'nullable|string|in:name,created_at,updated_at,downloads',
-            'order_direction' => 'nullable|string|in:asc,desc',
-            'per_page' => 'nullable|integer|in:10,25,50,100',
-            'release_date_period' => 'nullable|string|in:all,last_30_days,last_90_days,last_year,custom',
-            'release_date_start' => 'nullable|date',
-            'release_date_end' => 'nullable|date|after_or_equal:release_date_start',
-        ]);
+        $validated = $request->validated();
 
         // Get or default project type
         $projectType = $validated['project_type'] ?? null

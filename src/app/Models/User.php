@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\CollectionSystemType;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -153,6 +156,23 @@ class User extends Authenticatable implements MustVerifyEmail
     public function quota()
     {
         return $this->hasOne(UserQuota::class);
+    }
+
+    /**
+     * Get collections owned by this user.
+     */
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    /**
+     * Get the favorites system collection for this user.
+     */
+    public function favoritesCollection(): HasOne
+    {
+        return $this->hasOne(Collection::class)
+            ->where('system_type', CollectionSystemType::FAVORITES);
     }
 
     /**

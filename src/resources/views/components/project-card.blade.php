@@ -1,4 +1,6 @@
-@props(['project'])
+@props([
+    'project',
+])
 
 <x-card class="!py-3 !px-5" id="{{ $project->id }}">
     <!-- Mobile Layout (default) -->
@@ -20,6 +22,7 @@
             </div>
 
             <div class="flex-grow min-w-0">
+
                 <h3 class="text-xl font-bold mb-1">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         class="text-primary hover:text-primary-focus transition-colors">
@@ -63,6 +66,13 @@
         <!-- Stats at bottom for mobile -->
         <div class="flex flex-wrap gap-3 text-xs border-t pt-3">
             <div class="flex items-center gap-1">
+                <x-icon name="lucide-heart" class="w-3 h-3" />
+                <span>
+                    {{ (int) ($project->favorite_count ?? 0) }} favorites
+                </span>
+            </div>
+
+            <div class="flex items-center gap-1">
                 <x-icon name="lucide-download" class="w-3 h-3" />
                 <span>
                     {{ $project->downloads }} downloads
@@ -75,11 +85,6 @@
                     <span>Updated {{ \Carbon\Carbon::parse($project->last_update_time)->diffForHumans() }}</span>
                 </div>
             @endif
-
-            <div class="flex items-center gap-1">
-                <x-icon name="lucide-calendar-plus" class="w-3 h-3" />
-                <span>Created {{ $project->created_at->diffForHumans() }}</span>
-            </div>
         </div>
     </div>
 
@@ -103,6 +108,7 @@
 
             <!-- Center Column: Content -->
             <div class="flex-grow min-w-0">
+
                 <!-- Title and Byline -->
                 <div class="mb-3">
                     <h3 class="text-xl font-bold mb-1">
@@ -152,6 +158,13 @@
             <!-- Right Column: Stats -->
             <div class="flex-shrink-0 w-48 flex flex-col justify-evenly text-sm">
                 <div class="flex items-center gap-2">
+                    <x-icon name="lucide-heart" />
+                    <span>
+                        {{ (int) ($project->favorite_count ?? 0) }} favorites
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2">
                     <x-icon name="lucide-download" />
                     <span>
                         {{ $project->downloads ?? 0 }} downloads
@@ -165,11 +178,6 @@
                             {{ \Carbon\Carbon::parse($project->last_update_time)->diffForHumans() }}</span>
                     </div>
                 @endif
-
-                <div class="flex items-center gap-2">
-                    <x-icon name="lucide-calendar-plus" />
-                    <span>Created {{ $project->created_at->diffForHumans() }}</span>
-                </div>
             </div>
         </div>
     </div>

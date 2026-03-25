@@ -94,6 +94,7 @@
                         </x-slot:trigger>
                         <x-menu class="p-0">
                             <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
+                            <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" />
 
                             @if ($user->isAdmin())
                                 <x-menu-item title="Admin" icon="settings" link="{{ route('admin.dashboard') }}" />

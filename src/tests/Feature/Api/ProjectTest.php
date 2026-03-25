@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\CollectionSystemType;
+use App\Enums\CollectionVisibility;
+use App\Models\Collection;
 use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectTag;
@@ -325,6 +328,241 @@ class ProjectTest extends TestCase
         $data = $response->json('data');
         $this->assertEquals($projectHigh->slug, $data[0]['slug']);
         $this->assertEquals($projectLow->slug, $data[1]['slug']);
+    }
+
+    #[Test]
+    public function test_order_by_favorites_desc()
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+        $userC = User::factory()->create();
+
+        $projectLow = Project::factory()->owner($userA)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Low Favorites Project',
+        ]);
+
+        $projectHigh = Project::factory()->owner($userA)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'High Favorites Project',
+        ]);
+
+        $favoritesA = Collection::query()->create([
+            'user_id' => $userA->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favoritesA->entries()->create(['project_id' => $projectHigh->id, 'sort_order' => 0]);
+        $favoritesA->entries()->create(['project_id' => $projectLow->id, 'sort_order' => 1]);
+
+        $favoritesB = Collection::query()->create([
+            'user_id' => $userB->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favoritesB->entries()->create(['project_id' => $projectHigh->id, 'sort_order' => 0]);
+
+        $favoritesC = Collection::query()->create([
+            'user_id' => $userC->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favoritesC->entries()->create(['project_id' => $projectHigh->id, 'sort_order' => 0]);
+
+        $response = $this->getJson(route('api.v1.projects', [
+            'order_by' => 'favorites',
+            'order_direction' => 'desc',
+            'project_type' => $this->projectType->value,
+        ]));
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        $this->assertEquals($projectHigh->slug, $data[0]['slug']);
+        $this->assertEquals(3, $data[0]['favorite_count']);
+        $this->assertEquals($projectLow->slug, $data[1]['slug']);
+        $this->assertEquals(1, $data[1]['favorite_count']);
+    }
+
+    #[Test]
+    public function test_order_by_favorites_uses_stable_project_id_tie_breaker(): void
+    {
+        $owner = User::factory()->create();
+        $favoriter = User::factory()->create();
+
+        $projectA = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Project A',
+        ]);
+
+        $projectB = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Project B',
+        ]);
+
+        $favorites = Collection::query()->create([
+            'user_id' => $favoriter->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+
+        $favorites->entries()->create(['project_id' => $projectA->id, 'sort_order' => 0]);
+        $favorites->entries()->create(['project_id' => $projectB->id, 'sort_order' => 1]);
+
+        $response = $this->getJson(route('api.v1.projects', [
+            'order_by' => 'favorites',
+            'order_direction' => 'desc',
+            'project_type' => $this->projectType->value,
+        ]));
+
+        $response->assertStatus(200);
+        $data = collect($response->json('data'));
+
+        $first = $data->firstWhere('slug', $projectA->slug);
+        $second = $data->firstWhere('slug', $projectB->slug);
+
+        $this->assertNotNull($first);
+        $this->assertNotNull($second);
+        $this->assertEquals(1, $first['favorite_count']);
+        $this->assertEquals(1, $second['favorite_count']);
+
+        $orderedIds = $data->pluck('slug')->all();
+        $this->assertSame(
+            [$projectA->slug, $projectB->slug],
+            [$orderedIds[0], $orderedIds[1]],
+        );
+    }
+
+    #[Test]
+    public function test_projects_payload_includes_favorite_count_and_guest_hides_is_favorited()
+    {
+        $owner = User::factory()->create();
+        $favoriter = User::factory()->create();
+
+        $project = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        $favorites = Collection::query()->create([
+            'user_id' => $favoriter->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favorites->entries()->create(['project_id' => $project->id, 'sort_order' => 0]);
+
+        $response = $this->getJson(route('api.v1.projects', ['project_type' => $this->projectType->value]));
+
+        $response->assertStatus(200);
+        $item = collect($response->json('data'))->firstWhere('slug', $project->slug);
+
+        $this->assertNotNull($item);
+        $this->assertArrayHasKey('favorite_count', $item);
+        $this->assertEquals(1, $item['favorite_count']);
+        $this->assertArrayNotHasKey('is_favorited', $item);
+    }
+
+    #[Test]
+    public function test_projects_payload_includes_is_favorited_for_authenticated_user()
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+
+        $favoritedProject = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Favorited Project',
+        ]);
+        $nonFavoritedProject = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+            'name' => 'Non Favorited Project',
+        ]);
+
+        $favorites = Collection::query()->create([
+            'user_id' => $viewer->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favorites->entries()->create(['project_id' => $favoritedProject->id, 'sort_order' => 0]);
+
+        $response = $this->actingAs($viewer)
+            ->getJson(route('api.v1.projects', ['project_type' => $this->projectType->value]));
+
+        $response->assertStatus(200);
+        $data = collect($response->json('data'));
+
+        $favorited = $data->firstWhere('slug', $favoritedProject->slug);
+        $notFavorited = $data->firstWhere('slug', $nonFavoritedProject->slug);
+
+        $this->assertNotNull($favorited);
+        $this->assertNotNull($notFavorited);
+
+        $this->assertArrayHasKey('is_favorited', $favorited);
+        $this->assertTrue($favorited['is_favorited']);
+        $this->assertArrayHasKey('is_favorited', $notFavorited);
+        $this->assertFalse($notFavorited['is_favorited']);
+    }
+
+    #[Test]
+    public function test_single_project_payload_exposes_favorite_count_for_guest_without_is_favorited(): void
+    {
+        $owner = User::factory()->create();
+        $favoriter = User::factory()->create();
+
+        $project = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        $favorites = Collection::query()->create([
+            'user_id' => $favoriter->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favorites->entries()->create(['project_id' => $project->id, 'sort_order' => 0]);
+
+        $response = $this->getJson(route('api.v1.project', ['slug' => $project->slug]));
+
+        $response->assertStatus(200);
+        $item = $response->json('data');
+
+        $this->assertArrayHasKey('favorite_count', $item);
+        $this->assertEquals(1, $item['favorite_count']);
+        $this->assertArrayNotHasKey('is_favorited', $item);
+    }
+
+    #[Test]
+    public function test_single_project_payload_exposes_is_favorited_for_authenticated_user(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+
+        $project = Project::factory()->owner($owner)->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        $favorites = Collection::query()->create([
+            'user_id' => $viewer->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+        $favorites->entries()->create(['project_id' => $project->id, 'sort_order' => 0]);
+
+        $response = $this->actingAs($viewer)
+            ->getJson(route('api.v1.project', ['slug' => $project->slug]));
+
+        $response->assertStatus(200);
+        $item = $response->json('data');
+
+        $this->assertArrayHasKey('favorite_count', $item);
+        $this->assertEquals(1, $item['favorite_count']);
+        $this->assertArrayHasKey('is_favorited', $item);
+        $this->assertTrue($item['is_favorited']);
     }
 
     #[Test]
