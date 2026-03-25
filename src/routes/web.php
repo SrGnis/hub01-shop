@@ -7,6 +7,8 @@ use App\Http\Controllers\PasswordChangeController;
 use App\Livewire\Auth\AccountDeactivated;
 use App\Livewire\Page;
 use App\Livewire\ProjectForm;
+use App\Livewire\CollectionEdit;
+use App\Livewire\CollectionShow;
 use App\Livewire\ProjectSearch;
 use App\Livewire\UserProfile;
 use App\Livewire\UserProfileEdit;
@@ -34,6 +36,10 @@ Route::get('/account/deactivated', AccountDeactivated::class)
 // User Profile
 Route::get('/user/{user}', UserProfile::class)->name('user.profile');
 
+// Collections
+Route::get('/collection/hidden/{token}', CollectionShow::class)->name('collection.hidden.show');
+Route::get('/collection/{collection}', CollectionShow::class)->name('collection.show');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // User Profile Edit
     Route::get('/profile/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
@@ -56,6 +62,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Project Management
     Route::get('/create/{projectType}', ProjectForm::class)->name('project.create');
+
+    // Collection Management
+    Route::get('/collection/{collection}/edit', CollectionEdit::class)->name('collection.edit');
 });
 
 

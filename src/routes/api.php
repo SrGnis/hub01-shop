@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TokenTestController;
+use App\Http\Controllers\Api\V1\CollectionController as CollectionControllerV1;
 use App\Http\Controllers\Api\V1\TagController as TagControllerV1;
 use App\Http\Controllers\Api\V1\ProjectController as ProjectControllerV1;
 use App\Http\Controllers\Api\V1\ProjectVersionController as ProjectVersionControllerV1;
@@ -27,6 +28,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/projects', [ProjectControllerV1::class, 'getProjects'])->name('api.v1.projects');
     Route::get('/project/{slug}', [ProjectControllerV1::class, 'getProjectBySlug'])->name('api.v1.project');
 
+    // Collections (Public + Hidden Share)
+    Route::get('/collections', [CollectionControllerV1::class, 'publicIndex'])->name('api.v1.collections');
+    Route::get('/collection/hidden/{token}', [CollectionControllerV1::class, 'hiddenShow'])->name('api.v1.collection.hidden');
+    Route::get('/collection/{uid}', [CollectionControllerV1::class, 'publicShow'])->name('api.v1.collection');
+
     // Project Versions
     Route::get('/project/{slug}/versions', [ProjectVersionControllerV1::class, 'getProjectVersions'])->name('api.v1.project_versions');
     Route::get('/project/{slug}/version/{version}', [ProjectVersionControllerV1::class, 'getProjectVersionBySlug'])->name('api.v1.project_version');
@@ -42,6 +48,18 @@ Route::prefix('v1')->group(function () {
         */
         Route::post('/project/{slug}/version/{version}', [ProjectVersionControllerV1::class, 'update'])->name('api.v1.project_version.update');
         Route::delete('/project/{slug}/version/{version}', [ProjectVersionControllerV1::class, 'destroy'])->name('api.v1.project_version.destroy');
+
+        // Collections (Owner)
+        Route::get('/me/collections', [CollectionControllerV1::class, 'ownerIndex'])->name('api.v1.me.collections');
+        Route::get('/me/collection/{uid}', [CollectionControllerV1::class, 'ownerShow'])->name('api.v1.me.collection');
+        Route::post('/me/collections', [CollectionControllerV1::class, 'store'])->name('api.v1.me.collections.store');
+        Route::post('/me/collections/quick-create-with-project', [CollectionControllerV1::class, 'quickCreateAndAttach'])->name('api.v1.me.collections.quick_create');
+        Route::patch('/me/collection/{uid}', [CollectionControllerV1::class, 'update'])->name('api.v1.me.collection.update');
+        Route::delete('/me/collection/{uid}', [CollectionControllerV1::class, 'destroy'])->name('api.v1.me.collection.destroy');
+        Route::post('/me/collection/{uid}/entries', [CollectionControllerV1::class, 'addEntry'])->name('api.v1.me.collection.entries.store');
+        Route::delete('/me/collection/{uid}/entry/{entryUid}', [CollectionControllerV1::class, 'removeEntry'])->name('api.v1.me.collection.entry.destroy');
+        Route::patch('/me/collection/{uid}/entry/{entryUid}/note', [CollectionControllerV1::class, 'updateEntryNote'])->name('api.v1.me.collection.entry.note.update');
+        Route::post('/me/collection/{uid}/entries/reorder', [CollectionControllerV1::class, 'reorderEntries'])->name('api.v1.me.collection.entries.reorder');
     });
 
     // User

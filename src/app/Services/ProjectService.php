@@ -118,14 +118,26 @@ class ProjectService
     {
         switch ($orderBy) {
             case 'name':
-                return $query->orderBy('name', $orderDirection);
+                return $query
+                    ->orderBy('name', $orderDirection)
+                    ->orderBy('project.id');
             case 'created_at':
-                return $query->orderBy('created_at', $orderDirection);
+                return $query
+                    ->orderBy('created_at', $orderDirection)
+                    ->orderBy('project.id');
             case 'updated_at':
-                return $query->orderBy('last_update_time', $orderDirection);
+                return $query
+                    ->orderBy('last_update_time', $orderDirection)
+                    ->orderBy('project.id');
+            case 'favorites':
+                return $query
+                    ->orderBy('favorite_count', $orderDirection)
+                    ->orderBy('project.id');
             case 'downloads':
             default:
-                return $query->orderBy('downloads', $orderDirection);
+                return $query
+                    ->orderBy('downloads', $orderDirection)
+                    ->orderBy('project.id');
         }
     }
 
@@ -174,6 +186,7 @@ class ProjectService
             ['id' => 'name', 'name' => 'Project Name', 'icon' => 'lucide-text'],
             ['id' => 'created_at', 'name' => 'Creation Date', 'icon' => 'lucide-calendar'],
             ['id' => 'updated_at', 'name' => 'Update Date', 'icon' => 'lucide-refresh-cw'],
+            ['id' => 'favorites', 'name' => 'Favorites', 'icon' => 'lucide-heart'],
             ['id' => 'downloads', 'name' => 'Downloads', 'icon' => 'lucide-download'],
         ];
     }

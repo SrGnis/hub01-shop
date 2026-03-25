@@ -130,11 +130,11 @@ class AbuseReportService
      * Validate that the reported item exists.
      *
      * @param  string  $type  Model class (e.g., Project::class)
-     * @param  int  $id
+     * @param  int|string  $id
      * @return void
      * @throws \Exception If item does not exist
      */
-    public function validateReportedItem(string $type, int $id): void
+    public function validateReportedItem(string $type, int|string $id): void
     {
         if (!class_exists($type)) {
             throw new \Exception('Invalid reported item type.');
@@ -142,7 +142,7 @@ class AbuseReportService
 
         /** @var Model $model */
         $model = new $type;
-        if (!$model->where('id', $id)->exists()) {
+        if (!$model->where($model->getKeyName(), $id)->exists()) {
             throw new \Exception('Reported item does not exist.');
         }
     }
