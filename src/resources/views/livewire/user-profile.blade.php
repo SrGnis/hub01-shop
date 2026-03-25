@@ -23,6 +23,8 @@
                                 label="Member since {{ $user->created_at->format('F Y') }}" />
                             <x-icon name="lucide-package"
                                 label="{{ $this->ownedProjectsCount }} {{ Str::plural('project', $this->ownedProjectsCount) }} owned" />
+                            <x-icon name="lucide-heart"
+                                label="{{ number_format($this->aggregateFavorites) }} {{ Str::plural('favorite', $this->aggregateFavorites) }}" />
                             <x-icon name="lucide-download"
                                 label="{{ number_format($this->aggregateDownloads) }} {{ Str::plural('download', $this->aggregateDownloads) }}" />
                         </div>
@@ -57,71 +59,94 @@
         </div>
     </x-card>
 
-    <!-- Active Projects -->
-    @if ($this->activeProjects->count() > 0)
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold mb-4">Projects</h2>
-            <div class="space-y-4">
-                @foreach ($this->activeProjects as $project)
-                    <x-project-card :project="$project" />
-                @endforeach
-            </div>
-        </div>
-    @endif
+    <x-tabs wire:model="activeTab" class="mb-6">
+        <x-tab name="projects" label="Projects" icon="lucide-package">
+            <div class="space-y-6 pt-4">
+                @if ($this->activeProjects->count() > 0)
+                    <div class="space-y-4">
+                        @foreach ($this->activeProjects as $project)
+                            <x-project-card :project="$project" />
+                        @endforeach
+                    </div>
+                @endif
 
-    <!-- Deleted Projects (Only visible to owner) -->
-    @if ($this->deletedProjects->count() > 0)
-        <div>
-            <h2 class="text-2xl font-bold mb-4">Deleted Projects</h2>
-            <p class="text-sm text-base-content/60 mb-4">
-                These projects will be permanently deleted after 14 days.
-            </p>
-            <div class="space-y-4">
-                @foreach ($this->deletedProjects as $project)
-                    <x-card class="!py-3 !px-5 opacity-60">
-                        <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-                            <!-- Project Info -->
-                            <div class="flex gap-4 flex-grow">
-                                <div class="flex-shrink-0">
-                                    <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
-                                        class="w-20 h-20 object-cover rounded-lg" alt="{{ $project->name }} Logo">
-                                </div>
-                                <div class="flex-grow min-w-0">
-                                    <h3 class="text-lg font-bold mb-1">
-                                        {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
-                                    </h3>
-                                    <p class="text-sm mb-2">
-                                        by <span
-                                            class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
-                                    </p>
-                                    <p class="text-sm text-base-content/60">
-                                        <x-icon name="lucide-trash-2" class="w-3 h-3 inline" />
-                                        Deleted {{ $project->deleted_at->diffForHumans() }}
-                                    </p>
-                                </div>
-                            </div>
+                <!-- Deleted Projects (Only visible to owner) -->
+                @if ($this->deletedProjects->count() > 0)
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4">Deleted Projects</h2>
+                        <p class="text-sm text-base-content/60 mb-4">
+                            These projects will be permanently deleted after 14 days.
+                        </p>
+                        <div class="space-y-4">
+                            @foreach ($this->deletedProjects as $project)
+                                <x-card class="!py-3 !px-5 opacity-60">
+                                    <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+                                        <div class="flex gap-4 flex-grow">
+                                            <div class="flex-shrink-0">
+                                                <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
+                                                    class="w-20 h-20 object-cover rounded-lg" alt="{{ $project->name }} Logo">
+                                            </div>
+                                            <div class="flex-grow min-w-0">
+                                                <h3 class="text-lg font-bold mb-1">
+                                                    {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
+                                                </h3>
+                                                <p class="text-sm mb-2">
+                                                    by <span
+                                                        class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
+                                                </p>
+                                                <p class="text-sm text-base-content/60">
+                                                    <x-icon name="lucide-trash-2" class="w-3 h-3 inline" />
+                                                    Deleted {{ $project->deleted_at->diffForHumans() }}
+                                                </p>
+                                            </div>
+                                        </div>
 
-                            <!-- Restore Button -->
-                            <div class="flex-shrink-0">
-                                <x-button wire:click="restoreProject({{ $project->id }})" icon="lucide-rotate-ccw"
-                                    class="btn-success btn-sm"
-                                    wire:confirm="Are you sure you want to restore this project?">
-                                    Restore
-                                </x-button>
-                            </div>
+                                        <div class="flex-shrink-0">
+                                            <x-button wire:click="restoreProject({{ $project->id }})" icon="lucide-rotate-ccw"
+                                                class="btn-success btn-sm"
+                                                wire:confirm="Are you sure you want to restore this project?">
+                                                Restore
+                                            </x-button>
+                                        </div>
+                                    </div>
+                                </x-card>
+                            @endforeach
                         </div>
-                    </x-card>
-                @endforeach
-            </div>
-        </div>
-    @endif
+                    </div>
+                @endif
 
-    <!-- No Projects Message -->
-    @if ($this->activeProjects->count() === 0 && $this->deletedProjects->count() === 0)
-        <x-card class="text-center py-12">
-            <x-icon name="lucide-package" class="w-16 h-16 mx-auto mb-4" />
-            <h3 class="text-lg font-medium mb-2">No projects yet</h3>
-            <p class="text-base-content/60">{{ $user->name }} hasn't created or contributed to any projects.</p>
-        </x-card>
-    @endif
+                @if ($this->activeProjects->count() === 0 && $this->deletedProjects->count() === 0)
+                    <x-card class="text-center py-12">
+                        <x-icon name="lucide-package" class="w-16 h-16 mx-auto mb-4" />
+                        <h3 class="text-lg font-medium mb-2">No projects yet</h3>
+                        <p class="text-base-content/60">{{ $user->name }} hasn't created or contributed to any projects.</p>
+                    </x-card>
+                @endif
+            </div>
+        </x-tab>
+
+        <x-tab name="collections" label="Collections" icon="lucide-folder-open">
+            <div class="space-y-4 pt-4">
+                @if (auth()->id() === $user->id && $this->favoritesCollection)
+                    <x-collection-card :collection="$this->favoritesCollection" :entry-count="$this->favoritesCollection->entries_count" />
+                @endif
+
+                @forelse ($this->visibleCollections as $collection)
+                    <x-collection-card :collection="$collection" :entry-count="$collection->entries_count" />
+                @empty
+                    <x-card class="text-center py-12">
+                        <x-icon name="lucide-folder-open" class="w-16 h-16 mx-auto mb-4" />
+                        <h3 class="text-lg font-medium mb-2">No collections yet</h3>
+                        <p class="text-base-content/60">No collections are visible for this profile.</p>
+                    </x-card>
+                @endforelse
+            </div>
+        </x-tab>
+    </x-tabs>
+
+    <x-project-collection-modal
+        wire:model="showCollectionModal"
+        :target-project-name="$collectionTargetProjectName"
+        :available-collections="$this->availableCollections"
+    />
 </div>

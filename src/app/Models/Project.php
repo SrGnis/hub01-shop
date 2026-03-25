@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ApprovalStatus;
+use App\Enums\CollectionSystemType;
 use App\Models\Scopes\ProjectFullScope;
 use App\Traits\ExcludeScope;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -154,6 +155,31 @@ class Project extends Model
     }
 
     /**
+     * Get collection entries referencing this project.
+     */
+    public function collectionEntries(): HasMany
+    {
+        return $this->hasMany(CollectionEntry::class);
+    }
+
+    /**
+     * Get collections that contain this project.
+     */
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Collection::class,
+            'collection_entry',
+            'project_id',
+            'collection_uid',
+            'id',
+            'uid'
+        )
+            ->withPivot(['note', 'sort_order'])
+            ->withTimestamps();
+    }
+
+    /**
      * Get the users associated with the project through memberships
      */
     public function users(): BelongsToMany
@@ -264,7 +290,26 @@ class Project extends Model
                 ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
                 ->selectRaw('COALESCE(SUM(project_version_daily_download.downloads), 0)')
                 ->whereColumn('project_version.project_id', 'project.id'),
+            'favorite_count' => CollectionEntry::query()
+                ->join('collection', 'collection.uid', '=', 'collection_entry.collection_uid')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('collection_entry.project_id', 'project.id')
+                ->where('collection.system_type', CollectionSystemType::FAVORITES->value),
         ]);
+
+        $user = Auth::user();
+
+        if ($user) {
+            $query->addSelect([
+                'is_favorited' => CollectionEntry::query()
+                    ->join('collection', 'collection.uid', '=', 'collection_entry.collection_uid')
+                    ->selectRaw('COUNT(*) > 0')
+                    ->whereColumn('collection_entry.project_id', 'project.id')
+                    ->where('collection.system_type', CollectionSystemType::FAVORITES->value)
+                    ->where('collection.user_id', $user->id),
+            ]);
+        }
+
         $query->withMax('versions as recent_release_date', 'release_date');
         // Add last update time as the greatest of the project updated_at and the maximum of all version release dates
         $query->addSelect([

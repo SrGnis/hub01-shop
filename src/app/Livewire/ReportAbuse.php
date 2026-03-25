@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\AbuseReport;
+use App\Models\Collection;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Models\User;
@@ -41,8 +42,7 @@ class ReportAbuse extends Component
             $this->redirectRoute('verification.notice');
             return;
         }
-        // Ensure the itemId is cast to integer to avoid string mismatch
-        $this->reportedItemId = (int) $itemId;
+        $this->reportedItemId = $itemId;
         $this->reportedItemType = $itemType;
         $this->reportedItemName = $itemName ?? $this->getItemName($itemType, $this->reportedItemId);
         $this->reportedItemTypeLabel = $this->getItemTypeLabel($itemType);
@@ -93,11 +93,12 @@ class ReportAbuse extends Component
         }
     }
 
-    private function getItemName(string $itemType, int $itemId): string
+    private function getItemName(string $itemType, int|string $itemId): string
     {
         return match($itemType) {
             Project::class => Project::find($itemId)?->name ?? 'Unknown Project',
             ProjectVersion::class => ProjectVersion::find($itemId)?->name ?? 'Unknown Version',
+            Collection::class => Collection::find($itemId)?->name ?? 'Unknown Collection',
             User::class => User::find($itemId)?->name ?? 'Unknown User',
             default => 'Unknown Item',
         };
@@ -108,6 +109,7 @@ class ReportAbuse extends Component
         return match($itemType) {
             Project::class => 'Project',
             ProjectVersion::class => 'Project Version',
+            Collection::class => 'Collection',
             User::class => 'User',
             default => 'Item',
         };

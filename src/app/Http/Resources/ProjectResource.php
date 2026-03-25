@@ -59,6 +59,17 @@ class ProjectResource extends JsonResource
              */
             'downloads' => $this->downloads ?? 0,
             /**
+             * @var int
+             */
+            'favorite_count' => (int) ($this->favorite_count ?? 0),
+            /**
+             * @var bool
+             */
+            'is_favorited' => $this->when(
+                $request->user() !== null && array_key_exists('is_favorited', $this->getAttributes()),
+                fn () => (bool) $this->is_favorited
+            ),
+            /**
              * @var string | null
              * @format date
              */

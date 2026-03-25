@@ -105,4 +105,10 @@
             <x-button label="Apply Filters" @click="showMobileFilters = false" icon="check" class="btn-primary" />
         </x-slot:actions>
     </x-mary-modal>
+
+    <x-project-collection-modal
+        wire:model="showCollectionModal"
+        :target-project-name="$collectionTargetProjectName"
+        :available-collections="$this->availableCollections"
+    />
 </div>

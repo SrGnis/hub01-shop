@@ -10,6 +10,7 @@ use App\Models\ProjectVersionDailyDownload;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -358,5 +359,67 @@ class FileDownloadControllerTest extends TestCase
 
         $this->version->refresh();
         $this->assertEquals($initialDownloads + 2, $this->version->downloads);
+    }
+
+    #[Test]
+    public function test_download_from_ignored_user_agent_does_not_increment_download_count()
+    {
+        Config::set('download_stats.bad_user_agent_patterns', ['Hub01BadBot']);
+
+        $file = $this->version->files()->create([
+            'name' => 'ignored.zip',
+            'path' => 'project-files/ignored.zip',
+            'size' => 256,
+        ]);
+
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
+
+        $initialDownloads = $this->version->downloads;
+
+        $this->withHeader('User-Agent', 'Mozilla/5.0 Hub01BadBot/1.0')
+            ->get(route('file.download', [
+                'projectType' => $this->projectType,
+                'project' => $this->project,
+                'version' => $this->version->version,
+                'file' => $file->name,
+            ]))
+            ->assertOk()
+            ->assertDownload($file->name);
+
+        $this->version->refresh();
+        $this->assertEquals($initialDownloads, $this->version->downloads);
+
+        $this->assertDatabaseMissing('project_version_daily_download', [
+            'project_version_id' => $this->version->id,
+            'date' => today()->toDateString(),
+        ]);
+    }
+
+    #[Test]
+    public function test_ignored_user_agent_matching_is_case_insensitive_and_handles_escaped_spaces()
+    {
+        Config::set('download_stats.bad_user_agent_patterns', ['Example\ Bot']);
+
+        $file = $this->version->files()->create([
+            'name' => 'escaped-space.zip',
+            'path' => 'project-files/escaped-space.zip',
+            'size' => 128,
+        ]);
+
+        Storage::disk(ProjectFile::getDisk())->put($file->path, 'content');
+
+        $initialDownloads = $this->version->downloads;
+
+        $this->withHeader('User-Agent', 'mozilla/5.0 (compatible; EXAMPLE BOT crawler)')
+            ->get(route('file.download', [
+                'projectType' => $this->projectType,
+                'project' => $this->project,
+                'version' => $this->version->version,
+                'file' => $file->name,
+            ]))
+            ->assertOk();
+
+        $this->version->refresh();
+        $this->assertEquals($initialDownloads, $this->version->downloads);
     }
 }

@@ -103,8 +103,9 @@ return [
             'bars-3-bottom-right' => 'menu',
             'information-circle' => 'info',
             'check-circle' => 'check-circle',
-            'warning-triangle' => 'warning-triangle',
-            
+            'warning-triangle' => 'triangle-alert',
+            'exclamation-triangle' => 'triangle-alert',
+
         ],
     ],
 

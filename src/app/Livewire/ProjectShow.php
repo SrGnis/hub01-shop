@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithProjectCollections;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use App\Models\Project;
@@ -14,11 +15,14 @@ use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
 use App\Models\ProjectVersionTag;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Collection;
 
 class ProjectShow extends Component
 {
     use WithPagination;
     use Toast;
+    use InteractsWithProjectCollections;
 
     #[Locked]
     public string $projectSlug;
@@ -126,6 +130,24 @@ class ProjectShow extends Component
         return $this->projectService->getVersionTagGroups($this->project->projectType);
     }
 
+    #[Computed]
+    public function isInUserCollection(): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return Collection::query()
+            ->where('user_id', $user->id)
+            ->whereNull('system_type')
+            ->whereHas('entries', function (Builder $query) {
+                $query->where('project_id', $this->project->id);
+            })
+            ->exists();
+    }
+
     public function render()
     {
         return view('livewire.project-show', [
@@ -135,4 +157,3 @@ class ProjectShow extends Component
         ]);
     }
 }
-

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectType;
+use App\Services\DownloadStatsUserAgentFilterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileDownloadController extends Controller
 {
+    public function __construct(private readonly DownloadStatsUserAgentFilterService $downloadStatsUserAgentFilterService)
+    {
+    }
+
     /**
      * Download a project file
      *
@@ -44,17 +49,22 @@ class FileDownloadController extends Controller
             abort(404, 'File not found');
         }
 
-        $fingerprint = hash('sha256', implode('|', [
-            $request->ip(),
-            $request->userAgent() ?? 'unknown-agent',
-            $projectType->id,
-            $project->id,
-            $version->id,
-            $fileModel->id,
-        ]));
+        $shouldCount = false;
+        $userAgent = $request->userAgent();
 
-        $dedupeKey = 'download_dedupe:'.$fingerprint;
-        $shouldCount = Cache::add($dedupeKey, true, now()->addHours(3));
+        if (! $this->downloadStatsUserAgentFilterService->shouldIgnore($userAgent)) {
+            $fingerprint = hash('sha256', implode('|', [
+                $request->ip(),
+                $userAgent ?? 'unknown-agent',
+                $projectType->id,
+                $project->id,
+                $version->id,
+                $fileModel->id,
+            ]));
+
+            $dedupeKey = 'download_dedupe:'.$fingerprint;
+            $shouldCount = Cache::add($dedupeKey, true, now()->addHours(3));
+        }
 
         if ($shouldCount) {
             $now = now();
