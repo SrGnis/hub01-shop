@@ -63,11 +63,7 @@
                 @if ($this->activeProjects->count() > 0)
                     <div class="space-y-4">
                         @foreach ($this->activeProjects as $project)
-                            <x-project-card
-                                :project="$project"
-                                action-favorite="toggleFavorite"
-                                action-add-collection="openAddToCollectionModal"
-                            />
+                            <x-project-card :project="$project" />
                         @endforeach
                     </div>
                 @endif

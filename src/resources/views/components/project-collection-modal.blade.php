@@ -27,7 +27,7 @@
     </div>
 
     <div class="border-t pt-4">
-        <h4 class="font-semibold mb-2">Quick create private collection</h4>
+        <h4 class="font-semibold mb-2">Create a new collection</h4>
         <div class="flex gap-2">
             <x-input wire:model="{{ $quickCollectionNameModel }}" placeholder="Collection name" class="w-full" />
             <x-button label="Create" icon="lucide-plus" wire:click="{{ $quickCreateAction }}" class="btn-primary" />

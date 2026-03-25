@@ -61,15 +61,7 @@
 
                 <!-- Project Cards -->
                 @forelse ($this->projects as $project)
-                    @if (auth()->check())
-                        <x-project-card
-                            :project="$project"
-                            action-favorite="toggleFavorite"
-                            action-add-collection="openAddToCollectionModal"
-                        />
-                    @else
-                        <x-project-card :project="$project" />
-                    @endif
+                    <x-project-card :project="$project" />
                 @empty
                     <x-card class="text-center py-12">
                         <x-icon name="lucide-search" class="w-16 h-16 mx-auto text-gray-400 mb-4" />

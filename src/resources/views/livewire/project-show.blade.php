@@ -18,6 +18,18 @@
                         link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         icon="pencil" label="Edit Project" class="btn-primary" no-wire-navigate />
                 @endcan
+                <x-button
+                    icon="heart"
+                    class="btn-ghost [&_svg]:w-6 [&_svg]:h-6 {{ (bool) ($project->is_favorited ?? false) ? 'text-secondary' : '' }}"
+                    wire:click="toggleFavorite({{ $project->id }})"
+                    title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
+                />
+                <x-button
+                    icon="bookmark"
+                    class="btn-ghost [&_svg]:w-6 [&_svg]:h-6"
+                    wire:click="openAddToCollectionModal({{ $project->id }})"
+                    title="Add to collection"
+                />
             @endauth
             <x-dropdown right>
                 <x-slot:trigger>
@@ -63,15 +75,7 @@
         <div class="lg:col-span-8">
             <!-- Project Card -->
             <div class="mb-6">
-                @if (auth()->check())
-                    <x-project-card
-                        :project="$project"
-                        action-favorite="toggleFavorite"
-                        action-add-collection="openAddToCollectionModal"
-                    />
-                @else
-                    <x-project-card :project="$project" />
-                @endif
+                <x-project-card :project="$project" />
             </div>
 
             <!-- Navigation Tabs -->
@@ -116,3 +120,4 @@
         :available-collections="$this->availableCollections"
     />
 </div>
+

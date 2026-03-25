@@ -1,7 +1,5 @@
 @props([
     'project',
-    'actionFavorite' => null,
-    'actionAddCollection' => null,
 ])
 
 <x-card class="!py-3 !px-5" id="{{ $project->id }}">
@@ -24,27 +22,6 @@
             </div>
 
             <div class="flex-grow min-w-0">
-                @if ($actionFavorite || $actionAddCollection)
-                    <div class="flex justify-end gap-2 mb-2">
-                        @if ($actionFavorite)
-                            <x-button
-                                icon="{{ (bool) ($project->is_favorited ?? false) ? 'lucide-heart-off' : 'lucide-heart' }}"
-                                class="btn-ghost btn-sm"
-                                wire:click="{{ $actionFavorite }}({{ $project->id }})"
-                                title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
-                            />
-                        @endif
-
-                        @if ($actionAddCollection)
-                            <x-button
-                                icon="lucide-folder-plus"
-                                class="btn-ghost btn-sm"
-                                wire:click="{{ $actionAddCollection }}({{ $project->id }})"
-                                title="Add to collection"
-                            />
-                        @endif
-                    </div>
-                @endif
 
                 <h3 class="text-xl font-bold mb-1">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
@@ -108,11 +85,6 @@
                     <span>Updated {{ \Carbon\Carbon::parse($project->last_update_time)->diffForHumans() }}</span>
                 </div>
             @endif
-
-            <div class="flex items-center gap-1">
-                <x-icon name="lucide-calendar-plus" class="w-3 h-3" />
-                <span>Created {{ $project->created_at->diffForHumans() }}</span>
-            </div>
         </div>
     </div>
 
@@ -136,27 +108,6 @@
 
             <!-- Center Column: Content -->
             <div class="flex-grow min-w-0">
-                @if ($actionFavorite || $actionAddCollection)
-                    <div class="flex justify-end gap-2 mb-2">
-                        @if ($actionFavorite)
-                            <x-button
-                                icon="{{ (bool) ($project->is_favorited ?? false) ? 'lucide-heart-off' : 'lucide-heart' }}"
-                                class="btn-ghost btn-sm"
-                                wire:click="{{ $actionFavorite }}({{ $project->id }})"
-                                title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
-                            />
-                        @endif
-
-                        @if ($actionAddCollection)
-                            <x-button
-                                icon="lucide-folder-plus"
-                                class="btn-ghost btn-sm"
-                                wire:click="{{ $actionAddCollection }}({{ $project->id }})"
-                                title="Add to collection"
-                            />
-                        @endif
-                    </div>
-                @endif
 
                 <!-- Title and Byline -->
                 <div class="mb-3">
@@ -227,11 +178,6 @@
                             {{ \Carbon\Carbon::parse($project->last_update_time)->diffForHumans() }}</span>
                     </div>
                 @endif
-
-                <div class="flex items-center gap-2">
-                    <x-icon name="lucide-calendar-plus" />
-                    <span>Created {{ $project->created_at->diffForHumans() }}</span>
-                </div>
             </div>
         </div>
     </div>

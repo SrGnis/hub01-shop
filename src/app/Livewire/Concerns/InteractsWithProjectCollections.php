@@ -147,7 +147,7 @@ trait InteractsWithProjectCollections
             project: $project,
         );
 
-        $this->success('Private collection created and project added.');
+        $this->success('Collection created and project added.');
         $this->quickCollectionName = '';
         $this->showCollectionModal = false;
         $this->refreshProjectCollectionCaches();
