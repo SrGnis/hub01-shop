@@ -31,6 +31,13 @@ trait InteractsWithProjectCollections
 
         return $user->collections()
             ->whereNull('system_type')
+            ->when($this->collectionTargetProjectId, function ($query) {
+                $query->withExists([
+                    'entries as includes_target_project' => function ($entryQuery) {
+                        $entryQuery->where('project_id', $this->collectionTargetProjectId);
+                    },
+                ]);
+            })
             ->orderBy('updated_at', 'desc')
             ->orderBy('uid')
             ->get();

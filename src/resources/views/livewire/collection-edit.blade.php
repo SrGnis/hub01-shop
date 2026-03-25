@@ -16,7 +16,31 @@
                 option-label="name"
             />
 
-            <x-textarea wire:model="description" label="Description (Markdown)" rows="6" />
+            <div x-data="{ mode: 'code' }">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-medium">Description (Markdown)</label>
+                    <div class="join">
+                        <button type="button" @click="mode = 'code'"
+                            :class="{ 'join-item btn-active': mode === 'code' }" class="join-item btn btn-sm">
+                            <x-icon name="lucide-code" class="w-4 h-4" /> Code
+                        </button>
+                        <button type="button" @click="$wire.refreshMarkdown().then(() => mode = 'preview')"
+                            :class="{ 'join-item btn-active': mode === 'preview' }" class="join-item btn btn-sm">
+                            <x-icon name="lucide-eye" class="w-4 h-4" /> Preview
+                        </button>
+                    </div>
+                </div>
+                <div wire:loading.remove wire:target="refreshMarkdown" x-show="mode === 'code'">
+                    <x-code wire:model="description" height="220px" language="markdown" hint="Markdown" wrap=1 />
+                </div>
+                <div wire:loading.flex wire:target="refreshMarkdown"
+                    class="bg-base-200 rounded-lg p-4 min-h-[220px] w-full flex items-center justify-center">
+                    <span class="loading loading-spinner w-10 h-10"></span>
+                </div>
+                <div x-show="mode === 'preview'" x-cloak class="bg-base-200 rounded-lg p-4 min-h-[220px]">
+                    <x-markdown class="prose prose-invert max-w-none" flavor="github">{{ $description }}</x-markdown>
+                </div>
+            </div>
 
             <div class="flex justify-end">
                 <x-button label="Save metadata" icon="lucide-save" wire:click="saveMetadata" class="btn-primary" />
@@ -30,12 +54,19 @@
                 <div class="border border-base-300 rounded-lg p-4 space-y-3">
                     <div class="flex items-start justify-between gap-3">
                         @if ($entry->project)
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex items-start gap-3">
                                 <a href="{{ route('project.show', ['projectType' => $entry->project->projectType, 'project' => $entry->project]) }}"
-                                    class="text-lg font-semibold text-primary hover:text-primary-focus">
-                                    {{ $entry->project->pretty_name ?? $entry->project->name }}
+                                    class="block shrink-0 hover:opacity-80 transition-opacity">
+                                    <img src="{{ $entry->project->getLogoUrl() ?? '/images/default-project.png' }}"
+                                        class="w-14 h-14 object-cover rounded-lg" alt="{{ $entry->project->name }} Logo">
                                 </a>
-                                <p class="text-sm text-base-content/70">{{ $entry->project->summary }}</p>
+                                <div class="min-w-0">
+                                    <a href="{{ route('project.show', ['projectType' => $entry->project->projectType, 'project' => $entry->project]) }}"
+                                        class="text-lg font-semibold text-primary hover:text-primary-focus">
+                                        {{ $entry->project->pretty_name ?? $entry->project->name }}
+                                    </a>
+                                    <p class="text-sm text-base-content/70">{{ $entry->project->summary }}</p>
+                                </div>
                             </div>
                         @else
                             <div>
@@ -73,4 +104,3 @@
         </div>
     </x-card>
 </div>
-

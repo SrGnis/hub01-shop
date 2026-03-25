@@ -15,6 +15,8 @@ use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
 use App\Models\ProjectVersionTag;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Collection;
 
 class ProjectShow extends Component
 {
@@ -126,6 +128,24 @@ class ProjectShow extends Component
     public function versionTagGroups()
     {
         return $this->projectService->getVersionTagGroups($this->project->projectType);
+    }
+
+    #[Computed]
+    public function isInUserCollection(): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return Collection::query()
+            ->where('user_id', $user->id)
+            ->whereNull('system_type')
+            ->whereHas('entries', function (Builder $query) {
+                $query->where('project_id', $this->project->id);
+            })
+            ->exists();
     }
 
     public function render()

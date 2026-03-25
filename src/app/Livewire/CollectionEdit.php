@@ -145,6 +145,9 @@ class CollectionEdit extends Component
             ->all();
     }
 
+    // dummy method for attaching the loading state
+    public function refreshMarkdown(): void {}
+
     public function render()
     {
         /** @disregard P1013 */

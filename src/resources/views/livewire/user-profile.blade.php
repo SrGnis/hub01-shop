@@ -23,6 +23,8 @@
                                 label="Member since {{ $user->created_at->format('F Y') }}" />
                             <x-icon name="lucide-package"
                                 label="{{ $this->ownedProjectsCount }} {{ Str::plural('project', $this->ownedProjectsCount) }} owned" />
+                            <x-icon name="lucide-heart"
+                                label="{{ number_format($this->aggregateFavorites) }} {{ Str::plural('favorite', $this->aggregateFavorites) }}" />
                             <x-icon name="lucide-download"
                                 label="{{ number_format($this->aggregateDownloads) }} {{ Str::plural('download', $this->aggregateDownloads) }}" />
                         </div>
@@ -126,48 +128,11 @@
         <x-tab name="collections" label="Collections" icon="lucide-folder-open">
             <div class="space-y-4 pt-4">
                 @if (auth()->id() === $user->id && $this->favoritesCollection)
-                    <x-card class="border border-base-300">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <h3 class="font-semibold flex items-center gap-2">
-                                    <x-icon name="lucide-heart" class="w-4 h-4 text-error" />
-                                    Favorites
-                                    <x-badge value="System" class="badge-neutral badge-sm" />
-                                </h3>
-                                <p class="text-sm text-base-content/70">Private system collection.</p>
-                            </div>
-                            <x-badge value="{{ $this->favoritesCollection->entries_count }} items" class="badge-primary" />
-                        </div>
-                    </x-card>
+                    <x-collection-card :collection="$this->favoritesCollection" :entry-count="$this->favoritesCollection->entries_count" />
                 @endif
 
                 @forelse ($this->visibleCollections as $collection)
-                    <x-card>
-                        <div class="flex items-start justify-between gap-4">
-                            <div class="space-y-2 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <a href="{{ route('collection.show', $collection) }}" class="text-lg font-semibold text-primary hover:text-primary-focus">
-                                        {{ $collection->name }}
-                                    </a>
-                                    <x-badge value="{{ ucfirst($collection->visibility->value) }}" class="badge-outline badge-sm" />
-                                    <x-badge value="{{ $collection->entries->count() }} items" class="badge-ghost badge-sm" />
-                                </div>
-                                @if ($collection->description)
-                                    <p class="text-sm text-base-content/70 line-clamp-2">{{ $collection->description }}</p>
-                                @endif
-                            </div>
-
-                            <div class="flex items-center gap-2 flex-shrink-0">
-                                <x-button icon="lucide-eye" class="btn-ghost btn-sm" link="{{ route('collection.show', $collection) }}" />
-                                @if (auth()->id() === $user->id)
-                                    <x-button icon="lucide-pencil" class="btn-ghost btn-sm" link="{{ route('collection.edit', $collection) }}" />
-                                    <x-button icon="lucide-trash-2" class="btn-ghost btn-sm text-error"
-                                        wire:click="deleteCollection('{{ $collection->uid }}')"
-                                        wire:confirm="Delete this collection?" />
-                                @endif
-                            </div>
-                        </div>
-                    </x-card>
+                    <x-collection-card :collection="$collection" :entry-count="$collection->entries_count" />
                 @empty
                     <x-card class="text-center py-12">
                         <x-icon name="lucide-folder-open" class="w-16 h-16 mx-auto mb-4" />

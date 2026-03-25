@@ -15,11 +15,16 @@
 
     <div class="space-y-2 mb-6 max-h-64 overflow-y-auto">
         @forelse ($availableCollections as $collection)
+            @php
+                $isIncluded = (bool) ($collection->includes_target_project ?? false);
+            @endphp
             <x-button
                 label="{{ $collection->name }}"
                 icon="lucide-folder"
                 wire:click="{{ $addAction }}('{{ $collection->uid }}')"
-                class="btn-ghost w-full justify-start"
+                badge="{{ $isIncluded ? 'Included' : '' }}"
+                badge-classes="{{ $isIncluded ? 'badge-info badge-sm' : '' }}"
+                class="btn-ghost w-full justify-start {{ $isIncluded ? '[&_svg]:text-info' : '' }}"
             />
         @empty
             <p class="text-sm text-base-content/60">No collections yet. Create one below.</p>

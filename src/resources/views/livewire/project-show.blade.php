@@ -26,7 +26,7 @@
                 />
                 <x-button
                     icon="bookmark"
-                    class="btn-ghost [&_svg]:w-6 [&_svg]:h-6"
+                    class="btn-ghost [&_svg]:w-6 [&_svg]:h-6 {{ $this->isInUserCollection ? 'text-info' : '' }}"
                     wire:click="openAddToCollectionModal({{ $project->id }})"
                     title="Add to collection"
                 />
@@ -120,4 +120,3 @@
         :available-collections="$this->availableCollections"
     />
 </div>
-

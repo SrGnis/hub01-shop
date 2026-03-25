@@ -2,12 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Enums\CollectionSystemType;
 use App\Livewire\Concerns\InteractsWithProjectCollections;
 use App\Models\Collection;
+use App\Models\CollectionEntry;
 use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Models\User;
-use App\Services\CollectionService;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -63,7 +64,12 @@ class UserProfile extends Component
             $query->where('visibility', 'public');
         }
 
-        return $query->with(['entries.project'])->get();
+        return $query
+            ->withCount('entries')
+            ->with([
+                'entries.project:id,name,logo_path',
+            ])
+            ->get();
     }
 
     // TODO: move it for reusing it in API
@@ -119,6 +125,22 @@ class UserProfile extends Component
             ->join('project_version_daily_download', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
             ->whereIn('project_version.project_id', $projectIds)
             ->sum('project_version_daily_download.downloads');
+    }
+
+    #[Computed]
+    public function aggregateFavorites()
+    {
+        return CollectionEntry::query()
+            ->join('collection', 'collection.uid', '=', 'collection_entry.collection_uid')
+            ->join('project', 'project.id', '=', 'collection_entry.project_id')
+            ->join('membership', function ($join) {
+                $join->on('membership.project_id', '=', 'project.id')
+                    ->where('membership.user_id', '=', $this->user->id)
+                    ->where('membership.status', '=', 'active');
+            })
+            ->whereNull('project.deleted_at')
+            ->where('collection.system_type', CollectionSystemType::FAVORITES->value)
+            ->count();
     }
 
     // TODO: move it to service
@@ -179,22 +201,9 @@ class UserProfile extends Component
             ->where('user_id', $this->user->id)
             ->where('system_type', 'favorites')
             ->withCount('entries')
+            ->with([
+                'entries.project:id,name,logo_path',
+            ])
             ->first();
-    }
-
-    public function deleteCollection(string $uid): void
-    {
-        $collection = Collection::query()
-            ->where('uid', $uid)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
-
-        try {
-            app(CollectionService::class)->deleteCollection($collection);
-            $this->success('Collection deleted successfully.');
-            unset($this->visibleCollections);
-        } catch (\RuntimeException $e) {
-            $this->error($e->getMessage());
-        }
     }
 }
