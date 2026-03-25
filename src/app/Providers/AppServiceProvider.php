@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\DownloadStatsUserAgentFilterService;
 use App\Services\PageService;
 use App\Services\ProjectQuotaService;
 use App\Services\ProjectService;
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectVersionService::class);
         $this->app->singleton(ProjectQuotaService::class);
         $this->app->singleton(PageService::class);
+        $this->app->singleton(DownloadStatsUserAgentFilterService::class);
 
         // Ignore default routes for Scramble
         Scramble::ignoreDefaultRoutes();
