@@ -459,7 +459,7 @@ class ProjectShowTest extends TestCase
         Livewire::actingAs($user)
             ->test(ProjectShow::class, ['project' => $project->slug])
             ->assertSee('Creators')
-            ->assertSee('External Credits')
+            ->assertSee('Credits')
             ->assertSee('Jane Doe')
             ->assertSee('Composer');
     }
