@@ -9,6 +9,7 @@ use App\Livewire\Page;
 use App\Livewire\ProjectForm;
 use App\Livewire\CollectionEdit;
 use App\Livewire\CollectionShow;
+use App\Livewire\MockupSection;
 use App\Livewire\ProjectSearch;
 use App\Livewire\UserProfile;
 use App\Livewire\UserProfileEdit;
@@ -39,6 +40,9 @@ Route::get('/user/{user}', UserProfile::class)->name('user.profile');
 // Collections
 Route::get('/collection/hidden/{token}', CollectionShow::class)->name('collection.hidden.show');
 Route::get('/collection/{collection}', CollectionShow::class)->name('collection.show');
+
+// UI Mockups
+Route::get('/mockup/{section}', MockupSection::class)->name('mockup.section');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // User Profile Edit
