@@ -5,6 +5,11 @@ use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Livewire\Auth\AccountDeactivated;
+use App\Livewire\Platform\Analytics;
+use App\Livewire\Platform\Collections;
+use App\Livewire\Platform\Dashboard;
+use App\Livewire\Platform\NotificationsComingSoon;
+use App\Livewire\Platform\Projects;
 use App\Livewire\Page;
 use App\Livewire\ProjectForm;
 use App\Livewire\CollectionEdit;
@@ -65,6 +70,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Collection Management
     Route::get('/collection/{collection}/edit', CollectionEdit::class)->name('collection.edit');
+
+    // Dashboard
+    Route::get('/dashboard', Dashboard::class)->name('platform.dashboard');
+    Route::get('/dashboard/notifications', NotificationsComingSoon::class)->name('platform.notifications');
+    Route::get('/dashboard/collections', Collections::class)->name('platform.collections');
+    Route::get('/dashboard/projects', Projects::class)->name('platform.projects');
+    Route::get('/dashboard/analytics', Analytics::class)->name('platform.analytics');
+
 });
 
 

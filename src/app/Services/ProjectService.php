@@ -216,6 +216,131 @@ class ProjectService
     }
 
     /**
+     * Paginate projects for platform workspace table.
+     *
+     * Scope: projects where user has active membership (owner included).
+     */
+    public function projectsForUser(
+        User $user,
+        string $search = '',
+        string $type = 'all',
+        string $status = 'all',
+        array $sortBy = ['column' => 'name', 'direction' => 'asc'],
+        int $perPage = 10
+    ): LengthAwarePaginator {
+        $query = Project::query()
+            ->with(['projectType:id,display_name,value'])
+            ->whereHas('memberships', function (Builder $builder) use ($user): void {
+                $builder
+                    ->where('user_id', $user->id)
+                    ->where('status', 'active');
+            });
+
+        if ($search !== '') {
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder->where('project.name', 'like', '%' . $search . '%')
+                    ->orWhere('project.slug', 'like', '%' . $search . '%');
+            });
+        }
+
+        $this->applyProjectTypeFilter($query, $type);
+        $this->applyProjectStatusFilter($query, $status);
+        $this->applyPlatformSort($query, $sortBy);
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * @param array{column?: string, direction?: string} $sortBy
+     */
+    private function applyPlatformSort(Builder $query, array $sortBy): void
+    {
+        $column = (string) ($sortBy['column'] ?? 'name');
+        $direction = strtolower((string) ($sortBy['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        if ($column === 'type') {
+            $query->orderBy(
+                ProjectType::select('display_name')
+                    ->whereColumn('project_type.id', 'project.project_type_id')
+                    ->limit(1),
+                $direction
+            )->orderBy('project.id');
+
+            return;
+        }
+
+        $columnMap = [
+            'name' => 'project.name',
+            'slug' => 'project.slug',
+            'status' => 'project.status',
+        ];
+
+        $orderColumn = $columnMap[$column] ?? 'project.name';
+        $query->orderBy($orderColumn, $direction)->orderBy('project.id');
+    }
+
+    private function applyProjectTypeFilter(Builder $query, string $type): void
+    {
+        if ($type === 'all') {
+            return;
+        }
+
+        $query->whereHas('projectType', function (Builder $builder) use ($type): void {
+            $builder->where('value', $type);
+        });
+    }
+
+    private function applyProjectStatusFilter(Builder $query, string $status): void
+    {
+        if ($status === 'all') {
+            return;
+        }
+
+        $query->where('project.status', $status);
+    }
+
+    private function applyOrder(Builder $query, string $order): void
+    {
+        if ($order === 'type_asc') {
+            $query->orderBy(
+                ProjectType::select('display_name')
+                    ->whereColumn('project_type.id', 'project.project_type_id')
+                    ->limit(1)
+            )
+                ->orderBy('project.id');
+
+            return;
+        }
+
+        if ($order === 'updated_asc') {
+            $query->orderBy('project.updated_at')->orderBy('project.id');
+
+            return;
+        }
+
+        if ($order === 'updated_desc') {
+            $query->orderByDesc('project.updated_at')->orderBy('project.id');
+
+            return;
+        }
+
+        [$orderBy, $direction] = $this->normalizePlatformOrder($order);
+        $this->applyOrdering($query, $orderBy, $direction);
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function normalizePlatformOrder(string $order): array
+    {
+        return match ($order) {
+            'name_asc' => ['name', 'asc'],
+            'name_desc' => ['name', 'desc'],
+            default => ['name', 'asc'],
+        };
+    }
+
+    /**
      * Generate a slug for a project
      */
     public function generateSlug(string $name, ?Project $project = null): string
