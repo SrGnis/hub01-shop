@@ -8,7 +8,6 @@
     <title>{{ isset($title) ? $title . ' - ' : '' }} {{ config('app.name') }} Admin</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <x-head-elements />
 </head>
 
 <body class="min-h-screen font-sans antialiased bg-base-200">
