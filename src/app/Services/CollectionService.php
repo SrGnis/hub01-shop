@@ -10,9 +10,63 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class CollectionService
 {
+    /**
+     * Paginate collections owned by user for platform workspace table.
+     */
+    public function paginateForUser(
+        User $user,
+        string $search = '',
+        string $visibility = 'all',
+        int $perPage = 10
+    ): LengthAwarePaginator {
+        $query = Collection::query()
+            ->ownerVisible($user->id)
+            ->withCount('entries')
+            ->addSelect([
+                'projects_count' => DB::table('collection_entry')
+                    ->selectRaw('COUNT(DISTINCT collection_entry.project_id)')
+                    ->whereColumn('collection_entry.collection_uid', 'collection.uid'),
+            ]);
+
+        if ($search !== '') {
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        $this->applyVisibilityFilter($query, $visibility);
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * @return array<int, array{id: string, name: string}>
+     */
+    public function visibilityOptions(): array
+    {
+        return [
+            ['id' => 'all', 'name' => 'All visibility'],
+            ['id' => CollectionVisibility::PUBLIC->value, 'name' => 'Public'],
+            ['id' => CollectionVisibility::PRIVATE->value, 'name' => 'Private'],
+            ['id' => CollectionVisibility::HIDDEN->value, 'name' => 'Hidden'],
+        ];
+    }
+
+    private function applyVisibilityFilter(Builder $query, string $visibility): void
+    {
+        if ($visibility === 'all') {
+            return;
+        }
+
+        $query->where('visibility', CollectionVisibility::fromString($visibility));
+    }
+
     /**
      * Ensure a single valid favorites collection exists for a user.
      */
