@@ -12,6 +12,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/css/welcome.css', 'resources/js/app.js'])
+    <x-head-elements />
 </head>
 <body class="antialiased bg-base-200 text-base-content">
 

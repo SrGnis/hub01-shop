@@ -172,4 +172,5 @@ class Collection extends Model
     {
         return $this->system_type === CollectionSystemType::FAVORITES;
     }
+
 }

@@ -1,5 +1,5 @@
 @php
-    $allProjectTypes = \App\Models\ProjectType::all();
+    $allProjectTypes = all_project_types();
 @endphp
 
 <!DOCTYPE html>
@@ -17,7 +17,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.39.1/ace.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.39.1/ext-language_tools.min.js"></script>
 
+    {{-- Chart.js  --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-head-elements />
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased bg-base-200">
 
@@ -93,6 +97,7 @@
                             </x-avatar>
                         </x-slot:trigger>
                         <x-menu class="p-0">
+                            <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" />
                             <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
                             <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" />
 
