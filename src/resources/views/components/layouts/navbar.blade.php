@@ -18,6 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.39.1/ext-language_tools.min.js"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <x-head-elements />
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased bg-base-200">
 
