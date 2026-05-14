@@ -77,7 +77,7 @@ class Login extends Component
 
         session()->regenerate();
 
-        $this->success('Welcome back!', redirectTo: route('project-search', \App\Models\ProjectType::first()));
+        $this->success('Welcome back!', redirectTo: route('dashboard'));
     }
 
     protected function ensureIsNotRateLimited(): void
