@@ -83,16 +83,13 @@
     <x-card aria-live="polite">
 
         <div class="flex w-full justify-end">
-            <x-dropdown>
-                <x-slot:trigger>
-                    <x-button icon="plus" label="Publish" class="btn-primary" aria-label="Create a new project" title="Create a new project" />
-                </x-slot:trigger>
-                <x-menu class="p-0">
-                    @foreach (all_project_types() as $projectType)
-                        <x-menu-item title="New {{ $projectType->display_name }}" icon="{{ $projectType->icon }}" link="{{ route('project.create', $projectType) }}" />
-                    @endforeach
-                </x-menu>
-            </x-dropdown>
+            <x-button
+                icon="plus"
+                label="Publish"
+                class="btn-primary"
+                onclick="Livewire.dispatch('open-project-create-modal')"
+                aria-label="Create a new project"
+            />
         </div>
 
         @if ($this->projects->count() === 0)

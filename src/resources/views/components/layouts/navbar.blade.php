@@ -72,18 +72,14 @@
             </div>
 
             {{-- Actions (Right) --}}
-            <div class="flex-shrink-0 flex items-center gap-3">
-                @if($user = auth()->user())
-                    <x-dropdown>
-                        <x-slot:trigger>
-                            <x-button icon="plus" class="btn-circle btn-ghost" />
-                        </x-slot:trigger>
-                        <x-menu class="p-0">
-                            @foreach ($allProjectTypes as $projectType)
-                                <x-menu-item title="New {{ $projectType->display_name }}" icon="{{ $projectType->icon }}" link="{{ route('project.create', $projectType) }}" />
-                            @endforeach
-                        </x-menu>
-                    </x-dropdown>
+             <div class="flex-shrink-0 flex items-center gap-3">
+                 @if($user = auth()->user())
+                     <x-button
+                         icon="plus"
+                         class="btn-circle btn-ghost"
+                         onclick="Livewire.dispatch('open-project-create-modal')"
+                         aria-label="Create new project"
+                     />
                     {{-- User Dropdown --}}
                     <x-dropdown>
                         <x-slot:trigger>
@@ -175,6 +171,9 @@
 
     {{-- Cookie Consent --}}
     <x-cookie-consent />
+
+    {{-- Project Create Modal --}}
+    @livewire('project-create-modal')
 
 </body>
 </html>
