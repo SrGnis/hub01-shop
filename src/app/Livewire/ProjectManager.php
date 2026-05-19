@@ -4,18 +4,18 @@ namespace App\Livewire;
 
 use App\Models\Membership;
 use App\Models\Project;
-use App\Models\ProjectTag;
 use App\Models\ProjectType;
 use App\Services\ProjectService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Mary\Traits\Toast;
 
-class ProjectForm extends Component
+class ProjectManager extends Component
 {
     use WithFileUploads;
     use Toast;
@@ -23,47 +23,55 @@ class ProjectForm extends Component
     #[Locked]
     public ProjectType $projectType;
     #[Locked]
-    public ?Project $project = null;
-    #[Locked]
-    public bool $isEditing = false;
+    public Project $project;
 
+
+    public string $currentSection = 'general';
+
+    // General section
     public string $name = '';
     public string $slug = '';
     public string $summary = '';
-    public string $description = '';
+    public string $status = 'active';
     public mixed $logo = null;
     public bool $shouldRemoveLogo = false;
-    public string $website = '';
-    public string $issues = '';
-    public string $source = '';
-    public string $status = 'active';
+
+    // Description section
+    public ?string $description = '';
+
+    // Tags section
     public array $selectedTags = [];
+
+    // Links section
+    public ?string $website = '';
+    public ?string $issues = '';
+    public ?string $source = '';
     public array $externalCredits = [];
 
-    // Membership management
+    // Members section
     public string $newMemberName = '';
     public string $newMemberRole = 'contributor';
 
-    // Project deletion
+    // Danger section
     public string $deleteConfirmation = '';
 
     private ProjectService $projectService;
+
+    public array $sections = ['general', 'description', 'tags', 'links', 'members', 'danger'];
 
     protected function rules(): array
     {
         $rules = [
             'name' => 'required|string|max:255',
             'summary' => 'required|string|max:125',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'logo' => 'nullable|image|max:1024',
             'website' => 'nullable|url|max:255',
             'issues' => 'nullable|url|max:255',
             'source' => 'nullable|url|max:255',
             'status' => 'required|in:active,inactive',
             'selectedTags' => [
-                'required',
                 'array',
-                'min:1',
                 function ($attribute, $value, $fail) {
                     $this->validateTagsForProjectType($value, $fail);
                 },
@@ -74,39 +82,24 @@ class ProjectForm extends Component
             'externalCredits.*.url' => 'nullable|url|max:255',
         ];
 
-        if ($this->isEditing) {
-            $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug,' . $this->project->id;
-        } else {
-            $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug';
-        }
+        $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug,' . $this->project->id;
 
         return $rules;
     }
 
-    /**
-     * Validate that all selected tags belong to tag groups valid for the current project type.
-     *
-     * Main Tags need to be valid for the project type.
-     * Sub Tags only need that their parent tag is valid for the project type.
-     *
-     * @param array $selectedTagIds The selected tag IDs
-     * @param callable $fail The validation failure callback
-     */
     private function validateTagsForProjectType(array $selectedTagIds, callable $fail): void
     {
         if (empty($selectedTagIds)) {
             return;
         }
 
-        // Get all selected tags with their parent relationships
-        $selectedTags = ProjectTag::with('parent')->whereIn('id', $selectedTagIds)->get();
+        $selectedTags = \App\Models\ProjectTag::with('parent')->whereIn('id', $selectedTagIds)->get();
 
         $invalidMainTags = [];
         $invalidSubTags = [];
 
         foreach ($selectedTags as $tag) {
             if ($tag->isSubTag()) {
-                // Sub tags: check if parent is valid for project type
                 $parentValid = $tag->parent->projectTypes()
                     ->where('project_type_id', $this->projectType->id)
                     ->exists();
@@ -115,7 +108,6 @@ class ProjectForm extends Component
                     $invalidSubTags[] = $tag->name;
                 }
             } else {
-                // Main tags: check if they are valid for project type
                 $tagValid = $tag->projectTypes()
                     ->where('project_type_id', $this->projectType->id)
                     ->exists();
@@ -139,46 +131,33 @@ class ProjectForm extends Component
         $this->projectService = $projectService;
     }
 
-    public function mount($projectType, $project = null)
+    public function mount($projectType, $project, $section = 'general')
     {
         $this->projectType = $projectType;
+        $this->project = $project;
 
         if (!Auth::check()) {
-            // use normal laravel flash message toast is not working here
-            session()->flash('error', 'Please log in to create a project.');
+            session()->flash('error', 'Please log in to manage project.');
             return redirect()->route('login', ['projectType' => $projectType]);
         }
 
-        if ($project && $project->exists) {
-            $this->project = $project;
-            $this->isEditing = true;
+        if ($project->isDeactivated()) {
+            session()->flash('error', 'This project has been deactivated and cannot be edited.');
+            return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
+        }
 
-            // Check if the project is deactivated
-            if ($project->isDeactivated()) {
+        if (!Gate::allows('update', $project)) {
+            session()->flash('error', 'You do not have permission to edit this project.');
+            return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
+        }
 
-                session()->flash('error', 'This project has been deactivated and cannot be edited.');
-                return redirect()->route('project-search', ['projectType' => $projectType]);
+        $this->project->load(['owner', 'tags.tagGroup', 'memberships.user', 'externalCredits']);
+        $this->loadProjectData();
 
-                return;
-            }
+        $this->currentSection = $section;
 
-            if (! Gate::allows('update', $project)) {
-
-                session()->flash('error', 'You do not have permission to edit this project.');
-                return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
-
-                return;
-            }
-
-            $this->project->load(['owner', 'tags.tagGroup', 'memberships.user', 'externalCredits']);
-            $this->loadProjectData();
-        } else {
-            if (!Gate::allows('create', Project::class)) {
-
-                session()->flash('error', 'You do not have permission to create a project.');
-                return redirect()->route('project-search', ['projectType' => $projectType]);
-            }
-
+        if (!in_array($this->currentSection, $this->sections)) {
+            $this->currentSection = 'general';
         }
     }
 
@@ -206,29 +185,24 @@ class ProjectForm extends Component
     {
         $tagGroups = $this->projectService->getTagGroupsForProjectType($this->projectType);
 
-        $memberships = $this->isEditing
-            ? $this->project->memberships()->with('user')->get()
-            : collect();
+        $memberships = $this->project->memberships()->with('user')->get();
 
-        $roles = $this->isEditing ? ['owner', 'member', 'maintainer', 'contributor', 'tester', 'translator'] : [];
+        $roles = ['owner', 'member', 'maintainer', 'contributor', 'tester', 'translator'];
 
-        return view('livewire.project-form', [
+        return view('livewire.project-manager', [
             'tagGroups' => $tagGroups,
             'memberships' => $memberships,
             'roles' => $roles,
-            'approvalStatus' => $this->isEditing ? $this->project->approval_status : null,
-            'rejectionReason' => $this->isEditing ? $this->project->rejection_reason : null,
-            'isDraft' => $this->isEditing && $this->project->isDraft(),
-            'isRejected' => $this->isEditing && $this->project->isRejected(),
+            'approvalStatus' => $this->project->approval_status,
+            'rejectionReason' => $this->project->rejection_reason,
+            'isDraft' => $this->project->isDraft(),
+            'isRejected' => $this->project->isRejected(),
         ]);
     }
 
     public function updatedName(): void
     {
-        if ($this->isEditing) {
-            return;
-        }
-        $this->generateSlug();
+        // No longer auto-generate slug when editing
     }
 
     public function updatedSlug(): void
@@ -238,7 +212,6 @@ class ProjectForm extends Component
         $this->validate(['slug' => $slug_rules]);
     }
 
-    // dummy method for attaching the loading state
     public function refreshMarkdown(): void {}
 
     public function addExternalCredit(): void
@@ -270,11 +243,6 @@ class ProjectForm extends Component
 
     public function sendToReview()
     {
-        if (!$this->isEditing) {
-            $this->error('Only existing projects can be submitted for review.');
-            return;
-        }
-
         if (!Gate::allows('update', $this->project)) {
             $this->error('You do not have permission to submit this project for review.');
             return;
@@ -309,16 +277,12 @@ class ProjectForm extends Component
     {
         $this->validate();
 
-        if ($this->isEditing && !Gate::allows('update', $this->project)) {
-            $this->error('You do not have permission to edit this project.', redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
-        }
-
         try {
             $logoPath = null;
             if ($this->logo) {
                 $logoPath = $this->logo->store('project-logos', 'public');
-            } elseif ($this->shouldRemoveLogo && $this->isEditing) {
-                $logoPath = '';  // Empty string signals removal
+            } elseif ($this->shouldRemoveLogo) {
+                $logoPath = '';
             }
 
             $data = [
@@ -334,29 +298,14 @@ class ProjectForm extends Component
                 'externalCredits' => $this->externalCredits,
             ];
 
-            if (!$this->isEditing) {
-                $data['project_type_id'] = $this->projectType->id;
-            }
-
             $project = $this->projectService->saveProject($this->project, Auth::user(), $data, $logoPath);
 
             Log::info('Project saved', [
                 'project_id' => $project->id,
-                'is_new' => !$this->isEditing,
                 'user_id' => Auth::id(),
             ]);
 
-            // Determine success message based on auto-approve setting
-            if ($this->isEditing) {
-                $message = 'Project updated successfully!';
-            } else {
-                $autoApprove = config('projects.auto_approve', false);
-                $message = $autoApprove
-                    ? 'Project created and approved!'
-                    : 'Project created as draft!';
-            }
-
-            $this->success($message, redirectTo: route('project.show', ['projectType' => $project->projectType, 'project' => $project]));
+            $this->success('Project updated successfully!', redirectTo: route('project.manage', ['projectType' => $project->projectType, 'project' => $project, 'section' => $this->currentSection]));
         } catch (\Exception $e) {
             Log::error('Failed to save project', [
                 'user_id' => Auth::id(),
@@ -368,7 +317,7 @@ class ProjectForm extends Component
 
     public function addMember()
     {
-        if (!$this->isEditing || Gate::denies('addMember', $this->project)) {
+        if (!Gate::allows('addMember', $this->project)) {
             $this->error('You do not have permission to add members.');
             return;
         }
@@ -399,7 +348,7 @@ class ProjectForm extends Component
     public function removeMember($membershipId)
     {
         $membership = Membership::findOrFail($membershipId);
-        if (!$this->isEditing || Gate::denies('delete', $membership)) {
+        if (Gate::denies('delete', $membership)) {
             $this->error('You do not have permission to remove members.');
             return;
         }
@@ -428,7 +377,7 @@ class ProjectForm extends Component
     public function setPrimaryMember($membershipId)
     {
         $membership = Membership::findOrFail($membershipId);
-        if (!$this->isEditing || Gate::denies('setPrimary', $membership)) {
+        if (Gate::denies('setPrimary', $membership)) {
             $this->error('You do not have permission to manage ownership.');
             return;
         }
@@ -451,7 +400,7 @@ class ProjectForm extends Component
 
     public function deleteProject()
     {
-        if (!$this->isEditing || !Gate::allows('delete', $this->project)) {
+        if (!Gate::allows('delete', $this->project)) {
             $this->error('You do not have permission to delete this project.');
             return;
         }
@@ -478,6 +427,13 @@ class ProjectForm extends Component
                 'error' => $e->getMessage(),
             ]);
             $this->error('Failed to delete project');
+        }
+    }
+
+    public function setSection(string $section): void
+    {
+        if (in_array($section, $this->sections)) {
+            $this->currentSection = $section;
         }
     }
 }

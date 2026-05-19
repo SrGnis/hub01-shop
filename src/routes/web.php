@@ -11,7 +11,7 @@ use App\Livewire\Platform\Dashboard;
 use App\Livewire\Platform\NotificationsComingSoon;
 use App\Livewire\Platform\Projects;
 use App\Livewire\Page;
-use App\Livewire\ProjectForm;
+use App\Livewire\ProjectManager;
 use App\Livewire\CollectionEdit;
 use App\Livewire\CollectionShow;
 use App\Livewire\ProjectSearch;
@@ -65,9 +65,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('signed')
         ->name('membership.reject');
 
-    // Project Management
-    Route::get('/create/{projectType}', ProjectForm::class)->name('project.create');
-
     // Collection Management
     Route::get('/collection/{collection}/edit', CollectionEdit::class)->name('collection.edit');
 
@@ -91,7 +88,9 @@ Route::get('/{projectType}/{project}', ProjectShow::class)->name('project.show')
 
 // Project Management
 Route::middleware(['auth','verified'])->group(function () {
-    Route::get('/{projectType}/{project}/edit', ProjectForm::class)->name('project.edit');
+    Route::get('/{projectType}/{project}/manage/{section?}', ProjectManager::class)
+        ->name('project.manage')
+        ->where('section', 'general|description|tags|links|members|danger');
     Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->name('project.version.create');
 });
 

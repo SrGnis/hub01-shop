@@ -55,14 +55,14 @@
 
                 @can('update', $project)
                     <x-button
-                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         icon="pencil"
                         label="Edit Project"
                         class="btn-primary btn-sm hidden sm:inline-flex"
                         no-wire-navigate />
                     {{-- Mobile: icon-only edit --}}
                     <x-button
-                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         icon="pencil"
                         class="btn-primary btn-sm btn-square sm:hidden"
                         no-wire-navigate />

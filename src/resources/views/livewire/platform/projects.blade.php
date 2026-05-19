@@ -143,7 +143,7 @@
                                 <x-button
                                     icon="settings"
                                     class="btn-ghost btn-sm"
-                                    link="{{ route('project.edit', ['projectType' => $project->projectType->value, 'project' => $project]) }}"
+                                     link="{{ route('project.manage', ['projectType' => $project->projectType->value, 'project' => $project]) }}"
                                     aria-label="Project {{ $project->name }} settings"
                                 />
                             @endif

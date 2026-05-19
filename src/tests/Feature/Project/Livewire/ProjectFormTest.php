@@ -436,7 +436,7 @@ class ProjectFormTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('project.edit', ['projectType' => $this->projectType, 'project' => $project]))
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project]))
             ->assertRedirect(route('project-search', ['projectType' => $this->projectType]))
             ->assertSessionHas('error');
     }
@@ -449,7 +449,7 @@ class ProjectFormTest extends TestCase
         $project = Project::factory()->owner($owner)->create();
 
         $this->actingAs($otherUser)
-            ->get(route('project.edit', ['projectType' => $this->projectType, 'project' => $project]))
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project]))
             ->assertRedirect(route('project.show', ['projectType' => $this->projectType, 'project' => $project]))
             ->assertSessionHas('error');
     }
