@@ -28,6 +28,7 @@
                 :link="$item['route']"
                 :class="$isActive ? 'bg-base-300 font-medium rounded-box' : ''"
                 :aria-current="$isActive ? 'page' : null"
+                no-wire-navigate
             />
         @endforeach
     </x-menu>

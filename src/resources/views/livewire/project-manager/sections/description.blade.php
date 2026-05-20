@@ -1,4 +1,4 @@
-<div x-data="{ mode: 'code' }" class="space-y-6">
+<x-card x-data="{ mode: 'code' }" class="space-y-6" x-on:input="markDirty()" x-on:change="markDirty()">
     <div class="flex justify-between items-center mb-2">
         <label class="text-sm font-medium">Description</label>
         <div class="join">
@@ -23,4 +23,4 @@
     <div x-show="mode === 'preview'" x-cloak class="bg-base-200 rounded-lg p-4 min-h-[242px]">
         <x-markdown class="prose prose-invert max-w-none" flavor="github">{{ $description }}</x-markdown>
     </div>
-</div>
+</x-card>

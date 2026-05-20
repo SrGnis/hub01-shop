@@ -4,26 +4,8 @@
     </x-slot:left>
 
     <x-slot:header>
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold">
-                    Manage Project: {{ $project->pretty_name }}
-                </h1>
-                <p class="text-sm text-gray-400 mt-1">
-                    Manage your project settings and content
-                </p>
-            </div>
-            <div class="flex gap-2">
-                @if ($isDraft || $isRejected)
-                    <x-button spinner wire:click="sendToReview" label="Send to Review" class="btn-success" icon="lucide-send" />
-                @endif
-                <x-button spinner wire:click="save" label="Save Changes" class="btn-primary" />
-            </div>
-        </div>
-    </x-slot:header>
-
-    <div>
-        {{-- Approval Status Banner --}
+        <div>
+            {{-- Approval Status Banners --}}
             @if ($approvalStatus === \App\Enums\ApprovalStatus::DRAFT)
                 <x-alert icon="lucide-file-edit" class="alert-info mb-6">
                     <div>
@@ -38,7 +20,7 @@
                         <p class="text-sm mt-1">Your project is currently pending admin approval. You cannot make edits, but it won't be visible to the public until approved.</p>
                     </div>
                 </x-alert>
-            @elseif($approvalStatus === \App\Enums\ApprovalStatus::REJECTED)
+            @elseif ($approvalStatus === \App\Enums\ApprovalStatus::REJECTED)
                 <x-alert icon="lucide-x-circle" class="alert-error mb-6">
                     <div>
                         <div class="font-semibold">Project Rejected</div>
@@ -52,7 +34,54 @@
                     </div>
                 </x-alert>
             @endif
-        @endif
+        </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">
+                    Manage Project: {{ $project->pretty_name }}
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">
+                    Manage your project settings and content
+                </p>
+            </div>
+            <div class="flex gap-2">
+                @if ($isDraft || $isRejected)
+                    <x-button
+                        spinner
+                        wire:click="sendToReview"
+                        label="Send to Review"
+                        class="btn-success"
+                        icon="lucide-send"
+                    />
+                @endif
+                <x-button
+                    spinner
+                    wire:click="save"
+                    label="Save Changes"
+                    class="btn-primary"
+                    wire:loading.attr="disabled"
+                    wire:target="save"
+                />
+            </div>
+        </div>
+    </x-slot:header>
+
+    <div x-data="unsavedChanges()" x-on:project-manager:dirty="markDirty()" x-on:mary-file-changed="markDirty()" @destroy="cleanup()">
+
+        {{-- Unsaved Changes Banner --}}
+        <div
+            x-cloak
+            x-show="hasUnsavedChanges"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            class="alert alert-warning mb-6"
+            role="alert"
+            aria-live="polite"
+        >
+            <x-icon name="lucide-alert-triangle" class="w-5 h-5 shrink-0" />
+            <span>You have unsaved changes.</span>
+        </div>
 
         {{-- Dynamic section content --}}
         <div class="space-y-6">
@@ -70,5 +99,104 @@
                 @include('livewire.project-manager.sections.danger')
             @endif
         </div>
+
     </div>
+
 </x-platform.shell>
+
+<script>
+function unsavedChanges() {
+    return {
+        hasUnsavedChanges: false,
+        isSaving: false,
+
+        _beforeUnload: null,
+        _navigateHandler: null,
+        _saveSucceededHandler: null,
+        _saveFailedHandler: null,
+        _livewireCleanups: [],
+
+        init() {
+            this._attachNavigationGuards();
+            this._attachSaveResultListeners();
+            this._attachLivewireHooks();
+        },
+
+        markDirty() {
+            if (!this.isSaving) {
+                this.hasUnsavedChanges = true;
+            }
+        },
+
+        cleanup() {
+            window.removeEventListener('beforeunload', this._beforeUnload);
+            document.removeEventListener('livewire:navigate', this._navigateHandler);
+            window.removeEventListener('project-manager-save-succeeded', this._saveSucceededHandler);
+            window.removeEventListener('project-manager-save-failed', this._saveFailedHandler);
+            this._livewireCleanups.forEach(fn => fn());
+        },
+
+        _attachSaveResultListeners() {
+            this._saveSucceededHandler = () => {
+                this.hasUnsavedChanges = false;
+                this.isSaving = false;
+            };
+
+            this._saveFailedHandler = () => {
+                this.isSaving = false;
+            };
+
+            window.addEventListener('project-manager-save-succeeded', this._saveSucceededHandler);
+            window.addEventListener('project-manager-save-failed', this._saveFailedHandler);
+        },
+
+        // ─── Navigation guards ────────────────────────────────────────────
+
+        _attachNavigationGuards() {
+            this._beforeUnload = (e) => {
+                if (this.hasUnsavedChanges && !this.isSaving) {
+                    e.preventDefault();
+                    e.returnValue = ''; // Required for Chrome
+                }
+            };
+            window.addEventListener('beforeunload', this._beforeUnload);
+
+            this._navigateHandler = (e) => {
+                if (this.hasUnsavedChanges && !this.isSaving) {
+                    if (!confirm('You have unsaved changes. Leave anyway?')) {
+                        e.preventDefault();
+                    }
+                }
+            };
+            document.addEventListener('livewire:navigate', this._navigateHandler);
+        },
+
+        // ─── Livewire lifecycle hooks ─────────────────────────────────────
+
+        _attachLivewireHooks() {
+            const wire = this.$wire;
+
+            // Scope to this component instance and only the 'save' method.
+            // Dirty state is cleared by explicit save success event from server.
+            const cleanup = Livewire.hook('commit', ({ component, commit, succeed, fail }) => {
+                if (component.id !== wire.__instance.id) return;
+
+                const isSaveCall = commit.calls?.some(c => c.method === 'save');
+                if (!isSaveCall) return;
+
+                this.isSaving = true;
+
+                succeed(() => {
+                    this.isSaving = false;
+                });
+
+                fail(() => {
+                    this.isSaving = false;
+                });
+            });
+
+            this._livewireCleanups.push(cleanup);
+        },
+    };
+}
+</script>

@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-card class="space-y-6">
     {{-- Membership Management Section --}}
     <div>
         <h2 class="text-xl font-bold mb-4">Project Members</h2>
@@ -84,4 +84,4 @@
             </div>
         @endcan
     </div>
-</div>
+</x-card>

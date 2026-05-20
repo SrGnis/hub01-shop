@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-card class="space-y-6" x-on:input="markDirty()" x-on:change="markDirty()">
     {{-- Links --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <x-input label="Website URL" wire:model="website" type="url" icon="globe"
@@ -10,13 +10,13 @@
     </div>
 
     {{-- External Credits --}}
-    <div class="space-y-4">
+    <div class="space-y-4 mt-5">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-lg font-semibold">External Credits</h2>
                 <p class="text-sm text-gray-400">Credit external collaborators that are not project members.</p>
             </div>
-            <x-button type="button" wire:click="addExternalCredit" label="Add Credit" icon="lucide-plus"
+            <x-button type="button" wire:click="addExternalCredit" x-on:click="markDirty()" label="Add Credit" icon="lucide-plus"
                 class="btn-sm btn-outline" />
         </div>
 
@@ -40,10 +40,10 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <x-button type="button" wire:click="removeExternalCredit({{ $index }})" label="Remove"
+                    <x-button type="button" wire:click="removeExternalCredit({{ $index }})" x-on:click="markDirty()" label="Remove"
                         icon="lucide-trash-2" class="btn-sm btn-error btn-outline" />
                 </div>
             </div>
         @endforeach
     </div>
-</div>
+</x-card>

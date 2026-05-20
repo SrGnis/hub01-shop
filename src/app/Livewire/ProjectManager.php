@@ -305,12 +305,15 @@ class ProjectManager extends Component
                 'user_id' => Auth::id(),
             ]);
 
+            $this->dispatch('project-manager-save-succeeded');
+
             $this->success('Project updated successfully!', redirectTo: route('project.manage', ['projectType' => $project->projectType, 'project' => $project, 'section' => $this->currentSection]));
         } catch (\Exception $e) {
             Log::error('Failed to save project', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
             ]);
+            $this->dispatch('project-manager-save-failed');
             $this->error('Failed to save project');
         }
     }

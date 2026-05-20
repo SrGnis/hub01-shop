@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-card class="space-y-6">
     {{-- Project Deletion Section --}}
     @can('delete', $project)
         <div>
@@ -16,4 +16,4 @@
             </div>
         </div>
     @endcan
-</div>
+</x-card>

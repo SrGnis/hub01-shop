@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-card class="space-y-6" x-on:change="markDirty()">
     <div>
         <label class="text-sm font-medium mb-2 block">Tags</label>
         @foreach ($tagGroups as $tagGroup)
@@ -15,4 +15,4 @@
             <span class="text-error text-sm">{{ $message }}</span>
         @enderror
     </div>
-</div>
+</x-card>

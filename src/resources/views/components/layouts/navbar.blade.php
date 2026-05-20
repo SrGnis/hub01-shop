@@ -93,12 +93,12 @@
                             </x-avatar>
                         </x-slot:trigger>
                         <x-menu class="p-0">
-                            <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" />
-                            <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
-                            <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" />
+                            <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" no-wire-navigate/>
+                            <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" no-wire-navigate/>
+                            <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" no-wire-navigate/>
 
                             @if ($user->isAdmin())
-                                <x-menu-item title="Admin" icon="settings" link="{{ route('admin.dashboard') }}" />
+                                <x-menu-item title="Admin" icon="settings" link="{{ route('admin.dashboard') }}" no-wire-navigate/>
                             @endif
 
                             <x-menu-separator />
@@ -111,6 +111,7 @@
                                 icon="log-out"
                                 icon-classes="text-error"
                                 @click.prevent="$refs.logoutForm.submit()"
+                                no-wire-navigate
                             />
                         </x-menu>
                     </x-dropdown>
