@@ -323,16 +323,16 @@
         },
         {
             "name": "dedoc/scramble",
-            "version": "v0.13.22",
+            "version": "v0.13.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dedoc/scramble.git",
-                "reference": "b54b0c43bdebaa01f66cc3dfdd8f91e19b12da96"
+                "reference": "1eea402b65b26e1d9a0558da23edd4dbf2183122"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dedoc/scramble/zipball/b54b0c43bdebaa01f66cc3dfdd8f91e19b12da96",
-                "reference": "b54b0c43bdebaa01f66cc3dfdd8f91e19b12da96",
+                "url": "https://api.github.com/repos/dedoc/scramble/zipball/1eea402b65b26e1d9a0558da23edd4dbf2183122",
+                "reference": "1eea402b65b26e1d9a0558da23edd4dbf2183122",
                 "shasum": ""
             },
             "require": {
@@ -391,7 +391,7 @@
             ],
             "support": {
                 "issues": "https://github.com/dedoc/scramble/issues",
-                "source": "https://github.com/dedoc/scramble/tree/v0.13.22"
+                "source": "https://github.com/dedoc/scramble/tree/v0.13.23"
             },
             "funding": [
                 {
@@ -399,7 +399,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-27T20:30:51+00:00"
+            "time": "2026-05-19T13:51:35+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -4938,16 +4938,16 @@
         },
         {
             "name": "spatie/laravel-package-tools",
-            "version": "1.93.0",
+            "version": "1.93.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-package-tools.git",
-                "reference": "0d097bce95b2bf6802fb1d83e1e753b0f5a948e7"
+                "reference": "d5552849801f2642aea710557463234b59ef65eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/0d097bce95b2bf6802fb1d83e1e753b0f5a948e7",
-                "reference": "0d097bce95b2bf6802fb1d83e1e753b0f5a948e7",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/d5552849801f2642aea710557463234b59ef65eb",
+                "reference": "d5552849801f2642aea710557463234b59ef65eb",
                 "shasum": ""
             },
             "require": {
@@ -4987,7 +4987,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-package-tools/issues",
-                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.0"
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.1"
             },
             "funding": [
                 {
@@ -4995,7 +4995,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-21T12:49:54+00:00"
+            "time": "2026-05-19T14:06:37+00:00"
         },
         {
             "name": "spatie/shiki-php",
