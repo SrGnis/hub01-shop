@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Mary\Traits\Toast;
@@ -24,7 +23,6 @@ class ProjectManager extends Component
     public ProjectType $projectType;
     #[Locked]
     public Project $project;
-
 
     public string $currentSection = 'general';
 
@@ -57,25 +55,30 @@ class ProjectManager extends Component
 
     private ProjectService $projectService;
 
+    private bool $strictValidation = false;
+
     public array $sections = ['general', 'description', 'tags', 'links', 'members', 'danger'];
 
     protected function rules(): array
     {
+        $strictValidation = $this->strictValidation || $this->project->isApproved();
+
         $rules = [
             'name' => 'required|string|max:255',
             'summary' => 'required|string|max:125',
-            'description' => 'nullable|string',
+            'description' => $strictValidation ? 'required|string' : 'nullable|string',
             'logo' => 'nullable|image|max:1024',
             'website' => 'nullable|url|max:255',
             'issues' => 'nullable|url|max:255',
             'source' => 'nullable|url|max:255',
             'status' => 'required|in:active,inactive',
-            'selectedTags' => [
-                'array',
-                function ($attribute, $value, $fail) {
+            'selectedTags' => $strictValidation
+                ? ['required', 'array', 'min:1', function ($attribute, $value, $fail) {
                     $this->validateTagsForProjectType($value, $fail);
-                },
-            ],
+                }]
+                : ['array', function ($attribute, $value, $fail) {
+                    $this->validateTagsForProjectType($value, $fail);
+                }],
             'externalCredits' => 'nullable|array',
             'externalCredits.*.name' => 'required|string|max:255',
             'externalCredits.*.role' => 'required|string|max:255',
@@ -135,6 +138,7 @@ class ProjectManager extends Component
     {
         $this->projectType = $projectType;
         $this->project = $project;
+        $this->strictValidation = $this->project->isApproved();
 
         if (!Auth::check()) {
             session()->flash('error', 'Please log in to manage project.');
@@ -253,6 +257,13 @@ class ProjectManager extends Component
             return;
         }
 
+        $this->project->refresh();
+        $this->project->load(['tags.tagGroup', 'externalCredits']);
+        $this->loadProjectData();
+
+        $this->strictValidation = true;
+        $this->validate();
+
         try {
             $this->projectService->submitProjectForReview($this->project);
             $this->project->refresh();
@@ -262,7 +273,12 @@ class ProjectManager extends Component
                 'user_id' => Auth::id(),
             ]);
 
-            $this->success('Project submitted for review!', redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
+            $message = config('projects.auto_approve', false)?
+                "Project published!" :
+                "Project submitted for review!"
+            ;
+
+            $this->success($message, redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
         } catch (\Exception $e) {
             Log::error('Failed to submit project for review', [
                 'project_id' => $this->project->id,

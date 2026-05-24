@@ -97,7 +97,7 @@
     </div>
 
     {{-- Main Layout: stacked on mobile, 2-col on lg --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
 
         {{-- Left Column --}}
         <div class="lg:col-span-8 flex flex-col gap-4">

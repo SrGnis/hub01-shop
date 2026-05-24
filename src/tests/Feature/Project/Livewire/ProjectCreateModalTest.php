@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\ProjectType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,6 +23,7 @@ class ProjectCreateModalTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Config::set('projects.auto_approve', false);
         $this->projectType = ProjectType::factory()->create();
         $this->user = User::factory()->create();
     }
@@ -59,11 +61,10 @@ class ProjectCreateModalTest extends TestCase
             ->assertSet('selectedType', $this->projectType->value);
     }
 
-    #[Test]
+     #[Test]
     public function test_guest_cannot_open_modal()
     {
-        Livewire::actingAsGuest()
-            ->test(ProjectCreateModal::class)
+        Livewire::test(ProjectCreateModal::class)
             ->call('open')
             ->assertRedirect(route('login'));
     }

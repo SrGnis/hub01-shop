@@ -127,7 +127,7 @@ class ProjectCreateModal extends Component
             );
 
             $this->close();
-            $this->success('Project created as draft!', redirectTo: route('project.show', ['projectType' => $projectType->value, 'project' => $project]));
+            $this->success('Project created as draft!', redirectTo: route('project.manage', ['projectType' => $projectType->value, 'project' => $project]));
         } catch (\Exception $e) {
             $this->error('Failed to create project: '.$e->getMessage());
         }

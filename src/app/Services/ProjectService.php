@@ -17,6 +17,7 @@ use App\Notifications\PrimaryStatusChanged;
 use App\Notifications\ProjectApprovalRequested;
 use App\Notifications\ProjectApproved;
 use App\Notifications\ProjectDeleted;
+use App\Notifications\ProjectPublished;
 use App\Notifications\ProjectRejected;
 use App\Notifications\ProjectRestored;
 use App\Notifications\ProjectSubmittedForReview;
@@ -465,25 +466,11 @@ class ProjectService
         // Validate quota before creating project
         $this->quotaService->validateProjectCreation($user);
 
-        // Check if auto-approve is enabled
-        $autoApprove = config('projects.auto_approve', false);
-
-        if ($autoApprove) {
-            // Auto-approve: Set project to approved status immediately
-            $projectData = array_merge($data, [
-                'logo_path' => $logoPath,
-                'approval_status' => ApprovalStatus::APPROVED,
-                'submitted_at' => now(),
-                'reviewed_at' => now(),
-                'reviewed_by' => null, // No admin review needed
-            ]);
-        } else {
-            // Normal flow: Set project to draft status (user will explicitly submit for review)
-            $projectData = array_merge($data, [
-                'logo_path' => $logoPath,
-                'approval_status' => ApprovalStatus::DRAFT,
-            ]);
-        }
+        // Always create project as DRAFT first
+        $projectData = array_merge($data, [
+            'logo_path' => $logoPath,
+            'approval_status' => ApprovalStatus::DRAFT,
+        ]);
 
         $project = Project::create($projectData);
 
@@ -824,6 +811,40 @@ class ProjectService
      */
     public function submitProjectForReview(Project $project): void
     {
+        $project->loadMissing(['tags', 'owner', 'active_users']);
+
+        if (!$project->isDraft() && !$project->isRejected()) {
+            throw new \Exception('Only draft or rejected projects can be submitted for review.');
+        }
+
+        if (blank($project->description)) {
+            throw new \Exception('Project description is required before submission.');
+        }
+
+        if ($project->tags->isEmpty()) {
+            throw new \Exception('At least one tag is required before submission.');
+        }
+
+        if (config('projects.auto_approve', false)) {
+            $projectMembers = DB::transaction(function () use ($project) {
+                $project->approve(null);
+
+                Log::info('Project auto-approved', [
+                    'project_id' => $project->id,
+                    'project_name' => $project->name,
+                    'user_id' => Auth::id(),
+                ]);
+
+                return $project->active_users;
+            });
+
+            foreach ($projectMembers as $member) {
+                $member->notify(new ProjectPublished($project));
+            }
+
+            return;
+        }
+
         $project->submit();
 
         Log::info('Project submitted for review', [
