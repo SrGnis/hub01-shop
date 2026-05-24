@@ -49,6 +49,7 @@
                                 ['id' => 'all', 'name' => 'All statuses'],
                                 ['id' => 'active', 'name' => 'Active'],
                                 ['id' => 'inactive', 'name' => 'Inactive'],
+                                ['id' => 'deleted', 'name' => 'Deleted'],
                             ]"
                         />
 
@@ -103,21 +104,32 @@
                 <x-table :headers="$headers" :rows="$this->projects" :sort-by="$sortBy" class="table-zebra" aria-label="Projects list">
                     @scope('cell_name', $project)
                         <div class="font-medium">
-                            <a href="{{ route('project.show', ['projectType' => $project->projectType->value, 'project' => $project]) }}" class="inline-flex items-center gap-2">
+                            <div class="inline-flex items-center gap-2">
                                 <img
                                     src="{{ $project->getLogoUrl() }}"
                                     alt="{{ $project->pretty_name }} logo"
                                     class="w-6 h-6 rounded object-cover"
                                 />
-                                <span>{{ $project->pretty_name }}</span>
-                            </a>
+                                @if ($project->trashed())
+                                    <span>{{ $project->pretty_name }}</span>
+                                @else
+                                    <a href="{{ route('project.show', ['projectType' => $project->projectType->value, 'project' => $project]) }}">
+                                        {{ $project->pretty_name }}
+                                    </a>
+                                @endif
+                            </div>
                             <div class="lg:hidden text-xs text-base-content/70 flex flex-wrap items-center gap-2 mt-2">
                                 <code>{{ $project->slug }}</code>
                                 <x-badge :value="$project->projectType?->display_name ?? ucfirst((string) $project->projectType?->value)" class="badge-xs badge-ghost" />
-                                <x-badge
-                                    :value="ucfirst((string) $project->status)"
-                                    class="badge-xs {{ (string) $project->status === 'active' ? 'badge-success' : 'badge-warning' }}"
-                                />
+                                @if ($project->trashed())
+                                    <x-badge value="Deleted" class="badge-xs badge-error" />
+                                    <span>Deleted {{ $project->deleted_at->diffForHumans() }}</span>
+                                @else
+                                    <x-badge
+                                        :value="ucfirst((string) $project->status)"
+                                        class="badge-xs {{ (string) $project->status === 'active' ? 'badge-success' : 'badge-warning' }}"
+                                    />
+                                @endif
                             </div>
                         </div>
                     @endscope
@@ -131,15 +143,32 @@
                     @endscope
 
                     @scope('cell_status', $project)
-                        <x-badge
-                            :value="ucfirst((string) $project->status)"
-                            class="badge-sm {{ (string) $project->status === 'active' ? 'badge-success' : 'badge-warning' }}"
-                        />
+                        @if ($project->trashed())
+                            <div class="space-y-1">
+                                <x-badge value="Deleted" class="badge-sm badge-error" />
+                                <div class="text-xs text-base-content/60">{{ $project->deleted_at->diffForHumans() }}</div>
+                            </div>
+                        @else
+                            <x-badge
+                                :value="ucfirst((string) $project->status)"
+                                class="badge-sm {{ (string) $project->status === 'active' ? 'badge-success' : 'badge-warning' }}"
+                            />
+                        @endif
                     @endscope
 
                     @scope('actions', $project)
                         <div class="flex items-center justify-end gap-2">
-                            @if ($project->projectType?->value)
+                            @if ($project->trashed())
+                                @can('restore', $project)
+                                    <x-button
+                                        icon="lucide-rotate-ccw"
+                                        class="btn-success btn-sm"
+                                        wire:click="restoreProject({{ $project->id }})"
+                                        wire:confirm="Are you sure you want to restore this project?"
+                                        aria-label="Restore project {{ $project->name }}"
+                                    />
+                                @endcan
+                            @elseif ($project->projectType?->value)
                                 <x-button
                                     icon="settings"
                                     class="btn-ghost btn-sm"

@@ -227,7 +227,8 @@ class ProjectService
         string $type = 'all',
         string $status = 'all',
         array $sortBy = ['column' => 'name', 'direction' => 'asc'],
-        int $perPage = 10
+        int $perPage = 10,
+        bool $includeDeleted = false
     ): LengthAwarePaginator {
         $query = Project::query()
             ->with(['projectType:id,display_name,value'])
@@ -236,6 +237,10 @@ class ProjectService
                     ->where('user_id', $user->id)
                     ->where('status', 'active');
             });
+
+        if ($includeDeleted || $status === 'deleted') {
+            $query->withTrashed();
+        }
 
         if ($search !== '') {
             $query->where(function (Builder $builder) use ($search): void {
@@ -294,6 +299,12 @@ class ProjectService
     private function applyProjectStatusFilter(Builder $query, string $status): void
     {
         if ($status === 'all') {
+            return;
+        }
+
+        if ($status === 'deleted') {
+            $query->onlyTrashed();
+
             return;
         }
 

@@ -438,7 +438,7 @@ class ProjectManager extends Component
                 'user_id' => Auth::id(),
             ]);
 
-            $this->success('Project deleted successfully. Members can still see it for 14 days.', redirectTo: route('project-search', ['projectType' => $projectType]));
+            $this->success('Project deleted successfully. Members can still see it for 14 days.', redirectTo: route('platform.projects'));
         } catch (\Exception $e) {
             Log::error('Failed to delete project', [
                 'project_id' => $this->project->id,
