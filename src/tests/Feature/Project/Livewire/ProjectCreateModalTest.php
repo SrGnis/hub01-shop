@@ -7,9 +7,11 @@ use App\Livewire\ProjectCreateModal;
 use App\Models\Project;
 use App\Models\ProjectType;
 use App\Models\User;
+use App\Services\ProjectService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -202,5 +204,97 @@ class ProjectCreateModalTest extends TestCase
         Livewire::actingAs($this->user)
             ->test(ProjectCreateModal::class)
             ->assertViewHas('projectTypes');
+    }
+
+    #[Test]
+    public function test_unverified_user_cannot_open_modal()
+    {
+        $unverifiedUser = User::factory()->unverified()->create();
+
+        Livewire::actingAs($unverifiedUser)
+            ->test(ProjectCreateModal::class)
+            ->call('open')
+            ->assertSet('isOpen', false);
+    }
+
+    #[Test]
+    public function test_unverified_user_cannot_create_project()
+    {
+        $unverifiedUser = User::factory()->unverified()->create();
+
+        Livewire::actingAs($unverifiedUser)
+            ->test(ProjectCreateModal::class)
+            ->set('selectedType', $this->projectType->value)
+            ->set('name', 'Blocked Project')
+            ->set('slug', 'blocked-project')
+            ->set('summary', 'Blocked summary')
+            ->call('create');
+
+        $this->assertDatabaseMissing('project', [
+            'name' => 'Blocked Project',
+        ]);
+    }
+
+    #[Test]
+    public function test_updated_slug_validates_immediately()
+    {
+        Livewire::actingAs($this->user)
+            ->test(ProjectCreateModal::class)
+            ->call('open')
+            ->set('slug', 'Invalid Slug!')
+            ->assertHasErrors(['slug']);
+    }
+
+    #[Test]
+    public function test_open_resets_form_values_and_validation()
+    {
+        Livewire::actingAs($this->user)
+            ->test(ProjectCreateModal::class)
+            ->call('open', $this->projectType->value)
+            ->set('name', 'Temporary Name')
+            ->set('slug', 'invalid slug with spaces')
+            ->call('create')
+            ->assertHasErrors(['slug'])
+            ->call('open', $this->projectType->value)
+            ->assertSet('name', '')
+            ->assertSet('slug', '')
+            ->assertSet('summary', '')
+            ->assertHasNoErrors();
+    }
+
+    #[Test]
+    public function test_close_resets_validation_errors()
+    {
+        Livewire::actingAs($this->user)
+            ->test(ProjectCreateModal::class)
+            ->call('open')
+            ->call('create')
+            ->assertHasErrors(['selectedType', 'name', 'slug', 'summary'])
+            ->call('close')
+            ->assertHasNoErrors();
+    }
+
+    #[Test]
+    public function test_create_handles_service_failure_without_creating_project()
+    {
+        $mock = Mockery::mock(ProjectService::class);
+        $mock->shouldReceive('generateSlug')->andReturn('new-test-project');
+        $mock->shouldReceive('saveProject')->once()->andThrow(new \Exception('forced failure'));
+        $this->app->instance(ProjectService::class, $mock);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectCreateModal::class)
+            ->call('open', $this->projectType->value)
+            ->set('selectedType', $this->projectType->value)
+            ->set('name', 'New Test Project')
+            ->set('slug', 'new-test-project')
+            ->set('summary', 'A test project summary')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('project', [
+            'name' => 'New Test Project',
+            'slug' => 'new-test-project',
+        ]);
     }
 }
