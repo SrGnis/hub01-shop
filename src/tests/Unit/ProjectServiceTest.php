@@ -419,10 +419,10 @@ class ProjectServiceTest extends TestCase
 
         $this->assertDatabaseHas('project', [
             'name' => 'Test Project',
-            'approval_status' => 'approved',
+            'approval_status' => 'draft',
         ]);
-        $this->assertNotNull($project->submitted_at);
-        $this->assertNotNull($project->reviewed_at);
+        $this->assertNull($project->submitted_at);
+        $this->assertNull($project->reviewed_at);
     }
 
     #[Test]

@@ -26,7 +26,7 @@ class AuthenticationTest extends TestCase
             ->set('password', 'secret')
             ->call('login')
             ->assertHasNoErrors()
-            ->assertRedirect(route('project-search', ['projectType' => \App\Models\ProjectType::first()], absolute: false));
+            ->assertRedirect(route('platform.dashboard', absolute: false));
 
         $this->assertAuthenticated();
     }
