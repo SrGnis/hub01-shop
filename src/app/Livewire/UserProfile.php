@@ -7,8 +7,12 @@ use App\Livewire\Concerns\InteractsWithProjectCollections;
 use App\Models\Collection;
 use App\Models\CollectionEntry;
 use App\Models\Project;
+use App\Models\ProjectTagGroup;
 use App\Models\ProjectVersion;
+use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
+use App\Services\ProjectService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -25,6 +29,29 @@ class UserProfile extends Component
     #[Url(as: 'tab')]
     public string $activeTab = 'projects';
 
+    public string $projectSearch = '';
+
+    public array $selectedTags = [];
+
+    public array $selectedVersionTags = [];
+
+    public string $orderBy = 'created_at';
+
+    public string $orderDirection = 'desc';
+
+    public string $releaseDatePeriod = 'all';
+
+    public ?string $releaseDateStart = null;
+
+    public ?string $releaseDateEnd = null;
+
+    private ProjectService $projectService;
+
+    public function boot(ProjectService $projectService): void
+    {
+        $this->projectService = $projectService;
+    }
+
     public function mount(User $user)
     {
         $this->user = $user;
@@ -37,9 +64,50 @@ class UserProfile extends Component
         $query = $this->user->projects();
 
         $query->accessScope();
-        $query->orderBy('project.created_at', 'desc');
+        $this->applyProjectFilters($query);
+        $this->applyProjectOrdering($query);
 
         return $query->get();
+    }
+
+    #[Computed]
+    public function tagGroups()
+    {
+        return ProjectTagGroup::query()
+            ->with(['tags.projectTypes'])
+            ->whereHas('tags')
+            ->get();
+    }
+
+    #[Computed]
+    public function versionTagGroups()
+    {
+        return ProjectVersionTagGroup::query()
+            ->with(['tags.projectTypes'])
+            ->whereHas('tags')
+            ->get();
+    }
+
+    #[Computed]
+    public function orderOptions(): array
+    {
+        return $this->projectService->getOrderOptions();
+    }
+
+    #[Computed]
+    public function directionOptions(): array
+    {
+        return $this->projectService->getDirectionOptions();
+    }
+
+    public function clearProjectFilters(): void
+    {
+        $this->projectSearch = '';
+        $this->selectedTags = [];
+        $this->selectedVersionTags = [];
+        $this->releaseDatePeriod = 'all';
+        $this->releaseDateStart = null;
+        $this->releaseDateEnd = null;
     }
 
     #[Computed]
@@ -140,5 +208,68 @@ class UserProfile extends Component
                 'entries.project:id,name,logo_path',
             ])
             ->first();
+    }
+
+    private function applyProjectFilters($query): void
+    {
+        if ($this->projectSearch !== '') {
+            $query->where(function (Builder $builder) {
+                $builder->where('project.name', 'like', '%' . $this->projectSearch . '%')
+                    ->orWhere('project.summary', 'like', '%' . $this->projectSearch . '%');
+            });
+        }
+
+        if (count($this->selectedTags)) {
+            $query->whereHas('tags', function (Builder $tagQuery) {
+                $tagQuery->withoutGlobalScope('display_priority_order');
+                $tagQuery->whereIn('tag_id', $this->selectedTags);
+            }, '>=', count($this->selectedTags));
+        }
+
+        if (count($this->selectedVersionTags) || $this->releaseDatePeriod !== 'all') {
+            $query->whereHas('versions', function (Builder $versionQuery) {
+                if (count($this->selectedVersionTags)) {
+                    $versionQuery->whereHas('tags', function (Builder $tagQuery) {
+                        $tagQuery->withoutGlobalScope('display_priority_order');
+                        $tagQuery->whereIn('tag_id', $this->selectedVersionTags);
+                    }, '>=', count($this->selectedVersionTags));
+                }
+
+                if ($this->releaseDatePeriod !== 'all') {
+                    $startDate = match ($this->releaseDatePeriod) {
+                        'last_30_days' => now()->subDays(30)->startOfDay(),
+                        'last_90_days' => now()->subDays(90)->startOfDay(),
+                        'last_year' => now()->subYear()->startOfDay(),
+                        'custom' => $this->releaseDateStart ? \Carbon\Carbon::parse($this->releaseDateStart)->startOfDay() : null,
+                        default => null,
+                    };
+
+                    $endDate = $this->releaseDatePeriod === 'custom' && $this->releaseDateEnd
+                        ? \Carbon\Carbon::parse($this->releaseDateEnd)->endOfDay()
+                        : null;
+
+                    if ($startDate) {
+                        $versionQuery->where('release_date', '>=', $startDate);
+                    }
+
+                    if ($endDate) {
+                        $versionQuery->where('release_date', '<=', $endDate);
+                    }
+                }
+            });
+        }
+    }
+
+    private function applyProjectOrdering($query): void
+    {
+        $direction = $this->orderDirection === 'asc' ? 'asc' : 'desc';
+
+        match ($this->orderBy) {
+            'name' => $query->orderBy('project.name', $direction)->orderBy('project.id'),
+            'updated_at' => $query->orderBy('last_update_time', $direction)->orderBy('project.id'),
+            'favorites' => $query->orderBy('favorite_count', $direction)->orderBy('project.id'),
+            'downloads' => $query->orderBy('downloads', $direction)->orderBy('project.id'),
+            default => $query->orderBy('project.created_at', $direction)->orderBy('project.id'),
+        };
     }
 }

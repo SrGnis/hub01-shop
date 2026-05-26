@@ -4,6 +4,8 @@ namespace Tests\Feature\User\Livewire;
 
 use App\Livewire\UserProfile;
 use App\Models\Project;
+use App\Models\ProjectTag;
+use App\Models\ProjectTagGroup;
 use App\Models\User;
 use App\Models\Membership;
 use App\Models\ProjectVersionDailyDownload;
@@ -42,6 +44,63 @@ class UserProfileTest extends TestCase
         Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])
             ->assertCount('activeProjects', 2);
+    }
+
+    #[Test]
+    public function test_profile_projects_can_be_sorted_by_name()
+    {
+        $user = User::factory()->create();
+
+        Project::factory()->owner($user)->create(['name' => 'Zulu Project', 'slug' => 'zulu-project']);
+        Project::factory()->owner($user)->create(['name' => 'Alpha Project', 'slug' => 'alpha-project']);
+
+        Livewire::actingAs($user)
+            ->test(UserProfile::class, ['user' => $user])
+            ->set('orderBy', 'name')
+            ->set('orderDirection', 'asc')
+            ->assertSeeInOrder(['Alpha Project', 'Zulu Project']);
+    }
+
+    #[Test]
+    public function test_profile_projects_can_be_filtered_by_project_tag()
+    {
+        $user = User::factory()->create();
+        $tagGroup = ProjectTagGroup::factory()->create(['name' => 'Category']);
+        $tag = ProjectTag::factory()->create([
+            'name' => 'Gameplay',
+            'project_tag_group_id' => $tagGroup->id,
+        ]);
+
+        $matchingProject = Project::factory()->owner($user)->create(['name' => 'Tagged Project', 'slug' => 'tagged-project']);
+        $matchingProject->tags()->attach($tag);
+        Project::factory()->owner($user)->create(['name' => 'Untagged Project', 'slug' => 'untagged-project']);
+
+        Livewire::actingAs($user)
+            ->test(UserProfile::class, ['user' => $user])
+            ->set('selectedTags', [$tag->id])
+            ->assertSee('Tagged Project')
+            ->assertDontSee('Untagged Project');
+    }
+
+    #[Test]
+    public function test_profile_project_filters_can_be_cleared()
+    {
+        $user = User::factory()->create();
+        $tag = ProjectTag::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(UserProfile::class, ['user' => $user])
+            ->set('projectSearch', 'test')
+            ->set('selectedTags', [$tag->id])
+            ->set('selectedVersionTags', [123])
+            ->set('releaseDatePeriod', 'last_30_days')
+            ->call('clearProjectFilters')
+            ->assertSet('projectSearch', '')
+            ->assertSet('selectedTags', [])
+            ->assertSet('selectedVersionTags', [])
+            ->assertSet('releaseDatePeriod', 'all')
+            ->assertSet('releaseDateStart', null)
+            ->assertSet('releaseDateEnd', null);
     }
 
     #[Test]
