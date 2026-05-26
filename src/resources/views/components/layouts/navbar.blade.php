@@ -76,9 +76,10 @@
                  @if($user = auth()->user())
                      <x-button
                          icon="plus"
-                         class="btn-circle btn-ghost"
+                         class="btn-ghost hidden md:flex"
                          onclick="Livewire.dispatch('open-project-create-modal')"
                          aria-label="Create new project"
+                         label="Publish"
                      />
                     {{-- User Dropdown --}}
                     <x-dropdown>
@@ -93,6 +94,7 @@
                             </x-avatar>
                         </x-slot:trigger>
                         <x-menu class="p-0">
+                            <x-menu-item title="Publish" icon="plus" class="md:hidden bg-primary text-primary-content" onclick="Livewire.dispatch('open-project-create-modal')" no-wire-navigate/>
                             <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" no-wire-navigate/>
                             <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" no-wire-navigate/>
                             <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" no-wire-navigate/>
