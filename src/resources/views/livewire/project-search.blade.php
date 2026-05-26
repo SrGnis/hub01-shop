@@ -2,7 +2,6 @@
     <!-- HEADER -->
     <x-header title="{{ $projectType->pluralizedDisplayName() }}" separator progress-indicator>
         <x-slot:actions>
-            <x-button label="Clear Filters" wire:click="clearFilters" responsive icon="x" class="invisible lg:visible"/>
             <x-input placeholder="Search {{ $projectType->pluralizedDisplayName() }}..."
                 wire:model.live.debounce.500ms="search" clearable icon="search" class="w-full max-w-md" />
             <x-button label="Filters" @click="showMobileFilters = true" responsive icon="list-filter"
@@ -13,7 +12,12 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- DESKTOP FILTERS SIDEBAR -->
         <div class="hidden lg:block lg:col-span-3">
-            <x-card title="Filters" separator>
+            <x-card separator>
+                <x-slot:title class="flex items-center justify-between gap-3">
+                    <span>Filters</span>
+                    <x-button label="Clear Filters" wire:click="clearFilters" icon="x" class="btn-ghost" />
+                </x-slot:title>
+
                 <x-project-filters
                     :tag-groups="$this->tagGroups"
                     :version-tag-groups="$this->versionTagGroups"
