@@ -57,7 +57,7 @@ class ProjectManager extends Component
 
     private bool $strictValidation = false;
 
-    public array $sections = ['general', 'description', 'tags', 'links', 'members', 'danger'];
+    public array $sections = ['general', 'description', 'tags', 'links', 'members', 'analytics', 'danger'];
 
     protected function rules(): array
     {

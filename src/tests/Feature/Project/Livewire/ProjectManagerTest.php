@@ -406,6 +406,44 @@ class ProjectManagerTest extends TestCase
     }
 
     #[Test]
+    public function test_mount_accepts_analytics_section(): void
+    {
+        $project = $this->ownedProject();
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectManager::class, [
+                'projectType' => $this->projectType,
+                'project' => $project,
+                'section' => 'analytics',
+            ])
+            ->assertSet('currentSection', 'analytics');
+    }
+
+    #[Test]
+    public function test_manage_analytics_route_is_accessible_for_authorized_user(): void
+    {
+        $project = $this->ownedProject();
+
+        $this->actingAs($this->user)
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'analytics']))
+            ->assertOk()
+            ->assertSee('Trends');
+    }
+
+    #[Test]
+    public function test_manage_analytics_route_is_blocked_for_unauthorized_user(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $project = Project::factory()->owner($owner)->create(['project_type_id' => $this->projectType->id]);
+
+        $this->actingAs($otherUser)
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'analytics']))
+            ->assertRedirect(route('project.show', ['projectType' => $this->projectType, 'project' => $project]))
+            ->assertSessionHas('error');
+    }
+
+    #[Test]
     public function test_submit_draft_for_review()
     {
         $project = $this->ownedProject(['approval_status' => 'draft']);
@@ -774,7 +812,9 @@ class ProjectManagerTest extends TestCase
             ->assertSet('currentSection', 'general')
             ->call('setSection', 'members')
             ->assertSet('currentSection', 'members')
+            ->call('setSection', 'analytics')
+            ->assertSet('currentSection', 'analytics')
             ->call('setSection', 'not-allowed')
-            ->assertSet('currentSection', 'members');
+            ->assertSet('currentSection', 'analytics');
     }
 }

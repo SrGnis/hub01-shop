@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Platform\Livewire;
 
-use App\Livewire\Platform\Analytics;
+use App\Livewire\Analytics\Panel;
 use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectVersion;
@@ -31,7 +31,7 @@ class AnalyticsTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        Livewire::test(Analytics::class)
+        Livewire::test(Panel::class, ['scope' => 'workspace'])
             ->set('mode', 'invalid')
             ->assertSet('mode', 'daily')
             ->call('setMode', 'wrong')
@@ -52,7 +52,7 @@ class AnalyticsTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Livewire::test(Analytics::class)
+        $component = Livewire::test(Panel::class, ['scope' => 'workspace'])
             ->assertSet('mode', 'daily');
 
         $daily = $component->get('chart');
@@ -83,7 +83,7 @@ class AnalyticsTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Livewire::test(Analytics::class);
+        $component = Livewire::test(Panel::class, ['scope' => 'workspace']);
         $metrics = $component->get('summaryMetrics');
         $this->assertIsArray($metrics);
         $this->assertArrayHasKey('key', $metrics[0]);
@@ -100,6 +100,6 @@ class AnalyticsTest extends TestCase
         $csv = (string) ob_get_clean();
 
         $this->assertStringContainsString('Metric,', $csv);
-        $this->assertStringContainsString('Other', $csv);
+        $this->assertStringContainsString('Csv Project', $csv);
     }
 }

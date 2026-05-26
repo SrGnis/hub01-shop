@@ -11,6 +11,7 @@
         ['key' => 'tags', 'label' => 'Tags', 'icon' => 'lucide-tag', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'tags'])],
         ['key' => 'links', 'label' => 'Links', 'icon' => 'lucide-link', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'links'])],
         ['key' => 'members', 'label' => 'Members', 'icon' => 'lucide-users', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'members'])],
+        ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'lucide-chart-column', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'analytics'])],
         ['key' => 'danger', 'label' => 'Danger Zone', 'icon' => 'lucide-alert-triangle', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'danger'])],
     ];
 @endphp

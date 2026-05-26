@@ -208,6 +208,8 @@
                 @include('livewire.project-manager.sections.links')
             @elseif ($currentSection === 'members')
                 @include('livewire.project-manager.sections.members')
+            @elseif ($currentSection === 'analytics')
+                @include('livewire.project-manager.sections.analytics')
             @elseif ($currentSection === 'danger')
                 @include('livewire.project-manager.sections.danger')
             @endif
