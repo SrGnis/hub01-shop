@@ -5,14 +5,18 @@ namespace App\Livewire\Analytics;
 use App\Models\Project;
 use App\Services\AnalyticsService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class Panel extends Component
 {
+    #[Locked]
     public string $scope = 'workspace';
 
+    #[Locked]
     public ?Project $project = null;
 
     public string $mode = 'daily';
@@ -33,6 +37,10 @@ class Panel extends Component
 
         if ($this->scope === 'project' && $this->project === null) {
             abort(404);
+        }
+
+        if ($this->scope === 'project') {
+            Gate::authorize('update', $this->project);
         }
 
         $this->mode = session()->get($this->modeSessionKey(), 'daily');
@@ -107,6 +115,10 @@ class Panel extends Component
 
     public function exportCsv()
     {
+        if ($this->scope === 'project') {
+            Gate::authorize('update', $this->project);
+        }
+
         $labels = $this->chart['labels'] ?? [];
         $datasets = $this->chart['datasets'] ?? [];
 
@@ -123,11 +135,14 @@ class Panel extends Component
                 return;
             }
 
-            fputcsv($handle, array_merge(['Metric'], $labels));
+            fputcsv($handle, array_merge(
+                [$this->escapeCsvCell('Metric')],
+                array_map(fn ($label): string => $this->escapeCsvCell((string) $label), $labels)
+            ));
 
             foreach ($datasets as $dataset) {
                 $row = array_merge(
-                    [(string) ($dataset['label'] ?? 'Series')],
+                    [$this->escapeCsvCell((string) ($dataset['label'] ?? 'Series'))],
                     array_map(static fn ($point): int => (int) $point, $dataset['data'] ?? [])
                 );
 
@@ -211,6 +226,15 @@ class Panel extends Component
         $b = hexdec(substr($hex, 4, 2));
 
         return sprintf('rgba(%d,%d,%d,%.2F)', $r, $g, $b, max(0, min(1, $alpha)));
+    }
+
+    private function escapeCsvCell(string $value): string
+    {
+        if ($value !== '' && preg_match('/^[=+\-@\t\r]/', $value) === 1) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 
     private function modeSessionKey(): string

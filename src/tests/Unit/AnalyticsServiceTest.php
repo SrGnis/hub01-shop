@@ -153,4 +153,24 @@ class AnalyticsServiceTest extends TestCase
         $cumulativeDataset = collect($cumulative['datasets'])->firstWhere('label', 'Scoped Project');
         $this->assertSame([8, 8, 15], $cumulativeDataset['data']);
     }
+
+    #[Test]
+    public function project_cumulative_chart_uses_selected_project_label_for_historical_only_data(): void
+    {
+        Carbon::setTestNow('2026-05-10');
+        $service = new AnalyticsService();
+
+        $selectedProject = Project::factory()->create(['name' => 'Historical Project']);
+        $selectedVersion = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $selectedProject->id]);
+
+        ProjectVersionDailyDownload::factory()->forVersion($selectedVersion)->forDate('2026-05-07')->withDownloads(12)->create();
+
+        $chart = $service->getChartForProject($selectedProject, 'cumulative', 3);
+
+        $this->assertSame(['2026-05-08', '2026-05-09', '2026-05-10'], $chart['labels']);
+        $this->assertCount(1, $chart['datasets']);
+        $this->assertSame('Historical Project', $chart['datasets'][0]['label']);
+        $this->assertSame([12, 12, 12], $chart['datasets'][0]['data']);
+        $this->assertNull(collect($chart['datasets'])->firstWhere('label', 'Other'));
+    }
 }

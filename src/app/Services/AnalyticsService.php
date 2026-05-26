@@ -121,19 +121,25 @@ class AnalyticsService
     public function getChartForProject(Project $project, string $mode = 'daily', int $days = 30): array
     {
         $resolvedMode = $mode === 'cumulative' ? 'cumulative' : 'daily';
+        $projectRows = collect([(object) [
+            'project_id' => $project->id,
+            'project_slug' => $project->slug,
+            'project_name' => $project->name,
+        ]]);
 
-        return $this->getChartForProjectIds(collect([$project->id]), $resolvedMode, $days);
+        return $this->getChartForProjectIds(collect([$project->id]), $resolvedMode, $days, $projectRows);
     }
 
     /**
      * @param  Collection<int, int>  $projectIds
+     * @param  Collection<int, object{project_id: int, project_slug: string|null, project_name: string|null}>|null  $explicitProjectRows
      * @return array{
      *     mode: 'daily'|'cumulative',
      *     labels: array<int, string>,
      *     datasets: array<int, array{key: string, label: string, color: string, data: array<int, int>}>
      * }
      */
-    private function getChartForProjectIds(Collection $projectIds, string $mode, int $days): array
+    private function getChartForProjectIds(Collection $projectIds, string $mode, int $days, ?Collection $explicitProjectRows = null): array
     {
         $resolvedDays = max(1, $days);
 
@@ -141,7 +147,7 @@ class AnalyticsService
             return $this->emptyChart($mode, $resolvedDays);
         }
 
-        return $this->buildChart($projectIds, $mode, $resolvedDays);
+        return $this->buildChart($projectIds, $mode, $resolvedDays, $explicitProjectRows);
     }
 
     /**
@@ -158,19 +164,22 @@ class AnalyticsService
 
     /**
      * @param  Collection<int, int>  $projectIds
+     * @param  Collection<int, object{project_id: int, project_slug: string|null, project_name: string|null}>|null  $explicitProjectRows
      * @return array{
      *     mode: 'daily'|'cumulative',
      *     labels: array<int, string>,
      *     datasets: array<int, array{key: string, label: string, color: string, data: array<int, int>}>
      * }
      */
-    private function buildChart(Collection $projectIds, string $mode, int $days): array
+    private function buildChart(Collection $projectIds, string $mode, int $days, ?Collection $explicitProjectRows = null): array
     {
         $labels = $this->buildLabels($days);
 
         $startDate = CarbonImmutable::today()->subDays($days - 1)->toDateString();
 
-        $topProjectRows = ProjectVersionDailyDownload::query()
+        $usesExplicitProjectRows = $explicitProjectRows !== null;
+
+        $topProjectRows = $explicitProjectRows ?? ProjectVersionDailyDownload::query()
             ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
             ->join('project', 'project.id', '=', 'project_version.project_id')
             ->whereIn('project_version.project_id', $projectIds)
@@ -199,12 +208,14 @@ class AnalyticsService
                 ->get()
                 ->mapWithKeys(fn ($row) => [(int) $row->project_id => (int) $row->total]);
 
-            $baselineOther = (int) ProjectVersionDailyDownload::query()
-                ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
-                ->whereIn('project_version.project_id', $projectIds)
-                ->whereNotIn('project_version.project_id', $topProjectIds)
-                ->where('project_version_daily_download.date', '<', $startDate)
-                ->sum('project_version_daily_download.downloads');
+            if (! $usesExplicitProjectRows) {
+                $baselineOther = (int) ProjectVersionDailyDownload::query()
+                    ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
+                    ->whereIn('project_version.project_id', $projectIds)
+                    ->whereNotIn('project_version.project_id', $topProjectIds)
+                    ->where('project_version_daily_download.date', '<', $startDate)
+                    ->sum('project_version_daily_download.downloads');
+            }
         }
 
         $downloadsByProjectDate = ProjectVersionDailyDownload::query()
@@ -216,22 +227,26 @@ class AnalyticsService
             ->selectRaw('project_version.project_id as project_id, project_version_daily_download.date as date, SUM(project_version_daily_download.downloads) as total')
             ->get();
 
-        $downloadsByDateOther = ProjectVersionDailyDownload::query()
-            ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
-            ->whereIn('project_version.project_id', $projectIds)
-            ->whereNotIn('project_version.project_id', $topProjectIds)
-            ->where('project_version_daily_download.date', '>=', $startDate)
-            ->groupBy('project_version_daily_download.date')
-            ->orderBy('project_version_daily_download.date')
-            ->selectRaw('project_version_daily_download.date as date, SUM(project_version_daily_download.downloads) as total')
-            ->get()
-            ->mapWithKeys(function ($row): array {
-                $date = $row->date instanceof \DateTimeInterface
-                    ? $row->date->format('Y-m-d')
-                    : substr((string) $row->date, 0, 10);
+        $downloadsByDateOther = collect();
 
-                return [$date => (int) $row->total];
-            });
+        if (! $usesExplicitProjectRows) {
+            $downloadsByDateOther = ProjectVersionDailyDownload::query()
+                ->join('project_version', 'project_version.id', '=', 'project_version_daily_download.project_version_id')
+                ->whereIn('project_version.project_id', $projectIds)
+                ->whereNotIn('project_version.project_id', $topProjectIds)
+                ->where('project_version_daily_download.date', '>=', $startDate)
+                ->groupBy('project_version_daily_download.date')
+                ->orderBy('project_version_daily_download.date')
+                ->selectRaw('project_version_daily_download.date as date, SUM(project_version_daily_download.downloads) as total')
+                ->get()
+                ->mapWithKeys(function ($row): array {
+                    $date = $row->date instanceof \DateTimeInterface
+                        ? $row->date->format('Y-m-d')
+                        : substr((string) $row->date, 0, 10);
+
+                    return [$date => (int) $row->total];
+                });
+        }
 
         $datasets = [];
 
@@ -248,6 +263,10 @@ class AnalyticsService
                     return [$date => (int) $row->total];
                 });
 
+            if ($usesExplicitProjectRows && $projectByDate->isEmpty() && (int) ($baselineByProject->get($projectId) ?? 0) === 0) {
+                continue;
+            }
+
             $datasets[] = [
                 'key' => 'project_' . $projectId,
                 'label' => (string) ($projectRow->project_name ?: $projectRow->project_slug ?: ('Project ' . $projectId)),
@@ -261,7 +280,7 @@ class AnalyticsService
             ];
         }
 
-        if ($baselineOther > 0 || $downloadsByDateOther->isNotEmpty()) {
+        if (! $usesExplicitProjectRows && ($baselineOther > 0 || $downloadsByDateOther->isNotEmpty())) {
             $datasets[] = [
                 'key' => 'other',
                 'label' => 'Other',

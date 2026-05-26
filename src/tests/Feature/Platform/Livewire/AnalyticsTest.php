@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionDailyDownload;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -101,5 +102,68 @@ class AnalyticsTest extends TestCase
 
         $this->assertStringContainsString('Metric,', $csv);
         $this->assertStringContainsString('Csv Project', $csv);
+    }
+
+    #[Test]
+    public function authorized_project_member_can_mount_project_scoped_panel(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->owner($user)->create(['name' => 'Authorized Project']);
+
+        Livewire::actingAs($user)
+            ->test(Panel::class, ['scope' => 'project', 'project' => $project])
+            ->assertOk()
+            ->assertSet('scope', 'project');
+    }
+
+    #[Test]
+    public function unauthorized_user_cannot_mount_project_scoped_panel(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $project = Project::factory()->owner($owner)->create(['name' => 'Private Project']);
+
+        Livewire::actingAs($otherUser)
+            ->test(Panel::class, ['scope' => 'project', 'project' => $project])
+            ->assertForbidden();
+    }
+
+    #[Test]
+    public function unauthorized_user_cannot_export_project_scoped_panel(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $project = Project::factory()->owner($owner)->create(['name' => 'Export Project']);
+
+        $component = Livewire::actingAs($owner)
+            ->test(Panel::class, ['scope' => 'project', 'project' => $project]);
+
+        $this->actingAs($otherUser);
+        $this->expectException(AuthorizationException::class);
+
+        $component->instance()->exportCsv();
+    }
+
+    #[Test]
+    public function csv_export_escapes_formula_prone_dataset_labels(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-10 14:15:16'));
+
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['name' => '=Csv Formula Project']);
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $project->id, 'status' => 'active']);
+        $version = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $project->id]);
+        ProjectVersionDailyDownload::factory()->forVersion($version)->forDate('2026-05-10')->withDownloads(9)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Panel::class, ['scope' => 'workspace']);
+
+        $response = $component->instance()->exportCsv();
+
+        ob_start();
+        $response->sendContent();
+        $csv = (string) ob_get_clean();
+
+        $this->assertStringContainsString("'=Csv Formula Project", $csv);
     }
 }

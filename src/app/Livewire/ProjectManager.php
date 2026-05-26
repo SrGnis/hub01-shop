@@ -19,6 +19,8 @@ class ProjectManager extends Component
     use WithFileUploads;
     use Toast;
 
+    private const SECTIONS = ['general', 'description', 'tags', 'links', 'members', 'analytics', 'danger'];
+
     #[Locked]
     public ProjectType $projectType;
     #[Locked]
@@ -56,8 +58,6 @@ class ProjectManager extends Component
     private ProjectService $projectService;
 
     private bool $strictValidation = false;
-
-    public array $sections = ['general', 'description', 'tags', 'links', 'members', 'analytics', 'danger'];
 
     protected function rules(): array
     {
@@ -160,7 +160,7 @@ class ProjectManager extends Component
 
         $this->currentSection = $section;
 
-        if (!in_array($this->currentSection, $this->sections)) {
+        if (!in_array($this->currentSection, self::SECTIONS, true)) {
             $this->currentSection = 'general';
         }
     }
@@ -451,7 +451,7 @@ class ProjectManager extends Component
 
     public function setSection(string $section): void
     {
-        if (in_array($section, $this->sections)) {
+        if (in_array($section, self::SECTIONS, true)) {
             $this->currentSection = $section;
         }
     }
