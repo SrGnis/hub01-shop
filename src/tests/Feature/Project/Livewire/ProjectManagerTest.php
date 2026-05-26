@@ -7,6 +7,8 @@ use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectTag;
 use App\Models\ProjectType;
+use App\Models\ProjectVersion;
+use App\Models\ProjectVersionTag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -20,6 +22,7 @@ class ProjectManagerTest extends TestCase
     use RefreshDatabase;
 
     private ProjectType $projectType;
+
     private User $user;
 
     protected function setUp(): void
@@ -420,6 +423,43 @@ class ProjectManagerTest extends TestCase
     }
 
     #[Test]
+    public function test_mount_accepts_versions_section(): void
+    {
+        $project = $this->ownedProject();
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectManager::class, [
+                'projectType' => $this->projectType,
+                'project' => $project,
+                'section' => 'versions',
+            ])
+            ->assertSet('currentSection', 'versions');
+    }
+
+    #[Test]
+    public function test_manage_versions_route_shows_versions_table_for_authorized_user(): void
+    {
+        $project = $this->ownedProject(['approval_status' => 'approved']);
+        $version = ProjectVersion::factory()
+            ->withoutDailyDownloads()
+            ->for($project)
+            ->create([
+                'name' => 'Stable Release',
+                'version' => '1.2.3',
+                'release_date' => now(),
+            ]);
+
+        $this->actingAs($this->user)
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'versions']))
+            ->assertOk()
+            ->assertSee('Versions')
+            ->assertSee('Stable Release')
+            ->assertSee('1.2.3')
+            ->assertSee(route('project.version.create', ['projectType' => $this->projectType, 'project' => $project]), false)
+            ->assertSee(route('project.version.edit', ['projectType' => $this->projectType, 'project' => $project, 'version_key' => $version]), false);
+    }
+
+    #[Test]
     public function test_manage_analytics_route_is_accessible_for_authorized_user(): void
     {
         $project = $this->ownedProject();
@@ -438,7 +478,18 @@ class ProjectManagerTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'analytics']))
             ->assertRedirect(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'general']))
-            ->assertSessionHas('error', 'Analytics are only available for approved projects.');
+            ->assertSessionHas('error', 'This section is only available for approved projects.');
+    }
+
+    #[Test]
+    public function test_manage_versions_route_is_blocked_for_draft_project(): void
+    {
+        $project = $this->ownedProject(['approval_status' => 'draft']);
+
+        $this->actingAs($this->user)
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'versions']))
+            ->assertRedirect(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'general']))
+            ->assertSessionHas('error', 'This section is only available for approved projects.');
     }
 
     #[Test]
@@ -449,7 +500,8 @@ class ProjectManagerTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'general']))
             ->assertOk()
-            ->assertDontSee('Analytics');
+            ->assertDontSee('Analytics')
+            ->assertDontSee('Versions');
     }
 
     #[Test]
@@ -825,6 +877,91 @@ class ProjectManagerTest extends TestCase
     }
 
     #[Test]
+    public function test_manager_versions_can_be_filtered_by_version_tag()
+    {
+        $project = $this->ownedProject();
+        $versionTag = ProjectVersionTag::factory()->create();
+        $versionTag->projectTypes()->attach($this->projectType);
+
+        $matchingVersion = $project->versions()->create([
+            'name' => 'Matching Version',
+            'version' => '1.0.0',
+            'release_date' => now(),
+            'release_type' => 'release',
+        ]);
+        $matchingVersion->tags()->attach($versionTag);
+
+        $project->versions()->create([
+            'name' => 'Other Version',
+            'version' => '1.1.0',
+            'release_date' => now()->subDay(),
+            'release_type' => 'release',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectManager::class, ['projectType' => $this->projectType, 'project' => $project])
+            ->set('selectedVersionTags', [$versionTag->id])
+            ->assertViewHas('versions', function ($versions) use ($matchingVersion) {
+                return $versions->count() === 1 && $versions->first()->id === $matchingVersion->id;
+            });
+    }
+
+    #[Test]
+    public function test_manager_versions_can_be_filtered_by_release_date()
+    {
+        $project = $this->ownedProject();
+
+        $recentVersion = $project->versions()->create([
+            'name' => 'Recent Version',
+            'version' => '1.0.0',
+            'release_date' => now()->subDays(10),
+            'release_type' => 'release',
+        ]);
+
+        $project->versions()->create([
+            'name' => 'Old Version',
+            'version' => '1.1.0',
+            'release_date' => now()->subDays(45),
+            'release_type' => 'release',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectManager::class, ['projectType' => $this->projectType, 'project' => $project])
+            ->set('releaseDatePeriod', 'last_30_days')
+            ->assertViewHas('versions', function ($versions) use ($recentVersion) {
+                return $versions->count() === 1 && $versions->first()->id === $recentVersion->id;
+            });
+    }
+
+    #[Test]
+    public function test_manager_versions_can_be_ordered()
+    {
+        $project = $this->ownedProject();
+
+        $olderVersion = $project->versions()->create([
+            'name' => 'Older Version',
+            'version' => '1.0.0',
+            'release_date' => now()->subDays(2),
+            'release_type' => 'release',
+        ]);
+
+        $newerVersion = $project->versions()->create([
+            'name' => 'Newer Version',
+            'version' => '1.1.0',
+            'release_date' => now(),
+            'release_type' => 'release',
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectManager::class, ['projectType' => $this->projectType, 'project' => $project])
+            ->set('sortBy', ['column' => 'release_date', 'direction' => 'asc'])
+            ->assertViewHas('versions', function ($versions) use ($olderVersion, $newerVersion) {
+                return $versions->first()->id === $olderVersion->id
+                    && $versions->last()->id === $newerVersion->id;
+            });
+    }
+
+    #[Test]
     public function test_set_section_updates_only_for_allowed_sections()
     {
         $project = $this->ownedProject();
@@ -834,6 +971,8 @@ class ProjectManagerTest extends TestCase
             ->assertSet('currentSection', 'general')
             ->call('setSection', 'members')
             ->assertSet('currentSection', 'members')
+            ->call('setSection', 'versions')
+            ->assertSet('currentSection', 'versions')
             ->call('setSection', 'analytics')
             ->assertSet('currentSection', 'analytics')
             ->call('setSection', 'not-allowed')

@@ -102,6 +102,11 @@
         @endif
 
         {{-- Header Row --}}
+        <a href="{{ route('platform.projects') }}" class="inline-flex items-center gap-1 text-sm font-semibold text-base-content/60 hover:text-primary mb-3">
+            <x-icon name="lucide-arrow-left" class="w-4 h-4" />
+            Back to projects
+        </a>
+
         <div class="flex flex-col md:flex-row items-start md:items-center gap-4 bg-base-100 border border-base-300 rounded-xl px-5 py-4">
 
             {{-- Title --}}
@@ -164,15 +169,17 @@
                         />
                     </div>
                 @endif
-                <x-button
-                    spinner
-                    wire:click="save"
-                    label="Save Changes"
-                    class="btn-primary btn-sm"
-                    wire:loading.attr="disabled"
-                    wire:target="save"
-                    icon="lucide-save"
-                />
+                @unless (in_array($currentSection, ['versions', 'analytics', 'danger'], true))
+                    <x-button
+                        spinner
+                        wire:click="save"
+                        label="Save Changes"
+                        class="btn-primary btn-sm"
+                        wire:loading.attr="disabled"
+                        wire:target="save"
+                        icon="lucide-save"
+                    />
+                @endunless
             </div>
         </div>
     </x-slot:header>
@@ -206,6 +213,8 @@
                 @include('livewire.project-manager.sections.tags')
             @elseif ($currentSection === 'links')
                 @include('livewire.project-manager.sections.links')
+            @elseif ($currentSection === 'versions')
+                @include('livewire.project-manager.sections.versions')
             @elseif ($currentSection === 'members')
                 @include('livewire.project-manager.sections.members')
             @elseif ($currentSection === 'analytics')

@@ -90,7 +90,7 @@ Route::get('/{projectType}/{project}', ProjectShow::class)->name('project.show')
 Route::middleware(['auth','verified'])->group(function () {
     Route::get('/{projectType}/{project}/manage/{section?}', ProjectManager::class)
         ->name('project.manage')
-        ->where('section', 'general|description|tags|links|members|analytics|danger');
+        ->where('section', 'general|description|tags|links|versions|members|analytics|danger');
     Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->name('project.version.create');
 });
 

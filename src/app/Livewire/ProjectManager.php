@@ -4,25 +4,31 @@ namespace App\Livewire;
 
 use App\Models\Membership;
 use App\Models\Project;
+use App\Models\ProjectTag;
 use App\Models\ProjectType;
 use App\Services\ProjectService;
+use App\Services\ProjectVersionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
 class ProjectManager extends Component
 {
-    use WithFileUploads;
     use Toast;
+    use WithFileUploads;
+    use WithPagination;
 
-    private const SECTIONS = ['general', 'description', 'tags', 'links', 'members', 'analytics', 'danger'];
+    private const SECTIONS = ['general', 'description', 'tags', 'links', 'versions', 'members', 'analytics', 'danger'];
 
     #[Locked]
     public ProjectType $projectType;
+
     #[Locked]
     public Project $project;
 
@@ -30,10 +36,15 @@ class ProjectManager extends Component
 
     // General section
     public string $name = '';
+
     public string $slug = '';
+
     public string $summary = '';
+
     public string $status = 'active';
+
     public mixed $logo = null;
+
     public bool $shouldRemoveLogo = false;
 
     // Description section
@@ -44,18 +55,37 @@ class ProjectManager extends Component
 
     // Links section
     public ?string $website = '';
+
     public ?string $issues = '';
+
     public ?string $source = '';
+
     public array $externalCredits = [];
 
     // Members section
     public string $newMemberName = '';
+
     public string $newMemberRole = 'contributor';
+
+    // Versions section
+    public int $versionsPerPage = 10;
+
+    public array $sortBy = ['column' => 'release_date', 'direction' => 'desc'];
+
+    public array $selectedVersionTags = [];
+
+    public string $releaseDatePeriod = 'all';
+
+    public ?string $releaseDateStart = null;
+
+    public ?string $releaseDateEnd = null;
 
     // Danger section
     public string $deleteConfirmation = '';
 
     private ProjectService $projectService;
+
+    private ProjectVersionService $projectVersionService;
 
     private bool $strictValidation = false;
 
@@ -85,7 +115,7 @@ class ProjectManager extends Component
             'externalCredits.*.url' => 'nullable|url|max:255',
         ];
 
-        $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug,' . $this->project->id;
+        $rules['slug'] = 'required|string|max:255|regex:/^[a-z0-9\-]+$/|unique:project,slug,'.$this->project->id;
 
         return $rules;
     }
@@ -96,7 +126,7 @@ class ProjectManager extends Component
             return;
         }
 
-        $selectedTags = \App\Models\ProjectTag::with('parent')->whereIn('id', $selectedTagIds)->get();
+        $selectedTags = ProjectTag::with('parent')->whereIn('id', $selectedTagIds)->get();
 
         $invalidMainTags = [];
         $invalidSubTags = [];
@@ -107,7 +137,7 @@ class ProjectManager extends Component
                     ->where('project_type_id', $this->projectType->id)
                     ->exists();
 
-                if (!$parentValid) {
+                if (! $parentValid) {
                     $invalidSubTags[] = $tag->name;
                 }
             } else {
@@ -115,7 +145,7 @@ class ProjectManager extends Component
                     ->where('project_type_id', $this->projectType->id)
                     ->exists();
 
-                if (!$tagValid) {
+                if (! $tagValid) {
                     $invalidMainTags[] = $tag->name;
                 }
             }
@@ -123,15 +153,46 @@ class ProjectManager extends Component
 
         $allInvalidTags = array_merge($invalidMainTags, $invalidSubTags);
 
-        if (!empty($allInvalidTags)) {
+        if (! empty($allInvalidTags)) {
             $tagNames = implode(', ', $allInvalidTags);
             $fail("The following tags are not allowed for this project type: {$tagNames}.");
         }
     }
 
-    public function boot(ProjectService $projectService)
+    public function boot(ProjectService $projectService, ProjectVersionService $projectVersionService)
     {
         $this->projectService = $projectService;
+        $this->projectVersionService = $projectVersionService;
+    }
+
+    public function updatedVersionsPerPage(): void
+    {
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedSortBy(): void
+    {
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedSelectedVersionTags(): void
+    {
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedReleaseDatePeriod(): void
+    {
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedReleaseDateStart(): void
+    {
+        $this->resetPage('versionsPage');
+    }
+
+    public function updatedReleaseDateEnd(): void
+    {
+        $this->resetPage('versionsPage');
     }
 
     public function mount($projectType, $project, $section = 'general')
@@ -140,18 +201,21 @@ class ProjectManager extends Component
         $this->project = $project;
         $this->strictValidation = $this->project->isApproved();
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             session()->flash('error', 'Please log in to manage project.');
+
             return redirect()->route('login', ['projectType' => $projectType]);
         }
 
         if ($project->isDeactivated()) {
             session()->flash('error', 'This project has been deactivated and cannot be edited.');
+
             return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
         }
 
-        if (!Gate::allows('update', $project)) {
+        if (! Gate::allows('update', $project)) {
             session()->flash('error', 'You do not have permission to edit this project.');
+
             return redirect()->route('project.show', ['projectType' => $projectType, 'project' => $project]);
         }
 
@@ -160,8 +224,8 @@ class ProjectManager extends Component
 
         $this->currentSection = in_array($section, self::SECTIONS, true) ? $section : 'general';
 
-        if (!$this->isSectionAllowed($this->currentSection)) {
-            session()->flash('error', 'Analytics are only available for approved projects.');
+        if (! $this->isSectionAllowed($this->currentSection)) {
+            session()->flash('error', 'This section is only available for approved projects.');
 
             return redirect()->route('project.manage', [
                 'projectType' => $projectType,
@@ -191,6 +255,33 @@ class ProjectManager extends Component
             ->toArray();
     }
 
+    #[Computed]
+    public function versions()
+    {
+        return $this->projectVersionService->getProjectVersions(
+            $this->project,
+            $this->selectedVersionTags,
+            $this->sortBy['column'],
+            $this->sortBy['direction'],
+            $this->versionsPerPage,
+            $this->releaseDatePeriod,
+            $this->releaseDateStart,
+            $this->releaseDateEnd,
+            [
+                'tags.tagGroup',
+                'project.projectType',
+                'project.owner',
+            ],
+            'versionsPage'
+        );
+    }
+
+    #[Computed]
+    public function versionTagGroups()
+    {
+        return $this->projectService->getVersionTagGroups($this->projectType);
+    }
+
     public function render()
     {
         $tagGroups = $this->projectService->getTagGroupsForProjectType($this->projectType);
@@ -202,6 +293,7 @@ class ProjectManager extends Component
         return view('livewire.project-manager', [
             'tagGroups' => $tagGroups,
             'memberships' => $memberships,
+            'versions' => $this->versions,
             'roles' => $roles,
             'approvalStatus' => $this->project->approval_status,
             'rejectionReason' => $this->project->rejection_reason,
@@ -253,13 +345,15 @@ class ProjectManager extends Component
 
     public function sendToReview()
     {
-        if (!Gate::allows('update', $this->project)) {
+        if (! Gate::allows('update', $this->project)) {
             $this->error('You do not have permission to submit this project for review.');
+
             return;
         }
 
-        if (!$this->project->isDraft() && !$this->project->isRejected()) {
+        if (! $this->project->isDraft() && ! $this->project->isRejected()) {
             $this->error('Only draft or rejected projects can be submitted for review.');
+
             return;
         }
 
@@ -279,10 +373,9 @@ class ProjectManager extends Component
                 'user_id' => Auth::id(),
             ]);
 
-            $message = config('projects.auto_approve', false)?
-                "Project published!" :
-                "Project submitted for review!"
-            ;
+            $message = config('projects.auto_approve', false) ?
+                'Project published!' :
+                'Project submitted for review!';
 
             $this->success($message, redirectTo: route('project.show', ['projectType' => $this->project->projectType, 'project' => $this->project]));
         } catch (\Exception $e) {
@@ -342,8 +435,9 @@ class ProjectManager extends Component
 
     public function addMember()
     {
-        if (!Gate::allows('addMember', $this->project)) {
+        if (! Gate::allows('addMember', $this->project)) {
             $this->error('You do not have permission to add members.');
+
             return;
         }
 
@@ -375,6 +469,7 @@ class ProjectManager extends Component
         $membership = Membership::findOrFail($membershipId);
         if (Gate::denies('delete', $membership)) {
             $this->error('You do not have permission to remove members.');
+
             return;
         }
 
@@ -404,6 +499,7 @@ class ProjectManager extends Component
         $membership = Membership::findOrFail($membershipId);
         if (Gate::denies('setPrimary', $membership)) {
             $this->error('You do not have permission to manage ownership.');
+
             return;
         }
 
@@ -425,13 +521,14 @@ class ProjectManager extends Component
 
     public function deleteProject()
     {
-        if (!Gate::allows('delete', $this->project)) {
+        if (! Gate::allows('delete', $this->project)) {
             $this->error('You do not have permission to delete this project.');
+
             return;
         }
 
         $this->validate([
-            'deleteConfirmation' => 'required|in:' . $this->project->name,
+            'deleteConfirmation' => 'required|in:'.$this->project->name,
         ], ['deleteConfirmation.in' => 'The project name you entered does not match.']);
 
         try {
@@ -464,6 +561,6 @@ class ProjectManager extends Component
 
     private function isSectionAllowed(string $section): bool
     {
-        return $section !== 'analytics' || $this->project->isApproved();
+        return ! in_array($section, ['versions', 'analytics'], true) || $this->project->isApproved();
     }
 }
