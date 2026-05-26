@@ -158,10 +158,16 @@ class ProjectManager extends Component
         $this->project->load(['owner', 'tags.tagGroup', 'memberships.user', 'externalCredits']);
         $this->loadProjectData();
 
-        $this->currentSection = $section;
+        $this->currentSection = in_array($section, self::SECTIONS, true) ? $section : 'general';
 
-        if (!in_array($this->currentSection, self::SECTIONS, true)) {
-            $this->currentSection = 'general';
+        if (!$this->isSectionAllowed($this->currentSection)) {
+            session()->flash('error', 'Analytics are only available for approved projects.');
+
+            return redirect()->route('project.manage', [
+                'projectType' => $projectType,
+                'project' => $project,
+                'section' => 'general',
+            ]);
         }
     }
 
@@ -451,8 +457,13 @@ class ProjectManager extends Component
 
     public function setSection(string $section): void
     {
-        if (in_array($section, self::SECTIONS, true)) {
+        if (in_array($section, self::SECTIONS, true) && $this->isSectionAllowed($section)) {
             $this->currentSection = $section;
         }
+    }
+
+    private function isSectionAllowed(string $section): bool
+    {
+        return $section !== 'analytics' || $this->project->isApproved();
     }
 }

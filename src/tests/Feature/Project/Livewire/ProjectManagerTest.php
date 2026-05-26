@@ -431,6 +431,28 @@ class ProjectManagerTest extends TestCase
     }
 
     #[Test]
+    public function test_manage_analytics_route_is_blocked_for_draft_project(): void
+    {
+        $project = $this->ownedProject(['approval_status' => 'draft']);
+
+        $this->actingAs($this->user)
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'analytics']))
+            ->assertRedirect(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'general']))
+            ->assertSessionHas('error', 'Analytics are only available for approved projects.');
+    }
+
+    #[Test]
+    public function test_manage_analytics_nav_is_hidden_for_draft_project(): void
+    {
+        $project = $this->ownedProject(['approval_status' => 'draft']);
+
+        $this->actingAs($this->user)
+            ->get(route('project.manage', ['projectType' => $this->projectType, 'project' => $project, 'section' => 'general']))
+            ->assertOk()
+            ->assertDontSee('Analytics');
+    }
+
+    #[Test]
     public function test_manage_analytics_route_is_blocked_for_unauthorized_user(): void
     {
         $owner = User::factory()->create();
@@ -816,5 +838,17 @@ class ProjectManagerTest extends TestCase
             ->assertSet('currentSection', 'analytics')
             ->call('setSection', 'not-allowed')
             ->assertSet('currentSection', 'analytics');
+    }
+
+    #[Test]
+    public function test_set_section_does_not_switch_to_analytics_for_draft_project()
+    {
+        $project = $this->ownedProject(['approval_status' => 'draft']);
+
+        Livewire::actingAs($this->user)
+            ->test(ProjectManager::class, ['projectType' => $this->projectType, 'project' => $project])
+            ->assertSet('currentSection', 'general')
+            ->call('setSection', 'analytics')
+            ->assertSet('currentSection', 'general');
     }
 }
