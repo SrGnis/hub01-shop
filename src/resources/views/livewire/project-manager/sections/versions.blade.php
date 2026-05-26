@@ -94,6 +94,13 @@
 
         @scope('actions', $version)
             <div class="flex items-center justify-end gap-2">
+                <x-button
+                    link="{{ route('project.version.show', ['projectType' => $version->project->projectType, 'project' => $version->project, 'version_key' => $version]) }}"
+                    icon="lucide-eye"
+                    class="btn-primary btn-sm"
+                    title="View version"
+                    no-wire-navigate
+                />
                 @can('editVersion', $version->project)
                     <x-button
                         link="{{ route('project.version.edit', ['projectType' => $version->project->projectType, 'project' => $version->project, 'version_key' => $version]) }}"
