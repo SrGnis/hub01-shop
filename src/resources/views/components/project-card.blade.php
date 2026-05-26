@@ -25,7 +25,7 @@
 
                 <h3 class="text-xl font-bold mb-1">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        class="text-primary hover:text-primary-focus transition-colors">
+                        class="text-primary hover:text-primary-focus transition-colors whitespace-normal break-words">
                         {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
                         @if ($project->isDeactivated())
                             <x-badge value="Deactivated" class="badge-error" />
@@ -113,7 +113,7 @@
                 <div class="mb-3">
                     <h3 class="text-xl font-bold mb-1">
                         <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                            class="text-primary hover:text-primary-focus transition-colors">
+                            class="text-primary hover:text-primary-focus transition-colors whitespace-normal break-words">
                             {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
                             @if (!$project->isApproved())
                                 <x-badge value="{{ $project->approval_status->label() }}"

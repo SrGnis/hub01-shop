@@ -55,15 +55,15 @@
 
                 @can('update', $project)
                     <x-button
-                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
-                        label="Edit Project"
+                        link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        icon="settings"
+                        label="Manage Project"
                         class="btn-primary btn-sm hidden sm:inline-flex"
                         no-wire-navigate />
                     {{-- Mobile: icon-only edit --}}
                     <x-button
-                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
+                        link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        icon="settings"
                         class="btn-primary btn-sm btn-square sm:hidden"
                         no-wire-navigate />
                 @endcan
@@ -97,7 +97,7 @@
     </div>
 
     {{-- Main Layout: stacked on mobile, 2-col on lg --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
 
         {{-- Left Column --}}
         <div class="lg:col-span-8 flex flex-col gap-4">

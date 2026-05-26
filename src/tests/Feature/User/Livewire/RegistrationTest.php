@@ -33,7 +33,7 @@ class RegistrationTest extends TestCase
             ->set('terms', true)
             ->call('register')
             ->assertHasNoErrors()
-            ->assertRedirect('/');
+            ->assertRedirect(route('platform.dashboard', absolute: false));
     }
 
     #[Test] 

@@ -11,6 +11,7 @@ use App\Models\ProjectVersionDailyDownload;
 use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
+use App\Notifications\ProjectPublished;
 use App\Services\ProjectService;
 use App\Services\ProjectQuotaService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,6 +39,15 @@ class ProjectServiceTest extends TestCase
         $this->projectService = new ProjectService($quotaService);
         $this->projectType = ProjectType::factory()->create();
         $this->user = User::factory()->create();
+    }
+
+    private function attachProjectTypeTag(Project $project): ProjectTag
+    {
+        $tag = ProjectTag::factory()->create();
+        $tag->projectTypes()->attach($this->projectType);
+        $project->tags()->attach($tag);
+
+        return $tag;
     }
 
     #[Test]
@@ -409,10 +419,10 @@ class ProjectServiceTest extends TestCase
 
         $this->assertDatabaseHas('project', [
             'name' => 'Test Project',
-            'approval_status' => 'approved',
+            'approval_status' => 'draft',
         ]);
-        $this->assertNotNull($project->submitted_at);
-        $this->assertNotNull($project->reviewed_at);
+        $this->assertNull($project->submitted_at);
+        $this->assertNull($project->reviewed_at);
     }
 
     #[Test]
@@ -536,7 +546,10 @@ class ProjectServiceTest extends TestCase
     #[Test]
     public function test_submit_project_for_review()
     {
+        Config::set('projects.auto_approve', false);
+
         $project = Project::factory()->owner($this->user)->draft()->create();
+        $this->attachProjectTypeTag($project);
 
         $this->projectService->submitProjectForReview($project);
 
@@ -545,6 +558,77 @@ class ProjectServiceTest extends TestCase
             'approval_status' => 'pending',
         ]);
         $this->assertNotNull($project->fresh()->submitted_at);
+    }
+
+    #[Test]
+    public function test_auto_approved_project_submission_notifies_active_members()
+    {
+        Config::set('projects.auto_approve', true);
+
+        $activeMember = User::factory()->create();
+        $inactiveMember = User::factory()->create();
+        $project = Project::factory()->owner($this->user)->draft()->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+        $this->attachProjectTypeTag($project);
+
+        Membership::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => $activeMember->id,
+            'status' => 'active',
+        ]);
+        Membership::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => $inactiveMember->id,
+            'status' => 'pending',
+        ]);
+
+        $this->projectService->submitProjectForReview($project);
+
+        $project->refresh();
+
+        $this->assertDatabaseHas('project', [
+            'id' => $project->id,
+            'approval_status' => 'approved',
+            'reviewed_by' => null,
+        ]);
+        $this->assertNotNull($project->submitted_at);
+        $this->assertNotNull($project->reviewed_at);
+
+        Notification::assertSentTo([$this->user, $activeMember], ProjectPublished::class);
+        Notification::assertNotSentTo($inactiveMember, ProjectPublished::class);
+    }
+
+    #[Test]
+    public function test_cannot_submit_project_without_description()
+    {
+        Config::set('projects.auto_approve', false);
+
+        $project = Project::factory()->owner($this->user)->draft()->create([
+            'description' => null,
+            'project_type_id' => $this->projectType->id,
+        ]);
+        $this->attachProjectTypeTag($project);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Project description is required before submission.');
+
+        $this->projectService->submitProjectForReview($project);
+    }
+
+    #[Test]
+    public function test_cannot_submit_project_without_tags()
+    {
+        Config::set('projects.auto_approve', false);
+
+        $project = Project::factory()->owner($this->user)->draft()->create([
+            'project_type_id' => $this->projectType->id,
+        ]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('At least one tag is required before submission.');
+
+        $this->projectService->submitProjectForReview($project);
     }
 
     #[Test]

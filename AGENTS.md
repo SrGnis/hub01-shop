@@ -1,46 +1,46 @@
 # Hub01 Shop — Agent Development Guide
 
-Brief: Hub01 Shop is a centralized platform for Cataclysm community content (mods/assets) with strong versioning, dependency tracking, moderation workflows, and quota enforcement.
+Brief: Hub01 Shop is centralized platform for Cataclysm community content (mods/assets) with strong versioning, dependency tracking, moderation workflows, quota enforcement.
 
 ## Project Context
 
-- Domain: user-generated game content distribution with structured projects and semantic version releases.
-- Current focus: project workflows, dependency handling, search/filter UX, and test coverage expansion.
+- Domain: user-generated game content distribution with structured projects, semantic version releases.
+- Current focus: project workflows, dependency handling, search/filter UX, test coverage expansion.
 - Key active decisions:
-    - Projects start as drafts and require manual submission/review.
-    - Dependency tracking is a core requirement.
+    - Projects start as drafts, require manual submission/review.
+    - Dependency tracking is core requirement.
     - API dependency payload uses `external` + `project` + `version` fields.
-    - MaryUI (DaisyUI-based) is the standard UI layer.
+    - MaryUI (DaisyUI-based) is standard UI layer.
 
 ## Architecture
 
 - Stack architecture: Laravel MVC + Livewire for full-stack interactivity.
 - Follow these layers strictly:
     - Frontend:
-        - Livewire components and API controllers.
+        - Livewire components, API controllers.
         - Handles interaction, validation, authentication, authorization.
         - May use models directly only for trivial reads/writes.
         - Delegate business rules to services.
     - Services:
         - Business logic, API orchestration, data processing, domain validation.
-        - Must be stateless and context-agnostic.
+        - Must be stateless, context-agnostic.
         - Must not depend on request/session/current user.
         - Use models for persistence concerns.
     - Models:
-        - Data representation, relationships, scopes, and database interaction.
+        - Data representation, relationships, scopes, database interaction.
 
 ## Core Domain Model (High-Level)
 
 - Project:
-    - Owns slug/status/approval state and general metadata.
+    - Owns slug/status/approval state, general metadata.
 - ProjectVersion:
-    - Represents a release with files/changelog/dependencies.
+    - Represents release with files/changelog/dependencies.
 - ProjectVersionDependency:
     - Encodes links to internal/external dependencies.
 - Membership/Teams:
     - Enables collaborative project maintenance.
 - Quotas:
-    - Enforced at system, project-type, and per-entity override levels.
+    - Enforced at system, project-type, per-entity override levels.
 
 ## Technology Standards
 
@@ -56,22 +56,22 @@ Brief: Hub01 Shop is a centralized platform for Cataclysm community content (mod
 
 - Keep controllers/Livewire thin; move reusable business logic into services.
 - Prefer Eloquent scopes for reusable visibility/filtering rules.
-- Use enums/DTO-like structures for explicit domain values and safer contracts.
-- Keep validation close to entry points (Frontend/API), and enforce critical invariants again in services.
-- Follow existing naming and folder conventions in `src/app`.
+- Use enums/DTO-like structures for explicit domain values, safer contracts.
+- Keep validation close to entry points (Frontend/API), enforce critical invariants again in services.
+- Follow existing naming, folder conventions in `src/app`.
 
 ## Security & Access
 
 - Enforce authorization for project/version operations.
 - Never trust client payloads for quota/approval-sensitive actions.
-- Validate and sanitize dependency-related inputs consistently.
+- Validate, sanitize dependency-related inputs consistently.
 - Use Sanctum token lifecycle via service-based flows (create/revoke/renew patterns).
 
 ## Testing Guidelines
 
 - Add/maintain:
     - Feature tests for end-to-end user flows (search/show/forms/api).
-    - Unit tests for service-layer logic and critical components.
+    - Unit tests for service-layer logic, critical components.
 - Prioritize coverage for:
     - Dependency management edge cases.
     - Visibility/approval rules.
@@ -89,11 +89,11 @@ Brief: Hub01 Shop is a centralized platform for Cataclysm community content (mod
 ```
 
 - Typical tooling:
-    - Composer/NPM and artisan commands should be executed via `scripts/cr`.
+    - Composer/NPM, artisan commands should be executed via `scripts/cr`.
 
 ## UI Conventions
 
-- Use MaryUI components as the default UI building blocks.
+- Use MaryUI components as default UI building blocks.
 - DaisyUI/Tailwind utility usage should align with existing project patterns.
 - For component references, inspect:
     - `src/lib/mary/src/View/Components`
@@ -119,5 +119,5 @@ Brief: Hub01 Shop is a centralized platform for Cataclysm community content (mod
 
 ## Documentation Hygiene
 
-- Keep this file concise, specific, and action-oriented.
-- Update this guide when architecture decisions or workflow conventions change.
+- Keep this file concise, specific, action-oriented.
+- Update this guide when architecture decisions, workflow conventions change.

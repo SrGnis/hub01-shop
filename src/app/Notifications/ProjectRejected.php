@@ -55,7 +55,7 @@ class ProjectRejected extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $projectEditUrl = route('project.edit', [
+        $projectEditUrl = route('project.manage', [
             'projectType' => $this->projectType,
             'project' => $this->projectSlug,
         ]);

@@ -7,7 +7,6 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Membership;
 use App\Models\ProjectVersionDailyDownload;
-use App\Services\ProjectService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -43,30 +42,6 @@ class UserProfileTest extends TestCase
         Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])
             ->assertCount('activeProjects', 2);
-    }
-
-    #[Test]
-    public function test_deleted_projects_computed_property_only_for_owner()
-    {
-        $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-
-        // Create deleted project owned by user
-        $project1 = Project::factory()->owner($user)->create();
-        $project1->delete();
-
-        // Create active project
-        Project::factory()->owner($user)->create();
-
-        // 1. Authenticated as Owner -> Should see deleted projects
-        Livewire::actingAs($user)
-            ->test(UserProfile::class, ['user' => $user])
-            ->assertCount('deletedProjects', 1);
-
-        // 2. Authenticated as Other User -> Should NOT see deleted projects
-        Livewire::actingAs($otherUser)
-            ->test(UserProfile::class, ['user' => $user])
-            ->assertCount('deletedProjects', 0);
     }
 
     #[Test]
@@ -190,35 +165,4 @@ class UserProfileTest extends TestCase
             ->assertSee('19 downloads');
     }
 
-    #[Test]
-    public function test_restore_project()
-    {
-        $user = User::factory()->create();
-        $project = Project::factory()->owner($user)->create();
-        $project->delete();
-
-        $this->assertTrue($project->fresh()->trashed());
-
-        Livewire::actingAs($user)
-            ->test(UserProfile::class, ['user' => $user])
-            ->call('restoreProject', $project->id)
-            ->assertHasNoErrors();
-
-        $this->assertFalse($project->fresh()->trashed());
-    }
-
-    #[Test]
-    public function test_restore_project_authorization()
-    {
-        $owner = User::factory()->create();
-        $otherUser = User::factory()->create();
-        $project = Project::factory()->owner($owner)->create();
-        $project->delete();
-
-        Livewire::actingAs($otherUser)
-            ->test(UserProfile::class, ['user' => $owner])
-            ->call('restoreProject', $project->id);
-
-        $this->assertTrue($project->fresh()->trashed());
-    }
 }

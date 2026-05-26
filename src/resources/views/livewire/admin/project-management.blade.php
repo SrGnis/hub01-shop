@@ -82,7 +82,7 @@
                             class="btn-sm btn-ghost" tooltip="View project" />
                         @if (!$project->isDeactivated())
                             <x-button icon="lucide-pencil"
-                                link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                                 link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
                                 class="btn-sm btn-ghost" tooltip="Edit project" />
                         @endif
                         @if ($project->isDeactivated())

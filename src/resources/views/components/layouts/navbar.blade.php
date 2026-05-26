@@ -72,18 +72,14 @@
             </div>
 
             {{-- Actions (Right) --}}
-            <div class="flex-shrink-0 flex items-center gap-3">
-                @if($user = auth()->user())
-                    <x-dropdown>
-                        <x-slot:trigger>
-                            <x-button icon="plus" class="btn-circle btn-ghost" />
-                        </x-slot:trigger>
-                        <x-menu class="p-0">
-                            @foreach ($allProjectTypes as $projectType)
-                                <x-menu-item title="New {{ $projectType->display_name }}" icon="{{ $projectType->icon }}" link="{{ route('project.create', $projectType) }}" />
-                            @endforeach
-                        </x-menu>
-                    </x-dropdown>
+             <div class="flex-shrink-0 flex items-center gap-3">
+                 @if($user = auth()->user())
+                     <x-button
+                         icon="plus"
+                         class="btn-circle btn-ghost"
+                         onclick="Livewire.dispatch('open-project-create-modal')"
+                         aria-label="Create new project"
+                     />
                     {{-- User Dropdown --}}
                     <x-dropdown>
                         <x-slot:trigger>
@@ -97,12 +93,12 @@
                             </x-avatar>
                         </x-slot:trigger>
                         <x-menu class="p-0">
-                            <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" />
-                            <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
-                            <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" />
+                            <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" no-wire-navigate/>
+                            <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" no-wire-navigate/>
+                            <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" no-wire-navigate/>
 
                             @if ($user->isAdmin())
-                                <x-menu-item title="Admin" icon="settings" link="{{ route('admin.dashboard') }}" />
+                                <x-menu-item title="Admin" icon="settings" link="{{ route('admin.dashboard') }}" no-wire-navigate/>
                             @endif
 
                             <x-menu-separator />
@@ -115,6 +111,7 @@
                                 icon="log-out"
                                 icon-classes="text-error"
                                 @click.prevent="$refs.logoutForm.submit()"
+                                no-wire-navigate
                             />
                         </x-menu>
                     </x-dropdown>
@@ -175,6 +172,9 @@
 
     {{-- Cookie Consent --}}
     <x-cookie-consent />
+
+    {{-- Project Create Modal --}}
+    @livewire('project-create-modal')
 
 </body>
 </html>
