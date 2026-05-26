@@ -41,7 +41,7 @@
                         label="Bio"
                         wire:model="bio"
                         placeholder="Tell us about yourself..."
-                        :max-length="125"
+                        :max-length="280"
                         :alpine-char-count="true"
                         rows="4"
                     />
@@ -72,4 +72,3 @@
         </div>
     </div>
 </div>
-

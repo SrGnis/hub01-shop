@@ -36,7 +36,7 @@ class UserProfileEdit extends Component
     protected function rules(): array
     {
         return [
-            'bio' => 'nullable|string|max:125',
+            'bio' => 'nullable|string|max:280',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
@@ -72,4 +72,3 @@ class UserProfileEdit extends Component
         return view('livewire.user-profile-edit');
     }
 }
-
