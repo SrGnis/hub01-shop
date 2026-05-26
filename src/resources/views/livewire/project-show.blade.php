@@ -56,14 +56,14 @@
                 @can('update', $project)
                     <x-button
                         link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
-                        label="Edit Project"
+                        icon="settings"
+                        label="Manage Project"
                         class="btn-primary btn-sm hidden sm:inline-flex"
                         no-wire-navigate />
                     {{-- Mobile: icon-only edit --}}
                     <x-button
                         link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
+                        icon="settings"
                         class="btn-primary btn-sm btn-square sm:hidden"
                         no-wire-navigate />
                 @endcan

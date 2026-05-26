@@ -1,7 +1,10 @@
-<div class="w-full lg:w-10/12 m-auto py-6">
+<div class="w-full m-auto">
     <!-- Back Button -->
-    <div class="mb-6">
-        <x-button link="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}" icon="lucide-arrow-left" label="Back to Project" />
+    <div class="mb-2 mt-6">
+        <a href="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project, 'section' => 'versions']) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-base-content/60 hover:text-primary">
+            <x-icon name="lucide-arrow-left" class="w-4 h-4" />
+            Back to versions
+        </a>
     </div>
 
     <x-card>
