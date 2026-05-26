@@ -30,7 +30,13 @@
             ]" required />
 
             <!-- Release Date -->
-            <x-datetime label="Release Date" wire:model="release_date" type="date" required />
+            <x-datetime
+                label="Release Date"
+                wire:model="release_date"
+                type="date"
+                hint="The release date helps users determine compatibility with experimental game versions, especially when those versions are identified by date."
+                required
+            />
 
             <!-- Changelog (Markdown) -->
             <div x-data="{ mode: 'code' }">
