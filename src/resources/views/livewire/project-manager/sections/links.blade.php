@@ -1,12 +1,12 @@
 <x-card class="space-y-6" x-on:input="markDirty()" x-on:change="markDirty()">
     {{-- Links --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <x-input label="Website URL" wire:model="website" type="url" icon="globe"
-            placeholder="https://example.com" />
-        <x-input label="Issues URL" wire:model="issues" type="url" icon="bug"
-            placeholder="https://github.com/user/repo/issues" />
         <x-input label="Source Code URL" wire:model="source" type="url" icon="code"
             placeholder="https://github.com/user/repo" />
+        <x-input label="Issues URL" wire:model="issues" type="url" icon="bug"
+            placeholder="https://github.com/user/repo/issues" />
+        <x-input label="Website URL" wire:model="website" type="url" icon="globe"
+            placeholder="https://example.com" />
     </div>
 
     {{-- External Credits --}}

@@ -9,13 +9,13 @@
 @if($hasLinks)
     <x-card title="Links">
         <div class="space-y-2">
-            @if (isset($project->website) && $project->website)
+            @if (isset($project->source) && $project->source)
                 <x-button
-                    link="{{ $project->website }}"
-                    tooltip="{{ $project->website }}"
+                    link="{{ $project->source }}"
+                    tooltip="{{ $project->source }}"
                     external
-                    icon="globe"
-                    label="Website"
+                    icon="code"
+                    label="Source Code"
                     class="w-full btn-ghost justify-start"
                 />
             @endif
@@ -31,13 +31,13 @@
                 />
             @endif
 
-            @if (isset($project->source) && $project->source)
+            @if (isset($project->website) && $project->website)
                 <x-button
-                    link="{{ $project->source }}"
-                    tooltip="{{ $project->source }}"
+                    link="{{ $project->website }}"
+                    tooltip="{{ $project->website }}"
                     external
-                    icon="code"
-                    label="Source Code"
+                    icon="globe"
+                    label="Website"
                     class="w-full btn-ghost justify-start"
                 />
             @endif
