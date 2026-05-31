@@ -27,7 +27,7 @@
     @endif
 
     {{-- Top Action Bar --}}
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         {{-- Back button --}}
         <x-button link="{{ route('project-search', ['projectType' => $project->projectType]) }}"
             icon="arrow-left"
@@ -97,10 +97,10 @@
     </div>
 
     {{-- Main Layout: stacked on mobile, 2-col on lg --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 items-start">
 
         {{-- Left Column --}}
-        <div class="lg:col-span-8 flex flex-col gap-4">
+        <div class="lg:col-span-8 flex flex-col gap-3">
 
             {{-- Project Card --}}
             <x-project-card :project="$project" />
@@ -135,7 +135,7 @@
 
         {{-- Right Column / Sidebar --}}
         {{-- On mobile: shown after main content. On lg: side column. --}}
-        <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+        <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
             <x-project-recent-versions :project="$project" />
             <x-project-creators :project="$project" />
             <x-project-external-credits :project="$project" />

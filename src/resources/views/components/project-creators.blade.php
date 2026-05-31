@@ -1,6 +1,6 @@
 @props(['project'])
 
-<x-card title="Creators" separator>
+<x-card title="Creators">
     @if($project->users->count() > 0)
         <div class="space-y-3">
             @foreach($project->active_users as $user)
@@ -32,4 +32,3 @@
         <p class="text-base-content/60 italic text-sm">No creators found</p>
     @endif
 </x-card>
-

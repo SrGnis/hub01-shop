@@ -5,9 +5,7 @@
             title="Projects"
             icon="package"
             icon-classes="w-6 h-6"
-            subtitle="Browse the projects you are member of."
-            class="!mb-0"
-            >
+            subtitle="Browse the projects you are member of.">
             <x-slot:actions class="w-full justify-end md:w-auto">
                 <div x-data="{ showFilters: false }" class="w-full md:w-auto">
                     <div class="md:hidden mb-3 w-full flex justify-end">
@@ -22,7 +20,7 @@
                     </div>
 
                     <div
-                        class="grid grid-cols-1 md:grid-cols-5 gap-4"
+                        class="grid grid-cols-1 md:grid-cols-5 gap-3"
                         x-show="showFilters || window.matchMedia('(min-width: 768px)').matches"
                         x-transition
                     >
@@ -118,7 +116,7 @@
                                     </a>
                                 @endif
                             </div>
-                            <div class="lg:hidden text-xs text-base-content/70 flex flex-wrap items-center gap-2 mt-2">
+                            <div class="lg:hidden text-xs text-base-content/70 flex flex-wrap items-center gap-1.5 mt-1.5">
                                 <code>{{ $project->slug }}</code>
                                 <x-badge :value="$project->projectType?->display_name ?? ucfirst((string) $project->projectType?->value)" class="badge-xs badge-ghost" />
                                 @if ($project->trashed())

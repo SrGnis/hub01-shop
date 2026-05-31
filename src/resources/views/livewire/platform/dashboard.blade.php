@@ -5,9 +5,7 @@
             title="Dashboard"
             icon="layout-panel-left"
             icon-classes="w-6 h-6"
-            subtitle="Overview of your profile, latest notifications, and quick analytics."
-            class="!mb-0"
-        />
+            subtitle="Overview of your profile, latest notifications, and quick analytics." />
     </x-slot:header>
 
     <x-slot:left>
@@ -46,9 +44,9 @@
         </div>
     </x-card>
 
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-6" wire:loading.class="opacity-60">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 mb-4" wire:loading.class="opacity-60">
         <x-card class="order-2 xl:order-1 xl:col-span-8" aria-live="polite">
-            <x-header title="Recent Notifications" icon="bell" subtitle="Notification center improvements are in progress." size="text-xl" separator />
+            <x-header title="Recent Notifications" icon="bell" subtitle="Notification center improvements are in progress." size="text-xl" />
 
             <div class="text-center py-10">
                 <x-icon name="lucide-hourglass" class="w-12 h-12 mx-auto mb-3 text-base-content/40" />
@@ -59,7 +57,7 @@
 
         <div class="order-1 xl:order-2 xl:col-span-4">
             <x-card>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4" aria-live="polite">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-3" aria-live="polite">
                     @foreach ($this->summaryMetrics as $metric)
                         <x-platform.dashboard-stat
                             :title="$metric['label']"

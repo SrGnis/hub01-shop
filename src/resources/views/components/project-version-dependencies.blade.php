@@ -1,7 +1,7 @@
 @props(['version', 'project'])
 
 @if($version->dependencies->count() > 0)
-    <x-card title="Dependencies" separator>
+    <x-card title="Dependencies">
         <div class="space-y-4">
             @foreach(['required', 'optional', 'embedded'] as $type)
                 @php
@@ -48,4 +48,3 @@
         </div>
     </x-card>
 @endif
-

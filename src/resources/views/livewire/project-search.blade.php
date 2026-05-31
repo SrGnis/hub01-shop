@@ -1,6 +1,6 @@
 <div x-data="{ showMobileFilters: false }">
     <!-- HEADER -->
-    <x-header title="{{ $projectType->pluralizedDisplayName() }}" separator progress-indicator>
+    <x-header title="{{ $projectType->pluralizedDisplayName() }}" progress-indicator>
         <x-slot:actions>
             <x-input placeholder="Search {{ $projectType->pluralizedDisplayName() }}..."
                 wire:model.live.debounce.500ms="search" clearable icon="search" class="w-full max-w-md" />
@@ -9,10 +9,10 @@
         </x-slot:actions>
     </x-header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <!-- DESKTOP FILTERS SIDEBAR -->
         <div class="hidden lg:block lg:col-span-3">
-            <x-card separator>
+            <x-card>
                 <x-slot:title class="flex items-center justify-between gap-3">
                     <span>Filters</span>
                     <x-button label="Clear Filters" wire:click="clearFilters" icon="x" class="btn-ghost" />
@@ -34,7 +34,7 @@
         <!-- MAIN CONTENT -->
         <div class="lg:col-span-9">
             <!-- SORTING OPTIONS (Desktop) -->
-            <div class="hidden lg:block mb-4">
+            <div class="hidden lg:block mb-3">
                 <x-card class="p-4">
                     <div class="flex flex-wrap gap-4 items-center justify-between" x-ref="sortingOptions">
                         <div class="flex flex-wrap gap-4 items-center">
@@ -60,14 +60,11 @@
 
             <!-- PROJECTS LIST -->
             <div class="space-y-4">
-                <!-- Pagination Top -->
-                {{ $this->projects->onEachSide(1)->links('vendor.livewire.tailwind') }}
-
                 <!-- Project Cards -->
                 @forelse ($this->projects as $project)
                     <x-project-card :project="$project" />
                 @empty
-                    <x-card class="text-center py-12">
+                    <x-card class="text-center py-8">
                         <x-icon name="lucide-search" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
                         <h3 class="text-lg font-medium mb-2">No projects found</h3>
                         <p class="">Try adjusting your search criteria or filters.</p>
@@ -81,7 +78,7 @@
     </div>
 
     <!-- MOBILE FILTERS MODAL -->
-    <x-mary-modal x-show="showMobileFilters" title="Filter & Sort Projects" separator box-class="max-h-[90vh]"
+    <x-mary-modal x-show="showMobileFilters" title="Filter & Sort Projects" box-class="max-h-[90vh]"
         class="backdrop-blur-sm">
 
         <div class="space-y-6">

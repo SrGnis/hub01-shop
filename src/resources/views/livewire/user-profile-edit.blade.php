@@ -1,16 +1,16 @@
 <div>
-    <x-header title="{{ $user->name }}" separator />
+    <x-header title="{{ $user->name }}" />
 
     <!-- Responsive Grid Container -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Account Info Section -->
         <div>
-            <x-header title="Account Info" separator />
+            <x-header title="Account Info" />
             <x-card>
                 <x-form wire:submit="save">
                     <!-- Avatar Section -->
                     <div class="mb-8">
-                        <label class="block text-sm font-semibold mb-4">Profile Picture</label>
+                        <label class="block text-sm font-semibold mb-3">Profile Picture</label>
                         <div class="flex items-end gap-6">
                             <!-- Avatar Preview -->
                             <div class="flex-shrink-0">
@@ -67,7 +67,7 @@
 
         <!-- Account Security Section -->
         <div>
-            <x-header title="Account Security" separator />
+            <x-header title="Account Security" />
             <livewire:user-account-security />
         </div>
     </div>

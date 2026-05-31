@@ -7,7 +7,7 @@
 @endphp
 
 @if($hasLinks)
-    <x-card title="Links" separator>
+    <x-card title="Links">
         <div class="space-y-2">
             @if (isset($project->website) && $project->website)
                 <x-button
@@ -44,4 +44,3 @@
         </div>
     </x-card>
 @endif
-

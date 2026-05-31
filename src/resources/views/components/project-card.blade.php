@@ -2,28 +2,28 @@
     'project',
 ])
 
-<x-card class="!py-3 !px-5" id="{{ $project->id }}">
+<x-card class="!py-2 !px-4" id="{{ $project->id }}">
     <!-- Mobile Layout (default) -->
     <div class="block lg:hidden">
         <!-- Image with Title, Byline, and Description -->
-        <div class="flex gap-4 mb-4">
+        <div class="flex gap-2.5 mb-2.5">
             <div class="flex-shrink-0 flex items-center">
                 <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                     class="block hover:opacity-80 transition-opacity">
                     @if ($project->isDeactivated())
-                        <div class="w-28 h-28 bg-base-200 rounded-lg flex items-center justify-center">
-                            <x-icon name="lucide-ban" class="w-10 h-10 text-error" />
+                        <div class="w-24 h-24 bg-base-200 rounded-lg flex items-center justify-center">
+                            <x-icon name="lucide-ban" class="w-8 h-8 text-error" />
                         </div>
                     @else
                         <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
-                            class="w-28 h-28 object-cover rounded-lg" alt="{{ $project->name }} Logo">
+                            class="w-24 h-24 object-cover rounded-lg" alt="{{ $project->name }} Logo">
                     @endif
                 </a>
             </div>
 
             <div class="flex-grow min-w-0">
 
-                <h3 class="text-xl font-bold mb-1">
+                <h3 class="text-lg font-bold mb-0.5 leading-tight">
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         class="text-primary hover:text-primary-focus transition-colors whitespace-normal break-words">
                         {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
@@ -38,12 +38,12 @@
                         @endif
                     </a>
                 </h3>
-                <p class="text-sm mb-2">
+                <p class="text-xs mb-1.5">
                     by <span
                         class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
                 </p>
                 <!-- Description now appears next to the image -->
-                <p class="text-sm leading-relaxed">
+                <p class="text-sm leading-snug">
                     {{ $project->summary ?? 'No description available' }}
                 </p>
             </div>
@@ -51,10 +51,10 @@
 
         <!-- Tags -->
         @if ($project->mainTags->count() > 0)
-            <div class="mb-4">
-                <div class="flex flex-wrap gap-2">
+            <div class="mb-3">
+                <div class="flex flex-wrap gap-1.5">
                     @foreach ($project->mainTags as $tag)
-                        <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
+                        <div class="flex items-center text-xs bg-base-200 px-1.5 py-0.5 rounded">
                             <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
                             {{ $tag->name }}
                         </div>
@@ -64,7 +64,7 @@
         @endif
 
         <!-- Stats at bottom for mobile -->
-        <div class="flex flex-wrap gap-3 text-xs border-t pt-3">
+        <div class="flex flex-wrap gap-2 text-xs border-t pt-2">
             <div class="flex items-center gap-1">
                 <x-icon name="lucide-heart" class="w-3 h-3" />
                 <span>
@@ -90,18 +90,18 @@
 
     <!-- Desktop Layout (lg and up) -->
     <div class="hidden lg:block">
-        <div class="flex gap-6">
+        <div class="flex gap-3">
             <!-- Left Column: Image -->
             <div class="flex-shrink-0 flex items-center">
                 <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                     class="block hover:opacity-80 transition-opacity">
                     @if ($project->isDeactivated())
-                        <div class="w-32 h-32 bg-base-200 rounded-lg flex items-center justify-center">
-                            <x-icon name="lucide-ban" class="w-10 h-10 text-error" />
+                        <div class="w-24 h-24 bg-base-200 rounded-lg flex items-center justify-center">
+                            <x-icon name="lucide-ban" class="w-8 h-8 text-error" />
                         </div>
                     @else
                         <img src="{{ $project->getLogoUrl() ?? '/images/default-project.png' }}"
-                            class="w-32 h-32 object-cover rounded-lg" alt="{{ $project->name }} Logo">
+                            class="w-24 h-24 object-cover rounded-lg" alt="{{ $project->name }} Logo">
                     @endif
                 </a>
             </div>
@@ -110,8 +110,8 @@
             <div class="flex-grow min-w-0">
 
                 <!-- Title and Byline -->
-                <div class="mb-3">
-                    <h3 class="text-xl font-bold mb-1">
+                <div class="mb-2">
+                    <h3 class="text-lg font-bold mb-0.5 leading-tight">
                         <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
                             class="text-primary hover:text-primary-focus transition-colors whitespace-normal break-words">
                             {{ $project->pretty_name ?? ($project->name ?? 'Unnamed Project') }}
@@ -131,8 +131,8 @@
                 </div>
 
                 <!-- Description -->
-                <div class="mb-4">
-                    <p class="text-sm leading-relaxed">
+                <div class="mb-3">
+                    <p class="text-sm leading-snug">
                         {{ $project->summary ?? 'No description available' }}
                     </p>
                 </div>
@@ -143,9 +143,9 @@
                 @endphp
                 @if ($mainTags->count() > 0)
                     <div>
-                        <div class="flex flex-wrap gap-4">
+                        <div class="flex flex-wrap gap-2">
                             @foreach ($mainTags as $tag)
-                                <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
+                                <div class="flex items-center text-xs bg-base-200 px-1.5 py-0.5 rounded">
                                     <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
                                     {{ $tag->name }}
                                 </div>
@@ -156,7 +156,7 @@
             </div>
 
             <!-- Right Column: Stats -->
-            <div class="flex-shrink-0 w-48 flex flex-col justify-evenly text-sm">
+            <div class="flex-shrink-0 w-44 flex flex-col justify-evenly text-xs">
                 <div class="flex items-center gap-2">
                     <x-icon name="lucide-heart" />
                     <span>

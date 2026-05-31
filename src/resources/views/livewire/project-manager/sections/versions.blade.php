@@ -8,10 +8,10 @@
 @endphp
 
 <x-card>
-    <x-slot:title class="flex justify-between items-center gap-3">
+    <x-slot:title class="flex justify-between items-center gap-2">
         <span>Versions</span>
 
-        <div class="flex items-center gap-2" x-data="{ showVersionFilterModal: false }">
+        <div class="flex items-center gap-1.5" x-data="{ showVersionFilterModal: false }">
             @if ($this->versionTagGroups && $this->versionTagGroups->count() > 0)
                 <x-button label="Filter" icon="filter" class="btn-sm btn-primary" @click="showVersionFilterModal = true" responsive />
 
@@ -129,7 +129,7 @@
     </x-table>
 
     @if ($versions->hasPages())
-        <div class="mt-6">
+        <div class="mt-4">
             {{ $versions->links('vendor.livewire.tailwind', ['scrollTo' => false]) }}
         </div>
     @endif

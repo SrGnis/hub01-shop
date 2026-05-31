@@ -71,7 +71,7 @@
 
     @auth
         @if (auth()->id() === $collection->user_id && $collection->isHidden() && filled($collection->hidden_share_token))
-            <x-modal x-show="showShareLinkModal" title="Share Collection Link" separator>
+            <x-modal x-show="showShareLinkModal" title="Share Collection Link">
                 <div class="space-y-3">
                     <p class="text-sm text-base-content/70">
                         Copy and share this private collection URL.

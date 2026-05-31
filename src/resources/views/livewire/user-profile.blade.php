@@ -2,7 +2,7 @@
     <livewire:report-abuse />
 
     <!-- User Profile Header -->
-    <x-card class="mb-6">
+    <x-card class="mb-4">
         <div class="flex flex-col-reverse md:flex-row items-end md:items-center">
             <!-- User Avatar with Info -->
             <div class="w-full md:max-w-3xl">
@@ -13,7 +13,7 @@
                         {{ $user->name }}
                     </x-slot:title>
 
-                    <x-slot:subtitle class="grid gap-2 mt-2 pl-2">
+                    <x-slot:subtitle class="grid gap-1.5 mt-1.5 pl-2">
                         @if ($user->bio)
                             <p class="text-sm text-base-content/80">{{ $user->bio }}</p>
                         @endif
@@ -62,9 +62,9 @@
     <x-tabs wire:model="activeTab" class="mb-6">
         <x-tab name="projects" label="Projects" icon="lucide-package">
             <div class="space-y-6 pt-4">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="hidden lg:block lg:col-span-3">
-                        <x-card separator>
+                        <x-card>
                             <x-slot:title class="flex items-center justify-between gap-3">
                                 <span>Filters</span>
                                 <x-button label="Clear Filters" wire:click="clearProjectFilters" icon="x" class="btn-ghost" />
@@ -116,7 +116,7 @@
                         @endif
 
                         @if ($this->activeProjects->count() === 0)
-                            <x-card class="text-center py-12">
+                            <x-card class="text-center py-8">
                                 <x-icon name="lucide-package" class="w-16 h-16 mx-auto mb-4" />
                                 <h3 class="text-lg font-medium mb-2">No projects found</h3>
                                 <p class="text-base-content/60">Try adjusting the search or filters for this profile.</p>
@@ -136,7 +136,7 @@
                 @forelse ($this->visibleCollections as $collection)
                     <x-collection-card :collection="$collection" :entry-count="$collection->entries_count" />
                 @empty
-                    <x-card class="text-center py-12">
+                    <x-card class="text-center py-8">
                         <x-icon name="lucide-folder-open" class="w-16 h-16 mx-auto mb-4" />
                         <h3 class="text-lg font-medium mb-2">No collections yet</h3>
                         <p class="text-base-content/60">No collections are visible for this profile.</p>
@@ -146,7 +146,7 @@
         </x-tab>
     </x-tabs>
 
-    <x-mary-modal x-show="showProjectFilters" title="Filter Projects" separator box-class="max-h-[90vh]"
+    <x-mary-modal x-show="showProjectFilters" title="Filter Projects" box-class="max-h-[90vh]"
         class="backdrop-blur-sm">
         <div class="space-y-6">
             <div class="border-b pb-6">

@@ -54,7 +54,7 @@
         />
 
         <!-- Actions -->
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="flex justify-end gap-3 mt-4">
             <x-button type="button" wire:click="close" label="Cancel" class="btn-ghost" />
             <x-button type="submit" spinner label="Create Project" class="btn-primary" />
         </div>

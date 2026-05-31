@@ -12,12 +12,12 @@
 <div>
     {{-- Project Filters --}}
     @if ($tagGroups && $tagGroups->count() > 0 && $selectedTagsModel)
-        <div class="mb-6" x-ref="projectTagsFilter">
+        <div class="mb-4" x-ref="projectTagsFilter">
             <div class="flex items-center justify-center">
-                <h3 class="font-semibold text-lg mb-4">Project Filters</h3>
+                <h3 class="font-semibold text-lg mb-3">Project Filters</h3>
             </div>
             @foreach ($tagGroups as $tagGroup)
-                <div class="mb-4">
+                <div class="mb-3">
                     <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
                     <div class="space-y-2 ml-4">
                         @foreach ($tagGroup->tags as $tag)
@@ -31,20 +31,20 @@
 
     {{-- Version Filters --}}
     @if ($versionTagGroups && $versionTagGroups->count() > 0 && $selectedVersionTagsModel)
-        <div class="mb-6" x-ref="versionTagsFilter">
+        <div class="mb-4" x-ref="versionTagsFilter">
             <div class="flex items-center justify-center">
-                <h3 class="font-semibold text-lg mb-4">Version Filters</h3>
+                <h3 class="font-semibold text-lg mb-3">Version Filters</h3>
             </div>
 
             {{-- Date Range Filter --}}
-            <div class="mb-6">
-                <div class="flex items-center justify-between mb-4">
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-3">
                     <h4 class="font-medium text-sm">Release Date</h4>
                     <span wire:loading wire:target="{{$releaseDatePeriodModel}},{{$releaseDateStartModel}},{{$releaseDateEndModel}}" class="loading loading-spinner w-4 h-4"></span>
                 </div>
 
                 {{-- Period Selector --}}
-                <div class="mb-4">
+                <div class="mb-3">
                     <x-select
                         wire:model.live="{{$releaseDatePeriodModel}}"
                         :options="[
@@ -61,7 +61,7 @@
 
                 {{-- Custom Date Range Picker (shown when period is 'custom') --}}
                 @if ($releaseDatePeriod === 'custom')
-                    <div class="grid grid-cols-1 gap-4">
+                    <div class="grid grid-cols-1 gap-3">
                         <div>
                             <x-datetime
                                 wire:model.live="{{$releaseDateStartModel}}"
@@ -81,7 +81,7 @@
             </div>
 
             @foreach ($versionTagGroups as $tagGroup)
-                <div class="mb-4">
+                <div class="mb-3">
                     <h4 class="font-medium text-sm mb-2">{{ $tagGroup->name }}</h4>
                     <div class="space-y-2 ml-4">
                         @foreach ($tagGroup->tags as $tag)

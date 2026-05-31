@@ -50,7 +50,6 @@
 
                 {{-- User --}}
                 @if ($user = auth()->user())
-                    <x-menu-separator />
                     <x-dropdown>
                         <x-slot:trigger>
                             <a>
@@ -78,8 +77,6 @@
                         <x-menu class="p-0 !w-60">
                             <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" />
 
-                            <x-menu-separator />
-
                             <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm" class="hidden">
                                 @csrf
                             </form>
@@ -87,8 +84,6 @@
                                 @click.prevent="$refs.logoutForm.submit()" />
                         </x-menu>
                     </x-dropdown>
-
-                    <x-menu-separator />
                 @endif
 
                 <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('admin.dashboard') }}" />
@@ -104,8 +99,6 @@
                     <x-menu-item title="Quotas" icon="lucide-gauge" link="{{ route('admin.quotas') }}" />
                 </x-menu-sub>
                 <x-menu-item title="Abuse Reports" icon="lucide-flag" link="{{ route('admin.abuse-reports') }}" />
-
-                <x-menu-separator />
 
                 <x-menu-title class="hidden-when-collapsed" title="Configuration" />
                 <x-menu-item title="Site Settings" icon="lucide-settings" link="{{ route('admin.site') }}" />
