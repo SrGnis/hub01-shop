@@ -18,7 +18,7 @@
 
         <form wire:submit="save" class="space-y-6">
             <!-- Name -->
-            <x-input label="Version Name" wire:model="name" required />
+            <x-input label="Version Name" wire:model="name" autocomplete="off" required />
 
             <!-- Version Number -->
             <x-input spinner label="Version Number" wire:model.blur="version_number" placeholder="e.g. 1.0.0" required />
