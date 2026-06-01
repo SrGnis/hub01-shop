@@ -10,7 +10,7 @@
                 <x-form wire:submit="save">
                     <!-- Avatar Section -->
                     <div class="mb-8">
-                        <label class="block text-sm font-semibold mb-3">Profile Picture</label>
+                        <label class="block text-sm font-semibold mb-3" id="profile-picture-label">Profile Picture</label>
                         <div class="flex items-end gap-6">
                             <!-- Avatar Preview -->
                             <div class="flex-shrink-0">

@@ -27,6 +27,8 @@
                         type="button"
                         @click="expanded = !expanded"
                         class="btn-ghost btn-xs btn-circle"
+                        aria-label="{{ $tag->name }} subtags"
+                        aria-expanded="expanded"
                     >
                         <x-icon
                             name="lucide-chevron-right"

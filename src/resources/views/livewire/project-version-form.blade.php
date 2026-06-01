@@ -44,7 +44,7 @@
             <!-- Changelog (Markdown) -->
             <div x-data="{ mode: 'code' }">
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-sm font-medium">Changelog (Markdown)</label>
+                    <label for="changelog-editor" class="text-sm font-medium">Changelog (Markdown)</label>
                     <div class="join">
                         <button type="button" @click="mode = 'code'" :class="{ 'join-item btn-active': mode === 'code' }" class="join-item btn btn-sm">
                             <x-icon name="lucide-code" class="w-4 h-4" /> Code
@@ -56,6 +56,7 @@
                 </div>
                 <div wire:loading.remove wire:target="refreshMarkdown" x-show="mode === 'code'">
                     <x-code
+                        id="changelog-editor"
                         wire:model="changelog"
                         height="300px"
                         language="markdown"
@@ -73,7 +74,7 @@
 
             <!-- Version Tags -->
             <div x-data="{ expandedTags: [] }">
-                <label class="text-sm font-medium mb-2 block">Tags</label>
+                <label class="text-sm font-medium mb-2 block" id="version-tags-label">Tags</label>
                 @foreach($this->availableTagGroups as $tagGroup)
                     <div class="mb-3">
                         <h3 class="font-semibold mb-2">{{ $tagGroup->name }}</h3>

@@ -34,7 +34,7 @@
     ];
 @endphp
 
-<div class="space-y-3">
+<div class="space-y-3" role="status" aria-live="polite">
     @foreach ($messages as $type => $config)
         @if (session()->has($type))
             <x-alert

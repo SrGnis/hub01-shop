@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($title) ? $title . ' - ' : '' }} {{ config('app.name') }} Admin</title>
 
@@ -11,6 +11,11 @@
 </head>
 
 <body class="min-h-screen font-sans antialiased bg-base-200">
+
+    {{-- Skip to content --}}
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-primary-content focus:px-4 focus:py-2 focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        Skip to content
+    </a>
 
     {{-- NAVBAR mobile only --}}
     <x-nav sticky class="lg:hidden">
@@ -37,7 +42,7 @@
             <div class="ml-5 pt-5">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                     <div class="w-8 h-8">
-                        <img src="{{ asset('images/logo.svg') }}" alt="" class="w-full h-full object-contain">
+                        <img src="{{ asset('images/logo.svg') }}" alt="{{ config('app.name') }} home" class="w-full h-full object-contain">
                     </div>
                     <div class="hidden md:block text-xl font-bold text-primary hidden-when-collapsed">
                         <span>{{ config('app.name') }}</span><span class="text-secondary"> ᵇᵉᵗᵃ</span>
@@ -107,8 +112,10 @@
 
         {{-- The `$slot` goes here --}}
         <x-slot:content>
-            <x-flash-messages />
-            {{ $slot }}
+            <main id="main-content">
+                <x-flash-messages />
+                {{ $slot }}
+            </main>
         </x-slot:content>
     </x-main>
 

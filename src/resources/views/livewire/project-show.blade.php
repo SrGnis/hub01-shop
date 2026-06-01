@@ -50,6 +50,7 @@
                         link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $this->project]) }}"
                         icon="upload"
                         class="btn-success btn-sm btn-square sm:hidden"
+                        aria-label="Upload Version"
                         no-wire-navigate />
                 @endcan
 
@@ -65,6 +66,7 @@
                         link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
                         icon="settings"
                         class="btn-primary btn-sm btn-square sm:hidden"
+                        aria-label="Manage Project"
                         no-wire-navigate />
                 @endcan
 
@@ -74,6 +76,7 @@
                     class="btn-ghost btn-sm btn-square [&_svg]:w-5 [&_svg]:h-5 {{ (bool) ($project->is_favorited ?? false) ? 'text-secondary' : '' }}"
                     wire:click="toggleFavorite({{ $project->id }})"
                     title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
+                    aria-label="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
                 />
 
                 {{-- Bookmark --}}
@@ -82,13 +85,14 @@
                     class="btn-ghost btn-sm btn-square [&_svg]:w-5 [&_svg]:h-5 {{ $this->isInUserCollection ? 'text-info' : '' }}"
                     wire:click="openAddToCollectionModal({{ $project->id }})"
                     title="Add to collection"
+                    aria-label="Add to collection"
                 />
             @endauth
 
             {{-- More menu --}}
             <x-dropdown right>
                 <x-slot:trigger>
-                    <x-button icon="ellipsis" class="btn-ghost btn-sm btn-square" />
+                    <x-button icon="ellipsis" class="btn-ghost btn-sm btn-square" aria-label="More actions" />
                 </x-slot:trigger>
                 <x-menu-item title="Report" class="text-error" icon="flag"
                     @click="$dispatch('open-report-modal', { itemId: {{ $project->id }}, itemType: 'App\\\\Models\\\\Project', itemName: '{{ addslashes($project->name) }}' })" />

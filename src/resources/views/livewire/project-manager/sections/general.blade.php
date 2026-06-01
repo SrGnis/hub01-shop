@@ -5,14 +5,14 @@
     {{-- Slug --}}
     <div>
         <div class="flex justify-between items-center mt-2">
-            <label class="text-sm font-medium">
+            <label for="project-slug" class="text-sm font-medium">
                 URL Slug
                 <span class="text-error">*</span>
                 <span wire:loading wire:target="name, slug" class="loading loading-spinner w-4 h-4"></span>
             </label>
             <x-button spinner type="button" wire:click="generateSlug" x-on:click="markDirty()" label="Generate from Name" class="btn-sm" />
         </div>
-        <x-input wire:model.live.debounce.500ms="slug" placeholder="project-slug"
+        <x-input id="project-slug" wire:model.live.debounce.500ms="slug" placeholder="project-slug"
             prefix="{{ route('dummy.project.show', ['projectType' => $projectType]) }}/"
             required />
         <p class="text-warning text-xs mt-1">Warning: Changing the slug will change all URLs.</p>
