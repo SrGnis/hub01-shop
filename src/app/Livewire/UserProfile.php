@@ -12,17 +12,20 @@ use App\Models\ProjectVersion;
 use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
 use App\Services\ProjectService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
 class UserProfile extends Component
 {
     use Toast;
     use InteractsWithProjectCollections;
+    use WithPagination;
 
     public User $user;
 
@@ -44,6 +47,12 @@ class UserProfile extends Component
     public ?string $releaseDateStart = null;
 
     public ?string $releaseDateEnd = null;
+
+    public string $collectionSearch = '';
+
+    public string $collectionVisibility = 'all';
+
+    public int $collectionPerPage = 10;
 
     private ProjectService $projectService;
 
@@ -111,7 +120,7 @@ class UserProfile extends Component
     }
 
     #[Computed]
-    public function visibleCollections()
+    public function visibleCollections(): LengthAwarePaginator
     {
         $query = Collection::query()
             ->where('user_id', $this->user->id)
@@ -123,12 +132,54 @@ class UserProfile extends Component
             $query->where('visibility', 'public');
         }
 
+        if ($this->collectionSearch !== '') {
+            $search = trim($this->collectionSearch);
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($this->collectionVisibility !== 'all') {
+            $query->where('visibility', $this->collectionVisibility);
+        }
+
         return $query
             ->withCount('entries')
             ->with([
                 'entries.project:id,name,logo_path',
             ])
-            ->get();
+            ->paginate($this->collectionPerPage);
+    }
+
+    #[Computed]
+    public function collectionVisibilityOptions(): array
+    {
+        if (!Auth::check() || Auth::id() !== $this->user->id) {
+            return [['id' => 'all', 'name' => 'All visibility']];
+        }
+
+        return [
+            ['id' => 'all', 'name' => 'All visibility'],
+            ['id' => 'public', 'name' => 'Public'],
+            ['id' => 'private', 'name' => 'Private'],
+            ['id' => 'hidden', 'name' => 'Hidden'],
+        ];
+    }
+
+    public function updatedCollectionSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCollectionVisibility(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCollectionPerPage(): void
+    {
+        $this->resetPage();
     }
 
     // TODO: move it for reusing it in API

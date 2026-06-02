@@ -133,15 +133,57 @@
                     <x-collection-card :collection="$this->favoritesCollection" :entry-count="$this->favoritesCollection->entries_count" />
                 @endif
 
-                @forelse ($this->visibleCollections as $collection)
-                    <x-collection-card :collection="$collection" :entry-count="$collection->entries_count" />
-                @empty
+                <!-- Filters -->
+                <div>
+                    <div class="flex flex-col md:flex-row gap-4 items-end justify-end">
+                        <div class="flex-grow w-full md:max-w-sm">
+                            <x-input
+                                placeholder="Search collections..."
+                                icon="lucide-search"
+                                wire:model.live.debounce.300ms="collectionSearch"
+                                clearable
+                            />
+                        </div>
+                        <div class="flex flex-wrap gap-3 items-end">
+                            @if (auth()->id() === $user->id)
+                                <x-select
+                                    wire:model.live="collectionVisibility"
+                                    :options="$this->collectionVisibilityOptions"
+                                    class="w-40"
+                                />
+                            @endif
+                            <x-select
+                                wire:model.live="collectionPerPage"
+                                :options="[
+                                    ['id' => 10, 'name' => '10'],
+                                    ['id' => 25, 'name' => '25'],
+                                    ['id' => 50, 'name' => '50'],
+                                ]"
+                                class="w-24"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                @if ($this->visibleCollections->count() > 0)
+                    <div class="space-y-4">
+                        @foreach ($this->visibleCollections as $collection)
+                            <x-collection-card :collection="$collection" :entry-count="$collection->entries_count" />
+                        @endforeach
+                    </div>
+                @else
                     <x-card class="text-center py-8">
                         <x-icon name="lucide-folder-open" class="w-16 h-16 mx-auto mb-4" />
-                        <h3 class="text-lg font-medium mb-2">No collections yet</h3>
-                        <p class="text-base-content/60">No collections are visible for this profile.</p>
+                        <h3 class="text-lg font-medium mb-2">No collections found</h3>
+                        <p class="text-base-content/60">Try adjusting the search or filters.</p>
                     </x-card>
-                @endforelse
+                @endif
+
+                @if ($this->visibleCollections->hasPages())
+                    <div class="mt-4">
+                        {{ $this->visibleCollections->links() }}
+                    </div>
+                @endif
             </div>
         </x-tab>
     </x-tabs>
