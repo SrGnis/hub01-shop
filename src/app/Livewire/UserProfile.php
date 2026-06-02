@@ -11,6 +11,7 @@ use App\Models\ProjectTagGroup;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionTagGroup;
 use App\Models\User;
+use App\Services\CollectionService;
 use App\Services\ProjectService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,9 +57,12 @@ class UserProfile extends Component
 
     private ProjectService $projectService;
 
-    public function boot(ProjectService $projectService): void
+    private CollectionService $collectionService;
+
+    public function boot(ProjectService $projectService, CollectionService $collectionService): void
     {
         $this->projectService = $projectService;
+        $this->collectionService = $collectionService;
     }
 
     public function mount(User $user)
@@ -122,34 +126,19 @@ class UserProfile extends Component
     #[Computed]
     public function visibleCollections(): LengthAwarePaginator
     {
-        $query = Collection::query()
-            ->where('user_id', $this->user->id)
-            ->whereNull('system_type')
-            ->orderBy('updated_at', 'desc')
-            ->orderBy('uid');
+        $isOwner = Auth::check() && Auth::id() === $this->user->id;
 
-        if (!Auth::check() || Auth::id() !== $this->user->id) {
-            $query->where('visibility', 'public');
-        }
-
-        if ($this->collectionSearch !== '') {
-            $search = trim($this->collectionSearch);
-            $query->where(function (Builder $builder) use ($search): void {
-                $builder->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
-            });
-        }
-
-        if ($this->collectionVisibility !== 'all') {
-            $query->where('visibility', $this->collectionVisibility);
-        }
-
-        return $query
-            ->withCount('entries')
-            ->with([
-                'entries.project:id,name,logo_path',
-            ])
-            ->paginate($this->collectionPerPage);
+        return $this->collectionService->paginateForOwner(
+            user: $this->user,
+            search: $this->collectionSearch ?: null,
+            visibility: $isOwner ? $this->collectionVisibility : 'public',
+            orderBy: 'updated_at',
+            orderDirection: 'desc',
+            perPage: $this->collectionPerPage,
+            excludeSystem: true,
+            withEntriesCount: true,
+            withEntriesProject: true,
+        );
     }
 
     #[Computed]
@@ -251,14 +240,7 @@ class UserProfile extends Component
             return null;
         }
 
-        return Collection::query()
-            ->where('user_id', $this->user->id)
-            ->where('system_type', 'favorites')
-            ->withCount('entries')
-            ->with([
-                'entries.project:id,name,logo_path',
-            ])
-            ->first();
+        return $this->collectionService->getFavoritesForUser($this->user);
     }
 
     private function applyProjectFilters($query): void

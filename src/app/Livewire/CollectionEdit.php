@@ -27,12 +27,20 @@ class CollectionEdit extends Component
      */
     public array $entryNotes = [];
 
+    private CollectionService $collectionService;
+
+    public function boot(CollectionService $collectionService): void
+    {
+        $this->collectionService = $collectionService;
+    }
+
     public function mount(Collection $collection): void
     {
-        $this->collection = Collection::query()
-            ->where('uid', $collection->uid)
-            ->with(['user', 'entries.project'])
-            ->firstOrFail();
+        $this->collection = $this->collectionService->getByUidWithEntries($collection->uid);
+
+        abort_if($this->collection === null, 404);
+
+        $this->collection->load('entries.project');
 
         Gate::authorize('update', $this->collection);
 
@@ -61,7 +69,7 @@ class CollectionEdit extends Component
             'visibility' => 'required|string|in:public,private,hidden',
         ]);
 
-        app(CollectionService::class)->updateCollection($this->collection, $validated);
+        $this->collectionService->updateCollection($this->collection, $validated);
 
         $this->reloadCollection();
         $this->success('Collection metadata updated.');
@@ -71,7 +79,7 @@ class CollectionEdit extends Component
     {
         Gate::authorize('collections.manage.entries', $this->collection);
 
-        app(CollectionService::class)->updateEntryNote(
+        $this->collectionService->updateEntryNote(
             $this->collection,
             $entryUid,
             $this->entryNotes[$entryUid] ?? null
@@ -85,7 +93,7 @@ class CollectionEdit extends Component
     {
         Gate::authorize('collections.manage.entries', $this->collection);
 
-        app(CollectionService::class)->removeEntry($this->collection, $entryUid);
+        $this->collectionService->removeEntry($this->collection, $entryUid);
 
         $this->reloadCollection();
         $this->success('Entry removed from collection.');
@@ -120,17 +128,18 @@ class CollectionEdit extends Component
 
         [$uids[$index], $uids[$targetIndex]] = [$uids[$targetIndex], $uids[$index]];
 
-        app(CollectionService::class)->reorderEntries($this->collection, $uids);
+        $this->collectionService->reorderEntries($this->collection, $uids);
 
         $this->reloadCollection();
     }
 
     private function reloadCollection(): void
     {
-        $this->collection = Collection::query()
-            ->where('uid', $this->collection->uid)
-            ->with(['user', 'entries.project'])
-            ->firstOrFail();
+        $this->collection = $this->collectionService->getByUidWithEntries($this->collection->uid);
+
+        abort_if($this->collection === null, 404);
+
+        $this->collection->load('entries.project');
 
         $this->syncFormFromCollection();
     }

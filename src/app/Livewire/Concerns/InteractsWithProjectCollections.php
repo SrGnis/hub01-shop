@@ -29,18 +29,10 @@ trait InteractsWithProjectCollections
             return collect();
         }
 
-        return $user->collections()
-            ->whereNull('system_type')
-            ->when($this->collectionTargetProjectId, function ($query) {
-                $query->withExists([
-                    'entries as includes_target_project' => function ($entryQuery) {
-                        $entryQuery->where('project_id', $this->collectionTargetProjectId);
-                    },
-                ]);
-            })
-            ->orderBy('updated_at', 'desc')
-            ->orderBy('uid')
-            ->get();
+        return app(CollectionService::class)->getAvailableForUser(
+            $user,
+            $this->collectionTargetProjectId
+        );
     }
 
     public function toggleFavorite(int $projectId): void
@@ -101,11 +93,11 @@ trait InteractsWithProjectCollections
             return;
         }
 
-        $collection = Collection::query()
-            ->where('uid', $collectionUid)
-            ->where('user_id', $user->id)
-            ->whereNull('system_type')
-            ->firstOrFail();
+        $collection = app(CollectionService::class)->getByUidForUser($collectionUid, $user, excludeSystem: true);
+
+        if ($collection === null) {
+            abort(404);
+        }
 
         $project = Project::query()
             ->accessScope()

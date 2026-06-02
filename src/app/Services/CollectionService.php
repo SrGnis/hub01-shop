@@ -15,34 +15,182 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CollectionService
 {
+    private const ALLOWED_ORDER_COLUMNS = ['name', 'created_at', 'updated_at'];
     /**
-     * Paginate collections owned by user for platform workspace table.
+     * Paginate public discoverable collections.
      */
-    public function paginateForUser(
+    public function paginatePublic(
+        ?string $search = null,
+        string $orderBy = 'updated_at',
+        string $orderDirection = 'desc',
+        int $perPage = 10,
+    ): LengthAwarePaginator {
+        $orderBy = in_array($orderBy, self::ALLOWED_ORDER_COLUMNS, true) ? $orderBy : 'updated_at';
+        $orderDirection = strtolower($orderDirection) === 'asc' ? 'asc' : 'desc';
+
+        return Collection::query()
+            ->discoverable()
+            ->search($search)
+            ->with('user')
+            ->orderBy($orderBy, $orderDirection)
+            ->orderBy('uid')
+            ->paginate($perPage);
+    }
+
+    /**
+     * Paginate collections owned by a user.
+     * Used by Platform dashboard, API owner index, and UserProfile.
+     */
+    public function paginateForOwner(
         User $user,
-        string $search = '',
+        ?string $search = null,
         string $visibility = 'all',
-        int $perPage = 10
+        string $orderBy = 'updated_at',
+        string $orderDirection = 'desc',
+        int $perPage = 10,
+        bool $excludeSystem = true,
+        bool $withUser = false,
+        bool $withEntriesCount = false,
+        bool $withEntriesProject = false,
+        bool $withProjectsCount = false,
     ): LengthAwarePaginator {
         $query = Collection::query()
             ->ownerVisible($user->id)
-            ->withCount('entries')
-            ->addSelect([
+            ->search($search)
+            ->withVisibility($visibility);
+
+        if ($excludeSystem) {
+            $query->nonSystem();
+        }
+
+        if ($withUser) {
+            $query->with('user');
+        }
+
+        if ($withEntriesCount) {
+            $query->withCount('entries');
+        }
+
+        if ($withEntriesProject) {
+            $query->with(['entries.project:id,name,logo_path']);
+        }
+
+        if ($withProjectsCount) {
+            $query->addSelect([
                 'projects_count' => DB::table('collection_entry')
                     ->selectRaw('COUNT(DISTINCT collection_entry.project_id)')
                     ->whereColumn('collection_entry.collection_uid', 'collection.uid'),
             ]);
-
-        if ($search !== '') {
-            $query->where(function (Builder $builder) use ($search): void {
-                $builder->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
-            });
         }
 
-        $this->applyVisibilityFilter($query, $visibility);
+        $orderBy = in_array($orderBy, self::ALLOWED_ORDER_COLUMNS, true) ? $orderBy : 'updated_at';
+        $orderDirection = strtolower($orderDirection) === 'asc' ? 'asc' : 'desc';
 
-        return $query->paginate($perPage);
+        return $query
+            ->orderBy($orderBy, $orderDirection)
+            ->orderBy('uid')
+            ->paginate($perPage);
+    }
+
+    /**
+     * Get a single collection by UID for a specific owner.
+     */
+    public function getByUidForUser(string $uid, User $user, bool $excludeSystem = false): ?Collection
+    {
+        $query = Collection::query()
+            ->where('uid', $uid)
+            ->where('user_id', $user->id);
+
+        if ($excludeSystem) {
+            $query->nonSystem();
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * Get a single collection by UID with standard eager loads.
+     */
+    public function getByUidWithEntries(string $uid): ?Collection
+    {
+        return Collection::query()
+            ->where('uid', $uid)
+            ->with(['user'])
+            ->first();
+    }
+
+    /**
+     * Get a single discoverable (public, non-favorites) collection by UID.
+     */
+    public function getDiscoverableByUid(string $uid): ?Collection
+    {
+        return Collection::query()
+            ->discoverable()
+            ->where('uid', $uid)
+            ->with(['user', 'entries.project'])
+            ->first();
+    }
+
+    /**
+     * Get a hidden collection by share token.
+     */
+    public function getHiddenByToken(string $token): ?Collection
+    {
+        return Collection::query()
+            ->hiddenToken($token)
+            ->with(['user'])
+            ->first();
+    }
+
+    /**
+     * Get the favorites collection for a user.
+     */
+    public function getFavoritesForUser(User $user): ?Collection
+    {
+        return Collection::query()
+            ->where('user_id', $user->id)
+            ->where('system_type', CollectionSystemType::FAVORITES)
+            ->withCount('entries')
+            ->with(['entries.project:id,name,logo_path'])
+            ->first();
+    }
+
+    /**
+     * Check if a project exists in any of a user's non-system collections.
+     */
+    public function isInAnyCollection(User $user, Project $project): bool
+    {
+        return Collection::query()
+            ->where('user_id', $user->id)
+            ->nonSystem()
+            ->whereHas('entries', function (Builder $query) use ($project): void {
+                $query->where('project_id', $project->id);
+            })
+            ->exists();
+    }
+
+    /**
+     * Get non-system collections for a user (for dropdowns).
+     * Optionally checks if a specific project is already in each collection.
+     */
+    public function getAvailableForUser(User $user, ?int $targetProjectId = null): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = Collection::query()
+            ->where('user_id', $user->id)
+            ->nonSystem();
+
+        if ($targetProjectId !== null) {
+            $query->withExists([
+                'entries as includes_target_project' => function ($entryQuery) use ($targetProjectId): void {
+                    $entryQuery->where('project_id', $targetProjectId);
+                },
+            ]);
+        }
+
+        return $query
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('uid')
+            ->get();
     }
 
     /**
@@ -56,15 +204,6 @@ class CollectionService
             ['id' => CollectionVisibility::PRIVATE->value, 'name' => 'Private'],
             ['id' => CollectionVisibility::HIDDEN->value, 'name' => 'Hidden'],
         ];
-    }
-
-    private function applyVisibilityFilter(Builder $query, string $visibility): void
-    {
-        if ($visibility === 'all') {
-            return;
-        }
-
-        $query->where('visibility', CollectionVisibility::fromString($visibility));
     }
 
     /**
