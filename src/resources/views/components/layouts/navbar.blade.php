@@ -39,7 +39,7 @@
                     <div class="w-8 h-8">
                         <img src="{{ asset('images/logo.svg') }}" alt="{{ config('app.name') }} home" class="w-full h-full object-contain">
                     </div>
-                    <div class="hidden md:block text-xl font-bold text-primary">
+                    <div class="hidden md:block text-xl font-bold">
                         <span>{{ config('app.name') }}</span><span class="text-secondary"> ᵇᵉᵗᵃ</span>
                     </div>
                 </a>
@@ -102,6 +102,7 @@
                             <x-menu-item title="Publish" icon="plus" class="md:hidden bg-primary text-primary-content" onclick="Livewire.dispatch('open-project-create-modal')" no-wire-navigate/>
                             <x-menu-item title="Dashboard" icon="lucide-layout-dashboard" link="{{ route('platform.dashboard') }}" no-wire-navigate/>
                             <x-menu-item title="Profile" icon="user" link="{{ route('user.profile', $user) }}" no-wire-navigate/>
+                            <x-menu-item title="Projects" icon="package" link="{{ route('platform.projects') }}" no-wire-navigate/>
                             <x-menu-item title="Collections" icon="lucide-folder-open" link="{{ route('user.profile', ['user' => $user, 'tab' => 'collections']) }}" no-wire-navigate/>
 
                             @if ($user->isAdmin())
@@ -165,12 +166,12 @@
     </x-main>
 
     {{-- Footer --}}
-    <footer class="footer p-5 bg-neutral text-neutral-content mt-auto">
-        <div class="mx-auto">
-            <x-footer-links />
-        </div>
-        <div class="mx-auto">
-            <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+    <footer class="border-t border-base-content/10 mt-auto">
+        <div class="flex flex-col md:flex-row items-center justify-between max-w-[960px] mx-auto px-8 py-5 gap-4">
+            <span class="text-xs text-base-content/50">&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</span>
+            <div class="flex gap-4">
+                <x-footer-links />
+            </div>
         </div>
     </footer>
 

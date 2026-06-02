@@ -43,7 +43,7 @@
                         class="font-medium">{{ $project->owner->first() ? $project->owner->first()->name : 'Unknown' }}</span>
                 </p>
                 <!-- Description now appears next to the image -->
-                <p class="text-sm leading-snug">
+                <p class="text-sm leading-snug wrap-break-word">
                     {{ $project->summary ?? 'No description available' }}
                 </p>
             </div>
@@ -132,7 +132,7 @@
 
                 <!-- Description -->
                 <div class="mb-3">
-                    <p class="text-sm leading-snug">
+                    <p class="text-sm leading-snug wrap-break-word">
                         {{ $project->summary ?? 'No description available' }}
                     </p>
                 </div>

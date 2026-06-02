@@ -11,7 +11,7 @@
             ['key' => 'notifications', 'label' => 'Notifications', 'icon' => 'bell', 'route' => route('platform.notifications')],
             ['key' => 'collections', 'label' => 'Collections', 'icon' => 'lucide-folder-open', 'route' => route('platform.collections')],
             ['key' => 'projects', 'label' => 'Projects', 'icon' => 'lucide-package', 'route' => route('platform.projects')],
-            ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'chart-bar', 'route' => route('platform.analytics')],
+            ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'chart-column', 'route' => route('platform.analytics')],
         ];
 @endphp
 
