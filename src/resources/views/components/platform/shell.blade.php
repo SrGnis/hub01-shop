@@ -4,7 +4,7 @@
 
 
 <div {{ $attributes->merge(['class' => 'max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6']) }}>
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <aside class="lg:col-span-3 lg:row-start-2">
             {{ $left ?? '' }}
         </aside>

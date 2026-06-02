@@ -33,11 +33,14 @@ class Collections extends Component
     #[Computed]
     public function collections(): LengthAwarePaginator
     {
-        return $this->collectionService->paginateForUser(
+        return $this->collectionService->paginateForOwner(
             user: Auth::user(),
-            search: trim($this->search),
+            search: trim($this->search) ?: null,
             visibility: $this->visibility,
             perPage: $this->perPage,
+            withUser: true,
+            withEntriesCount: true,
+            withProjectsCount: true,
         );
     }
 

@@ -20,7 +20,7 @@
             )
         )
             <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">Before you go live</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
 
                 @if (empty($project->description))
                     <div class="rounded-xl border border-warning/30 bg-warning/20 p-4 flex flex-col gap-3">
@@ -107,11 +107,11 @@
             Back to projects
         </a>
 
-        <div class="flex flex-col md:flex-row items-start md:items-center gap-4 bg-base-100 border border-base-300 rounded-xl px-5 py-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center gap-3 bg-base-100 border border-base-300 rounded-xl px-5 py-4">
 
             {{-- Title --}}
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-0.5">Manage Project</p>
+                <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-0">Manage Project</p>
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <h1 class="text-xl font-bold text-base-content leading-tight">{{ $project->pretty_name }}</h1>
                     <a href="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
@@ -120,7 +120,7 @@
                         <x-icon name="lucide-external-link" class="w-3.5 h-3.5" />
                     </a>
                 </div>
-                <p class="text-xs text-base-content/50 mt-0.5">Manage your project settings and content</p>
+                <p class="text-xs text-base-content/50 mt-0">Manage your project settings and content</p>
             </div>
 
             {{-- Approval Status --}}

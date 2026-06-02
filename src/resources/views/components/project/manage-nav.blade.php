@@ -14,8 +14,8 @@
     ];
 
     if ($project->isApproved()) {
-        $items[] = ['key' => 'versions', 'label' => 'Versions', 'icon' => 'lucide-package', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'versions'])];
-        $items[] = ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'lucide-chart-column', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'analytics'])];
+        $items[] = ['key' => 'versions', 'label' => 'Versions', 'icon' => 'file-box', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'versions'])];
+        $items[] = ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'chart-column', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'analytics'])];
     }
 
     $items[] = ['key' => 'danger', 'label' => 'Danger Zone', 'icon' => 'lucide-alert-triangle', 'route' => route('project.manage', ['projectType' => $projectType, 'project' => $project, 'section' => 'danger'])];

@@ -4,7 +4,7 @@
             link="{{ route('collection.show', $collection) }}" class="btn-ghost" />
     </div>
 
-    <x-card title="Edit Collection" separator class="mb-6">
+    <x-card title="Edit Collection" class="mb-4">
         <div class="space-y-4">
             <x-input wire:model="name" label="Name" />
 
@@ -48,7 +48,7 @@
         </div>
     </x-card>
 
-    <x-card title="Entries" separator>
+    <x-card title="Entries">
         <div class="space-y-4">
             @forelse ($collection->entries as $entry)
                 <div class="border border-base-300 rounded-lg p-4 space-y-3">

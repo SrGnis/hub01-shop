@@ -215,6 +215,7 @@
 
             @if(count($this->tokens) > 0)
                 <x-table
+                    aria-label="API tokens"
                     :headers="[
                         ['key' => 'name', 'label' => 'Name'],
                         ['key' => 'created_at', 'label' => 'Created', 'format' => ['date', 'Y-m-d']],
@@ -257,6 +258,7 @@
                                     icon="refresh-cw"
                                     class="btn-ghost btn-xs"
                                     tooltip="Renew"
+                                    aria-label="Renew token {{ $token->name }}"
                                     wire:click="renewToken({{ $token->id }})"
                                 />
                             @endif
@@ -264,6 +266,7 @@
                                 icon="trash-2"
                                 class="btn-ghost btn-xs text-error"
                                 tooltip="Revoke"
+                                aria-label="Revoke token {{ $token->name }}"
                                 wire:click="confirmRevokeToken({{ $token->id }})"
                             />
                         </div>

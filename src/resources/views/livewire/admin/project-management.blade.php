@@ -75,27 +75,30 @@
                 <div class="flex gap-2">
                     @if ($project->trashed())
                         <x-button icon="lucide-refresh-cw" wire:click="restoreProject({{ $project->id }})"
-                            class="btn-sm btn-success" tooltip="Restore project" />
+                            class="btn-sm btn-success" tooltip="Restore project" aria-label="Restore project {{ $project->name }}" />
                     @else
                         <x-button icon="lucide-eye"
                             link="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                            class="btn-sm btn-ghost" tooltip="View project" />
+                            class="btn-sm btn-ghost" tooltip="View project" aria-label="View project {{ $project->name }}" />
                         @if (!$project->isDeactivated())
                             <x-button icon="lucide-pencil"
                                  link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                                class="btn-sm btn-ghost" tooltip="Edit project" />
+                                class="btn-sm btn-ghost" tooltip="Edit project" aria-label="Edit project {{ $project->name }}" />
                         @endif
                         @if ($project->isDeactivated())
                             <x-button icon="lucide-check-circle" wire:click="reactivateProject({{ $project->id }})"
                                 class="btn-sm btn-ghost text-success" tooltip="Reactivate project"
+                                aria-label="Reactivate project {{ $project->name }}"
                                 wire:confirm="Are you sure you want to reactivate this project?" />
                         @else
                             <x-button icon="lucide-ban" wire:click="deactivateProject({{ $project->id }})"
                                 class="btn-sm btn-ghost text-warning" tooltip="Deactivate project"
+                                aria-label="Deactivate project {{ $project->name }}"
                                 wire:confirm="Are you sure you want to deactivate this project? It will be hidden from search and cannot be edited." />
                         @endif
                         <x-button icon="lucide-trash-2" wire:click="confirmProjectDeletion({{ $project->id }})"
-                            class="btn-sm btn-ghost text-error" tooltip="Delete project" />
+                            class="btn-sm btn-ghost text-error" tooltip="Delete project"
+                            aria-label="Delete project {{ $project->name }}" />
                     @endif
                 </div>
             @endscope

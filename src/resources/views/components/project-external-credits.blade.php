@@ -1,8 +1,8 @@
 @props(['project'])
 
 @if($project->externalCredits->count() > 0)
-<x-card title="Credits" separator>
-    <div class="space-y-3">
+<x-card title="Credits">
+    <div class="space-y-2">
         @foreach($project->externalCredits as $credit)
             <div class="pb-3 border-b border-base-content/10 last:border-b-0 last:pb-0">
                 <div class="flex items-center justify-between gap-3">

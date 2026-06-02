@@ -134,6 +134,46 @@ class Collection extends Model
     }
 
     /**
+     * Scope query to exclude system collections.
+     */
+    #[Scope]
+    protected function nonSystem(Builder $query): void
+    {
+        $query->whereNull('system_type');
+    }
+
+    /**
+     * Scope query to search by name or description.
+     */
+    #[Scope]
+    protected function search(Builder $query, ?string $term): void
+    {
+        if ($term === null || $term === '') {
+            return;
+        }
+
+        $term = trim($term);
+
+        $query->where(function (Builder $q) use ($term): void {
+            $q->where('name', 'like', '%' . $term . '%')
+                ->orWhere('description', 'like', '%' . $term . '%');
+        });
+    }
+
+    /**
+     * Scope query to filter by visibility value.
+     */
+    #[Scope]
+    protected function withVisibility(Builder $query, ?string $visibility): void
+    {
+        if ($visibility === null || $visibility === '' || $visibility === 'all') {
+            return;
+        }
+
+        $query->where('visibility', CollectionVisibility::fromString($visibility));
+    }
+
+    /**
      * Check if collection is public.
      */
     public function isPublic(): bool

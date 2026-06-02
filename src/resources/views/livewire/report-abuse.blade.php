@@ -1,6 +1,6 @@
 <div>
     <!-- Report Abuse Modal -->
-    <x-modal wire:model="showModal" title="Report Abuse" separator>
+    <x-modal wire:model="showModal" title="Report Abuse">
         <x-slot:actions>
             <x-button label="Cancel" @click="closeModal" class="btn-ghost" />
             <x-button label="Submit Report" class="btn-primary" wire:click="submitReport" />

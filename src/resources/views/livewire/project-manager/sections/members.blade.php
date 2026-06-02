@@ -6,7 +6,7 @@
         {{-- Current Members Table --}}
         <div class="mb-6 overflow-x-auto">
             <h3 class="text-lg font-semibold mb-2">Current Members</h3>
-            <table class="table table-zebra w-full">
+            <table class="table table-zebra w-full" aria-label="Project members">
                 <thead>
                     <tr>
                         <th>User</th>

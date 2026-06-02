@@ -1,6 +1,6 @@
 <x-card x-data="{ mode: 'code' }" class="space-y-6" x-on:input="markDirty()" x-on:change="markDirty()">
     <div class="flex justify-between items-center mb-2">
-        <label class="text-sm font-medium">Description</label>
+        <label for="description-editor" class="text-sm font-medium">Description</label>
         <div class="join">
             <button type="button" @click="mode = 'code'"
                 :class="{ 'join-item btn-active': mode === 'code' }" class="join-item btn btn-sm">
@@ -13,7 +13,7 @@
         </div>
     </div>
     <div wire:loading.remove wire:target="refreshMarkdown" x-show="mode === 'code'">
-        <x-code wire:model="description" height="300px" language="markdown" hint="Markdown" wrap=1
+        <x-code id="description-editor" wire:model="description" height="300px" language="markdown" hint="Markdown" wrap=1
             required />
     </div>
     <div wire:loading.flex wire:target="refreshMarkdown"
