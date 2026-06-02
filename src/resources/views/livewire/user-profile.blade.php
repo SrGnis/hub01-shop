@@ -129,10 +129,6 @@
 
         <x-tab name="collections" label="Collections" icon="lucide-folder-open">
             <div class="space-y-4 pt-4">
-                @if (auth()->id() === $user->id && $this->favoritesCollection)
-                    <x-collection-card :collection="$this->favoritesCollection" :entry-count="$this->favoritesCollection->entries_count" />
-                @endif
-
                 <!-- Filters -->
                 <div>
                     <div class="flex flex-col md:flex-row gap-4 items-end justify-end">
@@ -164,6 +160,11 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Favorites standalone (only when not filtering) -->
+                @if (!$this->isCollectionFilteringActive && auth()->id() === $user->id && $this->favoritesCollection)
+                    <x-collection-card :collection="$this->favoritesCollection" :entry-count="$this->favoritesCollection->entries_count" />
+                @endif
 
                 @if ($this->visibleCollections->count() > 0)
                     <div class="space-y-4">

@@ -187,6 +187,34 @@ class CollectionServiceReadMethodsTest extends TestCase
     }
 
     #[Test]
+    public function paginate_for_owner_excludes_favorites_when_system_excluded(): void
+    {
+        $user = User::factory()->create();
+
+        Collection::create([
+            'user_id' => $user->id,
+            'name' => 'Regular',
+            'visibility' => CollectionVisibility::PRIVATE,
+        ]);
+
+        Collection::create([
+            'user_id' => $user->id,
+            'name' => 'Favorites',
+            'visibility' => CollectionVisibility::PRIVATE,
+            'system_type' => CollectionSystemType::FAVORITES,
+        ]);
+
+        // With excludeSystem: true (default), favorites is excluded
+        $withSystemExcluded = $this->service->paginateForOwner($user);
+        $this->assertCount(1, $withSystemExcluded->items());
+        $this->assertSame('Regular', $withSystemExcluded->items()[0]->name);
+
+        // With excludeSystem: false, favorites is included
+        $withSystemIncluded = $this->service->paginateForOwner($user, excludeSystem: false);
+        $this->assertCount(2, $withSystemIncluded->items());
+    }
+
+    #[Test]
     public function paginate_for_owner_filters_by_visibility(): void
     {
         $user = User::factory()->create();

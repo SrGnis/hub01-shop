@@ -127,6 +127,7 @@ class UserProfile extends Component
     public function visibleCollections(): LengthAwarePaginator
     {
         $isOwner = Auth::check() && Auth::id() === $this->user->id;
+        $isFiltering = $this->isCollectionFilteringActive();
 
         return $this->collectionService->paginateForOwner(
             user: $this->user,
@@ -135,10 +136,16 @@ class UserProfile extends Component
             orderBy: 'updated_at',
             orderDirection: 'desc',
             perPage: $this->collectionPerPage,
-            excludeSystem: true,
+            excludeSystem: !$isFiltering,
             withEntriesCount: true,
             withEntriesProject: true,
         );
+    }
+
+    #[Computed]
+    public function isCollectionFilteringActive(): bool
+    {
+        return $this->collectionSearch !== '' || $this->collectionVisibility !== 'all';
     }
 
     #[Computed]
