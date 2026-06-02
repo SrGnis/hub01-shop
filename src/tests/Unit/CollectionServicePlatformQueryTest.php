@@ -29,26 +29,26 @@ class CollectionServicePlatformQueryTest extends TestCase
         $private = Collection::create(['user_id' => $user->id, 'name' => 'Private Notes', 'description' => 'needle text', 'visibility' => CollectionVisibility::PRIVATE]);
         $hidden = Collection::create(['user_id' => $user->id, 'name' => 'Hidden Stuff', 'description' => null, 'visibility' => CollectionVisibility::HIDDEN]);
 
-        $all = $service->paginateForUser($user, perPage: 10);
+        $all = $service->paginateForOwner($user, perPage: 10);
         $allNames = collect($all->items())->pluck('name')->all();
         $this->assertContains('Public Collection', $allNames);
         $this->assertContains('Private Notes', $allNames);
         $this->assertContains('Hidden Stuff', $allNames);
         $this->assertNotContains('Other User', $allNames);
 
-        $searchByName = $service->paginateForUser($user, search: 'Public');
+        $searchByName = $service->paginateForOwner($user, search: 'Public');
         $this->assertSame(['Public Collection'], collect($searchByName->items())->pluck('name')->all());
 
-        $searchByDescription = $service->paginateForUser($user, search: 'needle');
+        $searchByDescription = $service->paginateForOwner($user, search: 'needle');
         $this->assertSame(['Private Notes'], collect($searchByDescription->items())->pluck('name')->all());
 
-        $visibilityPublic = $service->paginateForUser($user, visibility: 'public');
+        $visibilityPublic = $service->paginateForOwner($user, visibility: 'public');
         $this->assertSame(['Public Collection'], collect($visibilityPublic->items())->pluck('name')->all());
 
-        $visibilityPrivate = $service->paginateForUser($user, visibility: 'private');
+        $visibilityPrivate = $service->paginateForOwner($user, visibility: 'private');
         $this->assertSame(['Private Notes'], collect($visibilityPrivate->items())->pluck('name')->all());
 
-        $visibilityHidden = $service->paginateForUser($user, visibility: 'hidden');
+        $visibilityHidden = $service->paginateForOwner($user, visibility: 'hidden');
         $this->assertSame(['Hidden Stuff'], collect($visibilityHidden->items())->pluck('name')->all());
     }
 
@@ -68,10 +68,10 @@ class CollectionServicePlatformQueryTest extends TestCase
         CollectionEntry::create(['collection_uid' => $c1->uid, 'project_id' => $projectA->id, 'sort_order' => 0]);
         CollectionEntry::create(['collection_uid' => $c1->uid, 'project_id' => $projectB->id, 'sort_order' => 1]);
 
-        $page = $service->paginateForUser($user, perPage: 2);
+        $page = $service->paginateForOwner($user, perPage: 2, withEntriesCount: true, withProjectsCount: true);
         $this->assertCount(2, $page->items());
 
-        $full = $service->paginateForUser($user, perPage: 10);
+        $full = $service->paginateForOwner($user, perPage: 10, withEntriesCount: true, withProjectsCount: true);
         $row = collect($full->items())->firstWhere('uid', $c1->uid);
         $this->assertSame(2, (int) $row->entries_count);
         $this->assertSame(2, (int) $row->projects_count);

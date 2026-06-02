@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ApprovalStatus;
-use App\Livewire\ProjectForm;
+use App\Livewire\ProjectCreateModal;
 use App\Models\Membership;
 use App\Models\Project;
 use App\Models\ProjectFile;
@@ -599,13 +599,13 @@ class QuotaTest extends TestCase
         // Quota validation happens in the service layer, not in Livewire validation
         // The component catches exceptions and shows flash messages
         Livewire::actingAs($this->user)
-            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->test(ProjectCreateModal::class)
+            ->call('open', $this->projectType->value)
             ->set('name', 'Quota Test Project')
             ->set('slug', 'quota-test-project')
             ->set('summary', 'Test summary')
-            ->set('description', 'Test description')
-            ->set('selectedTags', [$tag->id])
-            ->call('save');
+            ->set('selectedType', $this->projectType->value)
+            ->call('create');
 
         // Project should NOT be created
         $this->assertDatabaseMissing('project', [
@@ -626,13 +626,13 @@ class QuotaTest extends TestCase
         $tag->projectTypes()->attach($this->projectType);
 
         Livewire::actingAs($this->user)
-            ->test(ProjectForm::class, ['projectType' => $this->projectType])
+            ->test(ProjectCreateModal::class)
+            ->call('open', $this->projectType->value)
             ->set('name', 'Quota Test Project')
             ->set('slug', 'quota-test-project')
             ->set('summary', 'Test summary')
-            ->set('description', 'Test description')
-            ->set('selectedTags', [$tag->id])
-            ->call('save')
+            ->set('selectedType', $this->projectType->value)
+            ->call('create')
             ->assertHasNoErrors()
             ->assertRedirect();
 

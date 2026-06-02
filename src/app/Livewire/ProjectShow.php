@@ -11,12 +11,11 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
+use App\Services\CollectionService;
 use App\Services\ProjectService;
 use App\Services\ProjectVersionService;
 use App\Models\ProjectVersionTag;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Collection;
 
 class ProjectShow extends Component
 {
@@ -139,13 +138,7 @@ class ProjectShow extends Component
             return false;
         }
 
-        return Collection::query()
-            ->where('user_id', $user->id)
-            ->whereNull('system_type')
-            ->whereHas('entries', function (Builder $query) {
-                $query->where('project_id', $this->project->id);
-            })
-            ->exists();
+        return app(CollectionService::class)->isInAnyCollection($user, $this->project);
     }
 
     public function render()

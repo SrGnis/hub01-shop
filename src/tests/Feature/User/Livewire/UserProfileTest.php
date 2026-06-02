@@ -4,10 +4,11 @@ namespace Tests\Feature\User\Livewire;
 
 use App\Livewire\UserProfile;
 use App\Models\Project;
+use App\Models\ProjectTag;
+use App\Models\ProjectTagGroup;
 use App\Models\User;
 use App\Models\Membership;
 use App\Models\ProjectVersionDailyDownload;
-use App\Services\ProjectService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -46,27 +47,60 @@ class UserProfileTest extends TestCase
     }
 
     #[Test]
-    public function test_deleted_projects_computed_property_only_for_owner()
+    public function test_profile_projects_can_be_sorted_by_name()
     {
         $user = User::factory()->create();
-        $otherUser = User::factory()->create();
 
-        // Create deleted project owned by user
-        $project1 = Project::factory()->owner($user)->create();
-        $project1->delete();
+        Project::factory()->owner($user)->create(['name' => 'Zulu Project', 'slug' => 'zulu-project']);
+        Project::factory()->owner($user)->create(['name' => 'Alpha Project', 'slug' => 'alpha-project']);
 
-        // Create active project
-        Project::factory()->owner($user)->create();
-
-        // 1. Authenticated as Owner -> Should see deleted projects
         Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])
-            ->assertCount('deletedProjects', 1);
+            ->set('orderBy', 'name')
+            ->set('orderDirection', 'asc')
+            ->assertSeeInOrder(['Alpha Project', 'Zulu Project']);
+    }
 
-        // 2. Authenticated as Other User -> Should NOT see deleted projects
-        Livewire::actingAs($otherUser)
+    #[Test]
+    public function test_profile_projects_can_be_filtered_by_project_tag()
+    {
+        $user = User::factory()->create();
+        $tagGroup = ProjectTagGroup::factory()->create(['name' => 'Category']);
+        $tag = ProjectTag::factory()->create([
+            'name' => 'Gameplay',
+            'project_tag_group_id' => $tagGroup->id,
+        ]);
+
+        $matchingProject = Project::factory()->owner($user)->create(['name' => 'Tagged Project', 'slug' => 'tagged-project']);
+        $matchingProject->tags()->attach($tag);
+        Project::factory()->owner($user)->create(['name' => 'Untagged Project', 'slug' => 'untagged-project']);
+
+        Livewire::actingAs($user)
             ->test(UserProfile::class, ['user' => $user])
-            ->assertCount('deletedProjects', 0);
+            ->set('selectedTags', [$tag->id])
+            ->assertSee('Tagged Project')
+            ->assertDontSee('Untagged Project');
+    }
+
+    #[Test]
+    public function test_profile_project_filters_can_be_cleared()
+    {
+        $user = User::factory()->create();
+        $tag = ProjectTag::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(UserProfile::class, ['user' => $user])
+            ->set('projectSearch', 'test')
+            ->set('selectedTags', [$tag->id])
+            ->set('selectedVersionTags', [123])
+            ->set('releaseDatePeriod', 'last_30_days')
+            ->call('clearProjectFilters')
+            ->assertSet('projectSearch', '')
+            ->assertSet('selectedTags', [])
+            ->assertSet('selectedVersionTags', [])
+            ->assertSet('releaseDatePeriod', 'all')
+            ->assertSet('releaseDateStart', null)
+            ->assertSet('releaseDateEnd', null);
     }
 
     #[Test]
@@ -190,35 +224,4 @@ class UserProfileTest extends TestCase
             ->assertSee('19 downloads');
     }
 
-    #[Test]
-    public function test_restore_project()
-    {
-        $user = User::factory()->create();
-        $project = Project::factory()->owner($user)->create();
-        $project->delete();
-
-        $this->assertTrue($project->fresh()->trashed());
-
-        Livewire::actingAs($user)
-            ->test(UserProfile::class, ['user' => $user])
-            ->call('restoreProject', $project->id)
-            ->assertHasNoErrors();
-
-        $this->assertFalse($project->fresh()->trashed());
-    }
-
-    #[Test]
-    public function test_restore_project_authorization()
-    {
-        $owner = User::factory()->create();
-        $otherUser = User::factory()->create();
-        $project = Project::factory()->owner($owner)->create();
-        $project->delete();
-
-        Livewire::actingAs($otherUser)
-            ->test(UserProfile::class, ['user' => $owner])
-            ->call('restoreProject', $project->id);
-
-        $this->assertTrue($project->fresh()->trashed());
-    }
 }

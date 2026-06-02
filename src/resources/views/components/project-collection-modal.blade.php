@@ -6,7 +6,7 @@
     'quickCreateAction' => 'quickCreateCollectionAndAttach',
 ])
 
-<x-modal {{ $attributes }} title="Add to Collection" separator>
+<x-modal {{ $attributes }} title="Add to Collection">
     @if ($targetProjectName !== '')
         <p class="text-sm text-base-content/70 mb-4">
             Select a collection for <span class="font-semibold">{{ $targetProjectName }}</span>.

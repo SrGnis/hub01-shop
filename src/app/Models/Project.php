@@ -423,11 +423,12 @@ class Project extends Model
     /**
      * Approve the project
      */
-    public function approve(User $admin): void
+    public function approve(?User $admin = null): void
     {
         $this->approval_status = ApprovalStatus::APPROVED;
+        $this->submitted_at = $this->submitted_at ?? now();
         $this->reviewed_at = now();
-        $this->reviewed_by = $admin->id;
+        $this->reviewed_by = $admin?->id;
         $this->rejection_reason = null;
         $this->save();
     }

@@ -1,7 +1,10 @@
-<div class="w-full lg:w-10/12 m-auto py-6">
+<div class="w-full m-auto">
     <!-- Back Button -->
-    <div class="mb-6">
-        <x-button link="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project]) }}" icon="lucide-arrow-left" label="Back to Project" />
+    <div class="mb-2 mt-6">
+        <a href="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project, 'section' => 'versions']) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-base-content/60 hover:text-primary">
+            <x-icon name="lucide-arrow-left" class="w-4 h-4" />
+            Back to versions
+        </a>
     </div>
 
     <x-card>
@@ -15,7 +18,7 @@
 
         <form wire:submit="save" class="space-y-6">
             <!-- Name -->
-            <x-input label="Version Name" wire:model="name" required />
+            <x-input label="Version Name" wire:model="name" autocomplete="off" required />
 
             <!-- Version Number -->
             <x-input spinner label="Version Number" wire:model.blur="version_number" placeholder="e.g. 1.0.0" required />
@@ -30,12 +33,18 @@
             ]" required />
 
             <!-- Release Date -->
-            <x-datetime label="Release Date" wire:model="release_date" type="date" required />
+            <x-datetime
+                label="Release Date"
+                wire:model="release_date"
+                type="date"
+                hint="The release date helps users determine compatibility with experimental game versions, especially when those versions are identified by date."
+                required
+            />
 
             <!-- Changelog (Markdown) -->
             <div x-data="{ mode: 'code' }">
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-sm font-medium">Changelog (Markdown)</label>
+                    <label for="changelog-editor" class="text-sm font-medium">Changelog (Markdown)</label>
                     <div class="join">
                         <button type="button" @click="mode = 'code'" :class="{ 'join-item btn-active': mode === 'code' }" class="join-item btn btn-sm">
                             <x-icon name="lucide-code" class="w-4 h-4" /> Code
@@ -47,6 +56,7 @@
                 </div>
                 <div wire:loading.remove wire:target="refreshMarkdown" x-show="mode === 'code'">
                     <x-code
+                        id="changelog-editor"
                         wire:model="changelog"
                         height="300px"
                         language="markdown"
@@ -64,9 +74,9 @@
 
             <!-- Version Tags -->
             <div x-data="{ expandedTags: [] }">
-                <label class="text-sm font-medium mb-2 block">Tags</label>
+                <label class="text-sm font-medium mb-2 block" id="version-tags-label">Tags</label>
                 @foreach($this->availableTagGroups as $tagGroup)
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <h3 class="font-semibold mb-2">{{ $tagGroup->name }}</h3>
                         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
                             @foreach($tagGroup->tags as $tag)

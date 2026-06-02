@@ -34,16 +34,31 @@ class ProjectServicePlatformQueryTest extends TestCase
         $visible = Project::factory()->create(['name' => 'Alpha', 'slug' => 'alpha-slug', 'project_type_id' => $mod->id, 'status' => 'active']);
         $hiddenInactiveMembership = Project::factory()->create(['name' => 'Beta', 'slug' => 'beta-slug', 'project_type_id' => $mod->id, 'status' => 'active']);
         $otherType = Project::factory()->create(['name' => 'Gamma', 'slug' => 'gamma-slug', 'project_type_id' => $sound->id, 'status' => 'inactive']);
+        $deleted = Project::factory()->create(['name' => 'Deleted', 'slug' => 'deleted-slug', 'project_type_id' => $mod->id, 'status' => 'active']);
+        $pendingDeleted = Project::factory()->create(['name' => 'Pending Deleted', 'slug' => 'pending-deleted-slug', 'project_type_id' => $mod->id, 'status' => 'active']);
+        $deleted->delete();
+        $pendingDeleted->delete();
 
         Membership::factory()->create(['user_id' => $user->id, 'project_id' => $visible->id, 'status' => 'active']);
         Membership::factory()->create(['user_id' => $user->id, 'project_id' => $hiddenInactiveMembership->id, 'status' => 'pending']);
         Membership::factory()->create(['user_id' => $user->id, 'project_id' => $otherType->id, 'status' => 'active']);
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $deleted->id, 'status' => 'active']);
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $pendingDeleted->id, 'status' => 'pending']);
 
         $all = $this->service->projectsForUser($user);
         $ids = collect($all->items())->pluck('id')->all();
         $this->assertContains($visible->id, $ids);
         $this->assertContains($otherType->id, $ids);
         $this->assertNotContains($hiddenInactiveMembership->id, $ids);
+        $this->assertNotContains($deleted->id, $ids);
+
+        $allIncludingDeleted = $this->service->projectsForUser($user, includeDeleted: true);
+        $includingDeletedIds = collect($allIncludingDeleted->items())->pluck('id')->all();
+        $this->assertContains($deleted->id, $includingDeletedIds);
+        $this->assertNotContains($pendingDeleted->id, $includingDeletedIds);
+
+        $deletedOnly = $this->service->projectsForUser($user, status: 'deleted');
+        $this->assertSame([$deleted->id], collect($deletedOnly->items())->pluck('id')->all());
 
         $byName = $this->service->projectsForUser($user, search: 'Alpha');
         $this->assertSame([$visible->id], collect($byName->items())->pluck('id')->all());

@@ -24,9 +24,7 @@
                 "operationId": "v1.project_types",
                 "description": "Returns all the project types defined in the application",
                 "summary": "List project types",
-                "tags": [
-                    "Project Types"
-                ],
+                "tags": ["Project Types"],
                 "responses": {
                     "200": {
                         "description": "Array of `ProjectTypeResource`",
@@ -42,9 +40,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -57,9 +53,7 @@
                 "operationId": "v1.project_type",
                 "description": "Returns the project type with the given slug",
                 "summary": "Get a project type",
-                "tags": [
-                    "Project Types"
-                ],
+                "tags": ["Project Types"],
                 "parameters": [
                     {
                         "name": "slug",
@@ -82,9 +76,7 @@
                                             "$ref": "#/components/schemas/ProjectTypeResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -100,32 +92,81 @@
                 "operationId": "v1.projects",
                 "description": "Returns a filtered list of projects",
                 "summary": "Search projects",
-                "tags": [
-                    "Projects"
-                ],
+                "tags": ["Projects"],
                 "parameters": [
                     {
                         "name": "project_type",
                         "in": "query",
-                        "description": "The project type to filter by",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "default": "mod"
+                            "type": ["string", "null"]
                         }
                     },
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "The search query to filter by",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": ["string", "null"],
                             "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "order_by",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": [
+                                "name",
+                                "created_at",
+                                "updated_at",
+                                "downloads",
+                                "favorites"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "order_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": ["asc", "desc"]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": ["integer", "null"],
+                            "enum": ["10", "25", "50", "100"]
+                        }
+                    },
+                    {
+                        "name": "release_date_period",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": [
+                                "all",
+                                "last_30_days",
+                                "last_90_days",
+                                "last_year",
+                                "custom"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "release_date_start",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "release_date_end",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "format": "date-time"
                         }
                     },
                     {
@@ -147,101 +188,6 @@
                             "items": {}
                         },
                         "example": "version_tags[]=tag1&version_tags[]=tag2"
-                    },
-                    {
-                        "name": "order_by",
-                        "in": "query",
-                        "description": "The field to order by",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "name",
-                                "created_at",
-                                "updated_at",
-                                "downloads"
-                            ],
-                            "default": "downloads"
-                        }
-                    },
-                    {
-                        "name": "order_direction",
-                        "in": "query",
-                        "description": "The direction to order by",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ],
-                            "default": "desc"
-                        }
-                    },
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "description": "The number of results per page",
-                        "schema": {
-                            "type": [
-                                "integer",
-                                "null"
-                            ],
-                            "enum": [
-                                "10",
-                                "25",
-                                "50",
-                                "100"
-                            ],
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "release_date_period",
-                        "in": "query",
-                        "description": "The release date period to filter by",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "all",
-                                "last_30_days",
-                                "last_90_days",
-                                "last_year",
-                                "custom"
-                            ],
-                            "default": "all"
-                        }
-                    },
-                    {
-                        "name": "release_date_start",
-                        "in": "query",
-                        "description": "The start date to filter by, only used if release_date_period is custom",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "format": "date-time"
-                        }
-                    },
-                    {
-                        "name": "release_date_end",
-                        "in": "query",
-                        "description": "The end date to filter by, only used if release_date_period is custom",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "format": "date-time"
-                        }
                     }
                 ],
                 "responses": {
@@ -262,28 +208,16 @@
                                             "type": "object",
                                             "properties": {
                                                 "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 }
                                             },
                                             "required": [
@@ -301,10 +235,7 @@
                                                     "minimum": 1
                                                 },
                                                 "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
+                                                    "type": ["integer", "null"],
                                                     "minimum": 1
                                                 },
                                                 "last_page": {
@@ -338,10 +269,7 @@
                                                     }
                                                 },
                                                 "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
+                                                    "type": ["string", "null"],
                                                     "description": "Base path for paginator generated URLs."
                                                 },
                                                 "per_page": {
@@ -350,10 +278,7 @@
                                                     "minimum": 0
                                                 },
                                                 "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
+                                                    "type": ["integer", "null"],
                                                     "description": "Number of the last item in the slice.",
                                                     "minimum": 1
                                                 },
@@ -375,11 +300,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
+                                    "required": ["data", "links", "meta"]
                                 }
                             }
                         }
@@ -395,9 +316,7 @@
                 "operationId": "v1.project",
                 "description": "Returns the project with the given slug",
                 "summary": "Get a project",
-                "tags": [
-                    "Projects"
-                ],
+                "tags": ["Projects"],
                 "parameters": [
                     {
                         "name": "slug",
@@ -420,9 +339,7 @@
                                             "$ref": "#/components/schemas/ProjectResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -436,17 +353,914 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "enum": [
-                                                "Project not found"
-                                            ]
+                                            "const": "Project not found"
                                         }
                                     },
-                                    "required": [
-                                        "message"
-                                    ]
+                                    "required": ["message"]
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/v1/collections": {
+            "get": {
+                "operationId": "v1.collections",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "order_by",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": ["name", "created_at", "updated_at"]
+                        }
+                    },
+                    {
+                        "name": "order_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": ["asc", "desc"]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": ["integer", "null"],
+                            "enum": ["10", "25", "50", "100"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CollectionResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": ["string", "null"]
+                                                },
+                                                "last": {
+                                                    "type": ["string", "null"]
+                                                },
+                                                "prev": {
+                                                    "type": ["string", "null"]
+                                                },
+                                                "next": {
+                                                    "type": ["string", "null"]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": ["integer", "null"],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": ["string", "null"],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": ["integer", "null"],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": ["data", "links", "meta"]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/collection/hidden/{token}": {
+            "get": {
+                "operationId": "v1.collection.hidden",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 255
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        }
+                                    },
+                                    "required": ["data"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/collection/{uid}": {
+            "get": {
+                "operationId": "v1.collection",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        }
+                                    },
+                                    "required": ["data"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collections": {
+            "get": {
+                "operationId": "v1.me.collections",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "visibility",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": ["public", "private", "hidden"]
+                        }
+                    },
+                    {
+                        "name": "order_by",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": ["name", "created_at", "updated_at"]
+                        }
+                    },
+                    {
+                        "name": "order_direction",
+                        "in": "query",
+                        "schema": {
+                            "type": ["string", "null"],
+                            "enum": ["asc", "desc"]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": ["integer", "null"],
+                            "enum": ["10", "25", "50", "100"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CollectionResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": ["string", "null"]
+                                                },
+                                                "last": {
+                                                    "type": ["string", "null"]
+                                                },
+                                                "prev": {
+                                                    "type": ["string", "null"]
+                                                },
+                                                "next": {
+                                                    "type": ["string", "null"]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": ["integer", "null"],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": ["string", "null"],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": ["integer", "null"],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": ["data", "links", "meta"]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.me.collections.store",
+                "tags": ["Collection"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionStoreRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Collection created successfully"
+                                        }
+                                    },
+                                    "required": ["data", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collection/{uid}": {
+            "get": {
+                "operationId": "v1.me.collection",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        }
+                                    },
+                                    "required": ["data"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "v1.me.collection.update",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Collection updated successfully"
+                                        }
+                                    },
+                                    "required": ["data", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.me.collection.destroy",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["message"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collections/quick-create-with-project": {
+            "post": {
+                "operationId": "v1.me.collections.quick_create",
+                "tags": ["Collection"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionQuickCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Collection created and project attached successfully"
+                                        }
+                                    },
+                                    "required": ["data", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collection/{uid}/entries": {
+            "post": {
+                "operationId": "v1.me.collection.entries.store",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionEntryStoreRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Collection entry added successfully"
+                                        }
+                                    },
+                                    "required": ["data", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collection/{uid}/entry/{entryUid}": {
+            "delete": {
+                "operationId": "v1.me.collection.entry.destroy",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "entryUid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["message"]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collection/{uid}/entry/{entryUid}/note": {
+            "patch": {
+                "operationId": "v1.me.collection.entry.note.update",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "entryUid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionEntryUpdateNoteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Collection entry note updated successfully"
+                                        }
+                                    },
+                                    "required": ["data", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/me/collection/{uid}/entries/reorder": {
+            "post": {
+                "operationId": "v1.me.collection.entries.reorder",
+                "tags": ["Collection"],
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionEntryReorderRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CollectionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CollectionResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Collection entries reordered successfully"
+                                        }
+                                    },
+                                    "required": ["data", "message"]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -455,9 +1269,7 @@
             "get": {
                 "operationId": "v1.project_versions",
                 "summary": "List all versions of a project",
-                "tags": [
-                    "ProjectVersion"
-                ],
+                "tags": ["ProjectVersion"],
                 "parameters": [
                     {
                         "name": "slug",
@@ -483,15 +1295,8 @@
                         "in": "query",
                         "description": "The field to order by",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "version",
-                                "release_date",
-                                "downloads"
-                            ],
+                            "type": ["string", "null"],
+                            "enum": ["version", "release_date", "downloads"],
                             "default": "downloads"
                         }
                     },
@@ -500,14 +1305,8 @@
                         "in": "query",
                         "description": "The direction to order by",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ],
+                            "type": ["string", "null"],
+                            "enum": ["asc", "desc"],
                             "default": "desc"
                         }
                     },
@@ -516,16 +1315,8 @@
                         "in": "query",
                         "description": "The number of results per page",
                         "schema": {
-                            "type": [
-                                "integer",
-                                "null"
-                            ],
-                            "enum": [
-                                "10",
-                                "25",
-                                "50",
-                                "100"
-                            ],
+                            "type": ["integer", "null"],
+                            "enum": ["10", "25", "50", "100"],
                             "default": 10
                         }
                     },
@@ -534,10 +1325,7 @@
                         "in": "query",
                         "description": "The release date period to filter by",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": ["string", "null"],
                             "enum": [
                                 "all",
                                 "last_30_days",
@@ -553,10 +1341,7 @@
                         "in": "query",
                         "description": "The start date to filter by, only used if release_date_period is custom",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": ["string", "null"],
                             "format": "date-time"
                         }
                     },
@@ -565,10 +1350,7 @@
                         "in": "query",
                         "description": "The end date to filter by, only used if release_date_period is custom",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": ["string", "null"],
                             "format": "date-time"
                         }
                     }
@@ -591,28 +1373,16 @@
                                             "type": "object",
                                             "properties": {
                                                 "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 }
                                             },
                                             "required": [
@@ -630,10 +1400,7 @@
                                                     "minimum": 1
                                                 },
                                                 "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
+                                                    "type": ["integer", "null"],
                                                     "minimum": 1
                                                 },
                                                 "last_page": {
@@ -667,10 +1434,7 @@
                                                     }
                                                 },
                                                 "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
+                                                    "type": ["string", "null"],
                                                     "description": "Base path for paginator generated URLs."
                                                 },
                                                 "per_page": {
@@ -679,10 +1443,7 @@
                                                     "minimum": 0
                                                 },
                                                 "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
+                                                    "type": ["integer", "null"],
                                                     "description": "Number of the last item in the slice.",
                                                     "minimum": 1
                                                 },
@@ -704,11 +1465,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
+                                    "required": ["data", "links", "meta"]
                                 }
                             }
                         }
@@ -724,9 +1481,7 @@
             "post": {
                 "operationId": "v1.project_version.store",
                 "summary": "Create a new project version",
-                "tags": [
-                    "ProjectVersion"
-                ],
+                "tags": ["ProjectVersion"],
                 "parameters": [
                     {
                         "name": "Authorization",
@@ -854,15 +1609,10 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "enum": [
-                                                "Version created successfully"
-                                            ]
+                                            "const": "Version created successfully"
                                         }
                                     },
-                                    "required": [
-                                        "data",
-                                        "message"
-                                    ]
+                                    "required": ["data", "message"]
                                 }
                             }
                         }
@@ -882,9 +1632,7 @@
                                                     "example": "This project has been deactivated and versions cannot be created."
                                                 }
                                             },
-                                            "required": [
-                                                "message"
-                                            ]
+                                            "required": ["message"]
                                         },
                                         {
                                             "type": "object",
@@ -895,9 +1643,7 @@
                                                     "example": "You do not have permission to upload versions to this project."
                                                 }
                                             },
-                                            "required": [
-                                                "message"
-                                            ]
+                                            "required": ["message"]
                                         }
                                     ]
                                 }
@@ -916,9 +1662,7 @@
                                             "description": "Error overview."
                                         }
                                     },
-                                    "required": [
-                                        "message"
-                                    ]
+                                    "required": ["message"]
                                 }
                             }
                         }
@@ -939,9 +1683,7 @@
             "get": {
                 "operationId": "v1.project_version",
                 "summary": "Get a project version",
-                "tags": [
-                    "ProjectVersion"
-                ],
+                "tags": ["ProjectVersion"],
                 "parameters": [
                     {
                         "name": "slug",
@@ -974,9 +1716,7 @@
                                             "$ref": "#/components/schemas/ProjectVersionResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -989,9 +1729,7 @@
             "post": {
                 "operationId": "v1.project_version.update",
                 "summary": "Update an existing project version",
-                "tags": [
-                    "ProjectVersion"
-                ],
+                "tags": ["ProjectVersion"],
                 "parameters": [
                     {
                         "name": "Authorization",
@@ -1066,10 +1804,7 @@
                                     "files_to_remove[]": {
                                         "type": "array",
                                         "description": "Array of names of existing files to delete",
-                                        "example": [
-                                            "file1.txt",
-                                            "file2.txt"
-                                        ],
+                                        "example": ["file1.txt", "file2.txt"],
                                         "items": {}
                                     },
                                     "clean_existing_files": {
@@ -1140,15 +1875,10 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "enum": [
-                                                "Version updated successfully"
-                                            ]
+                                            "const": "Version updated successfully"
                                         }
                                     },
-                                    "required": [
-                                        "data",
-                                        "message"
-                                    ]
+                                    "required": ["data", "message"]
                                 }
                             }
                         }
@@ -1168,9 +1898,7 @@
                                                     "example": "This project has been deactivated and versions cannot be edited."
                                                 }
                                             },
-                                            "required": [
-                                                "message"
-                                            ]
+                                            "required": ["message"]
                                         },
                                         {
                                             "type": "object",
@@ -1181,9 +1909,7 @@
                                                     "example": "You do not have permission to edit versions of this project."
                                                 }
                                             },
-                                            "required": [
-                                                "message"
-                                            ]
+                                            "required": ["message"]
                                         }
                                     ]
                                 }
@@ -1202,9 +1928,7 @@
                                             "description": "Error overview."
                                         }
                                     },
-                                    "required": [
-                                        "message"
-                                    ]
+                                    "required": ["message"]
                                 }
                             }
                         }
@@ -1223,9 +1947,7 @@
             "delete": {
                 "operationId": "v1.project_version.destroy",
                 "summary": "Delete a project version",
-                "tags": [
-                    "ProjectVersion"
-                ],
+                "tags": ["ProjectVersion"],
                 "parameters": [
                     {
                         "name": "Authorization",
@@ -1273,9 +1995,7 @@
                                             "example": "You do not have permission to delete versions of this project."
                                         }
                                     },
-                                    "required": [
-                                        "message"
-                                    ]
+                                    "required": ["message"]
                                 }
                             }
                         }
@@ -1292,9 +2012,7 @@
                                             "description": "Error overview."
                                         }
                                     },
-                                    "required": [
-                                        "message"
-                                    ]
+                                    "required": ["message"]
                                 }
                             }
                         }
@@ -1313,9 +2031,7 @@
                 "operationId": "v1.project_tags",
                 "description": "Returns a list of project tags",
                 "summary": "List project tags",
-                "tags": [
-                    "Tag"
-                ],
+                "tags": ["Tag"],
                 "parameters": [
                     {
                         "name": "plain",
@@ -1328,10 +2044,7 @@
                         "in": "query",
                         "description": "The project type to filter by (subtags of main tags with this project type will be included)",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": ["string", "null"],
                             "default": null
                         }
                     }
@@ -1351,9 +2064,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1369,9 +2080,7 @@
                 "operationId": "v1.project_tag",
                 "description": "Returns the project tag with the given slug",
                 "summary": "Get a project tag",
-                "tags": [
-                    "Tag"
-                ],
+                "tags": ["Tag"],
                 "parameters": [
                     {
                         "name": "slug",
@@ -1394,9 +2103,7 @@
                                             "$ref": "#/components/schemas/ProjectTagResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1412,9 +2119,7 @@
                 "operationId": "v1.version_tags",
                 "description": "Returns a list of project version tags",
                 "summary": "List project version tags",
-                "tags": [
-                    "Tag"
-                ],
+                "tags": ["Tag"],
                 "parameters": [
                     {
                         "name": "plain",
@@ -1427,10 +2132,7 @@
                         "in": "query",
                         "description": "The project type to filter by (subtags of main tags with this project type will be included)",
                         "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": ["string", "null"],
                             "default": null
                         }
                     }
@@ -1450,9 +2152,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1468,9 +2168,7 @@
                 "operationId": "v1.version_tag",
                 "description": "Returns the project version tag with the given slug",
                 "summary": "Get a project version tag",
-                "tags": [
-                    "Tag"
-                ],
+                "tags": ["Tag"],
                 "parameters": [
                     {
                         "name": "slug",
@@ -1493,9 +2191,7 @@
                                             "$ref": "#/components/schemas/ProjectVersionTagResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1511,9 +2207,7 @@
                 "operationId": "token.test",
                 "description": "Returns basic information about the authenticated user and their token.",
                 "summary": "Test endpoint to verify API token authentication",
-                "tags": [
-                    "TokenTest"
-                ],
+                "tags": ["TokenTest"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -1524,9 +2218,7 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "enum": [
-                                                "Token is valid"
-                                            ]
+                                            "const": "Token is valid"
                                         },
                                         "user": {
                                             "type": "object",
@@ -1535,9 +2227,7 @@
                                                     "type": "string"
                                                 }
                                             },
-                                            "required": [
-                                                "uername"
-                                            ]
+                                            "required": ["uername"]
                                         },
                                         "token": {
                                             "type": "object",
@@ -1586,9 +2276,7 @@
             "get": {
                 "operationId": "v1.user",
                 "summary": "Get a user by name",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "parameters": [
                     {
                         "name": "name",
@@ -1611,9 +2299,7 @@
                                             "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
-                                    "required": [
-                                        "data"
-                                    ]
+                                    "required": ["data"]
                                 }
                             }
                         }
@@ -1628,9 +2314,7 @@
             "get": {
                 "operationId": "v1.user.projects",
                 "summary": "Get a user's projects",
-                "tags": [
-                    "User"
-                ],
+                "tags": ["User"],
                 "parameters": [
                     {
                         "name": "name",
@@ -1659,28 +2343,16 @@
                                             "type": "object",
                                             "properties": {
                                                 "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 },
                                                 "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
+                                                    "type": ["string", "null"]
                                                 }
                                             },
                                             "required": [
@@ -1698,10 +2370,7 @@
                                                     "minimum": 1
                                                 },
                                                 "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
+                                                    "type": ["integer", "null"],
                                                     "minimum": 1
                                                 },
                                                 "last_page": {
@@ -1735,10 +2404,7 @@
                                                     }
                                                 },
                                                 "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
+                                                    "type": ["string", "null"],
                                                     "description": "Base path for paginator generated URLs."
                                                 },
                                                 "per_page": {
@@ -1747,10 +2413,7 @@
                                                     "minimum": 0
                                                 },
                                                 "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
+                                                    "type": ["integer", "null"],
                                                     "description": "Number of the last item in the slice.",
                                                     "minimum": 1
                                                 },
@@ -1772,11 +2435,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
-                                    ]
+                                    "required": ["data", "links", "meta"]
                                 }
                             }
                         }
@@ -1790,13 +2449,194 @@
     },
     "components": {
         "schemas": {
+            "CollectionEntryReorderRequest": {
+                "type": "object",
+                "properties": {
+                    "entry_uids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1
+                    }
+                },
+                "required": ["entry_uids"],
+                "title": "CollectionEntryReorderRequest"
+            },
+            "CollectionEntryResource": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "sort_order": {
+                        "type": "integer"
+                    },
+                    "note": {
+                        "type": ["string", "null"]
+                    },
+                    "project": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ProjectResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": ["uid", "sort_order", "note"],
+                "title": "CollectionEntryResource"
+            },
+            "CollectionEntryStoreRequest": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "string"
+                    },
+                    "note": {
+                        "type": ["string", "null"]
+                    },
+                    "sort_order": {
+                        "type": ["integer", "null"],
+                        "minimum": 0
+                    }
+                },
+                "required": ["project"],
+                "title": "CollectionEntryStoreRequest"
+            },
+            "CollectionEntryUpdateNoteRequest": {
+                "type": "object",
+                "properties": {
+                    "note": {
+                        "type": ["string", "null"]
+                    }
+                },
+                "title": "CollectionEntryUpdateNoteRequest"
+            },
+            "CollectionQuickCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": ["string", "null"]
+                    },
+                    "project": {
+                        "type": "string"
+                    },
+                    "note": {
+                        "type": ["string", "null"]
+                    }
+                },
+                "required": ["name", "project"],
+                "title": "CollectionQuickCreateRequest"
+            },
+            "CollectionResource": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": ["string", "null"]
+                    },
+                    "visibility": {
+                        "type": "string"
+                    },
+                    "system_type": {
+                        "type": "string"
+                    },
+                    "is_system": {
+                        "type": "boolean"
+                    },
+                    "is_favorites": {
+                        "type": "boolean"
+                    },
+                    "owner": {
+                        "type": "object",
+                        "properties": {
+                            "username": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["username"]
+                    },
+                    "hidden_share_token": {
+                        "type": ["string", "null"]
+                    },
+                    "entries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CollectionEntryResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "datetime"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "datetime"
+                    }
+                },
+                "required": [
+                    "uid",
+                    "name",
+                    "description",
+                    "visibility",
+                    "system_type",
+                    "is_system",
+                    "is_favorites",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "CollectionResource"
+            },
+            "CollectionStoreRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": ["string", "null"]
+                    },
+                    "visibility": {
+                        "type": ["string", "null"],
+                        "enum": ["public", "private", "hidden"]
+                    }
+                },
+                "required": ["name"],
+                "title": "CollectionStoreRequest"
+            },
+            "CollectionUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": ["string", "null"]
+                    },
+                    "visibility": {
+                        "type": "string",
+                        "enum": ["public", "private", "hidden"]
+                    }
+                },
+                "title": "CollectionUpdateRequest"
+            },
             "DependencyType": {
                 "type": "string",
-                "enum": [
-                    "required",
-                    "optional",
-                    "embedded"
-                ],
+                "enum": ["required", "optional", "embedded"],
                 "title": "DependencyType"
             },
             "ProjectFileResource": {
@@ -1816,12 +2656,7 @@
                         "format": "url"
                     }
                 },
-                "required": [
-                    "name",
-                    "size",
-                    "sha1",
-                    "url"
-                ],
+                "required": ["name", "size", "sha1", "url"],
                 "title": "ProjectFileResource"
             },
             "ProjectResource": {
@@ -1837,41 +2672,26 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "description": "Null in collection responses"
                     },
                     "logo_url": {
                         "type": "string"
                     },
                     "website": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "issues": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "source": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "type": {
                         "type": "string"
                     },
                     "tags": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
+                        "type": ["array", "null"],
                         "description": "List of the slugs of the associated tags",
                         "items": {
                             "type": "string"
@@ -1893,20 +2713,39 @@
                                     "type": "string"
                                 }
                             },
-                            "required": [
-                                "username",
-                                "role"
-                            ]
+                            "required": ["username", "role"]
+                        }
+                    },
+                    "external_credits": {
+                        "type": ["array", "null"],
+                        "description": "External contributors declared by the project team.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "role": {
+                                    "type": "string"
+                                },
+                                "url": {
+                                    "type": ["string", "null"]
+                                }
+                            },
+                            "required": ["name", "role", "url"]
                         }
                     },
                     "downloads": {
                         "type": "integer"
                     },
+                    "favorite_count": {
+                        "type": "integer"
+                    },
+                    "is_favorited": {
+                        "type": "boolean"
+                    },
                     "last_release_date": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date"
                     },
                     "version_count": {
@@ -1914,18 +2753,12 @@
                         "minimum": 0
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "datetime",
                         "description": "Last update time of the project or one of its versions"
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "datetime"
                     }
                 },
@@ -1940,6 +2773,7 @@
                     "source",
                     "status",
                     "downloads",
+                    "favorite_count",
                     "last_release_date",
                     "updated_at",
                     "created_at"
@@ -1959,10 +2793,7 @@
                         "type": "string"
                     },
                     "tag_group": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "project_types": {
                         "type": "array",
@@ -1979,10 +2810,7 @@
                         }
                     },
                     "main_tag": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     }
                 },
                 "required": [
@@ -2008,11 +2836,7 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "name",
-                    "slug",
-                    "icon"
-                ],
+                "required": ["name", "slug", "icon"],
                 "title": "ProjectTypeResource"
             },
             "ProjectVersionDependencyResource": {
@@ -2023,10 +2847,7 @@
                         "description": "The project slug of the dependency"
                     },
                     "version": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "description": "The version of the dependency"
                     },
                     "type": {
@@ -2037,12 +2858,7 @@
                         "description": "Whether the dependency is external (not a project on this platform)"
                     }
                 },
-                "required": [
-                    "project",
-                    "version",
-                    "type",
-                    "external"
-                ],
+                "required": ["project", "version", "type", "external"],
                 "title": "ProjectVersionDependencyResource"
             },
             "ProjectVersionResource": {
@@ -2062,10 +2878,7 @@
                         "format": "date"
                     },
                     "changelog": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "downloads": {
                         "type": "integer"
@@ -2114,10 +2927,7 @@
                         "type": "string"
                     },
                     "tag_group": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "project_types": {
                         "type": "array",
@@ -2134,10 +2944,7 @@
                         }
                     },
                     "main_tag": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     }
                 },
                 "required": [
@@ -2152,13 +2959,7 @@
             },
             "ReleaseType": {
                 "type": "string",
-                "enum": [
-                    "alpha",
-                    "beta",
-                    "rc",
-                    "prerelease",
-                    "release"
-                ],
+                "enum": ["alpha", "beta", "rc", "prerelease", "release"],
                 "title": "ReleaseType"
             },
             "UserResource": {
@@ -2168,16 +2969,10 @@
                         "type": "string"
                     },
                     "bio": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "avatar": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "url"
                     },
                     "created_at": {
@@ -2185,12 +2980,7 @@
                         "format": "date"
                     }
                 },
-                "required": [
-                    "username",
-                    "bio",
-                    "avatar",
-                    "created_at"
-                ],
+                "required": ["username", "bio", "avatar", "created_at"],
                 "title": "UserResource"
             }
         },
@@ -2207,9 +2997,7 @@
                                     "description": "Error overview."
                                 }
                             },
-                            "required": [
-                                "message"
-                            ]
+                            "required": ["message"]
                         }
                     }
                 }
@@ -2236,10 +3024,7 @@
                                     }
                                 }
                             },
-                            "required": [
-                                "message",
-                                "errors"
-                            ]
+                            "required": ["message", "errors"]
                         }
                     }
                 }
@@ -2256,9 +3041,24 @@
                                     "description": "Error overview."
                                 }
                             },
-                            "required": [
-                                "message"
-                            ]
+                            "required": ["message"]
+                        }
+                    }
+                }
+            },
+            "AuthorizationException": {
+                "description": "Authorization error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": ["message"]
                         }
                     }
                 }

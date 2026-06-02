@@ -108,4 +108,69 @@ class AnalyticsServiceTest extends TestCase
         $this->assertSame('#6B7280', $chart['datasets'][4]['color']);
         $this->assertGreaterThanOrEqual(10, $chart['datasets'][4]['data'][0]);
     }
+
+    #[Test]
+    public function project_summary_metrics_are_scoped_to_selected_project_only(): void
+    {
+        $service = new AnalyticsService();
+        $selectedProject = Project::factory()->create(['name' => 'Selected']);
+        $otherProject = Project::factory()->create(['name' => 'Other']);
+
+        $selectedVersion = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $selectedProject->id]);
+        $otherVersion = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $otherProject->id]);
+
+        ProjectVersionDailyDownload::factory()->forVersion($selectedVersion)->forDate('2026-05-10')->withDownloads(15)->create();
+        ProjectVersionDailyDownload::factory()->forVersion($otherVersion)->forDate('2026-05-10')->withDownloads(50)->create();
+
+        $metrics = $service->getSummaryMetricsForProject($selectedProject);
+        $this->assertSame(15, collect($metrics)->firstWhere('key', 'downloads')['value']);
+    }
+
+    #[Test]
+    public function project_chart_daily_and_cumulative_use_selected_project_with_baseline(): void
+    {
+        Carbon::setTestNow('2026-05-10');
+        $service = new AnalyticsService();
+
+        $selectedProject = Project::factory()->create(['name' => 'Scoped Project']);
+        $otherProject = Project::factory()->create(['name' => 'Other Project']);
+
+        $selectedVersion = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $selectedProject->id]);
+        $otherVersion = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $otherProject->id]);
+
+        ProjectVersionDailyDownload::factory()->forVersion($selectedVersion)->forDate('2026-05-07')->withDownloads(5)->create();
+        ProjectVersionDailyDownload::factory()->forVersion($selectedVersion)->forDate('2026-05-08')->withDownloads(3)->create();
+        ProjectVersionDailyDownload::factory()->forVersion($selectedVersion)->forDate('2026-05-10')->withDownloads(7)->create();
+
+        ProjectVersionDailyDownload::factory()->forVersion($otherVersion)->forDate('2026-05-10')->withDownloads(99)->create();
+
+        $daily = $service->getChartForProject($selectedProject, 'daily', 3);
+        $dailyDataset = collect($daily['datasets'])->firstWhere('label', 'Scoped Project');
+        $this->assertSame(['2026-05-08', '2026-05-09', '2026-05-10'], $daily['labels']);
+        $this->assertSame([3, 0, 7], $dailyDataset['data']);
+
+        $cumulative = $service->getChartForProject($selectedProject, 'cumulative', 3);
+        $cumulativeDataset = collect($cumulative['datasets'])->firstWhere('label', 'Scoped Project');
+        $this->assertSame([8, 8, 15], $cumulativeDataset['data']);
+    }
+
+    #[Test]
+    public function project_cumulative_chart_uses_selected_project_label_for_historical_only_data(): void
+    {
+        Carbon::setTestNow('2026-05-10');
+        $service = new AnalyticsService();
+
+        $selectedProject = Project::factory()->create(['name' => 'Historical Project']);
+        $selectedVersion = ProjectVersion::factory()->withoutDailyDownloads()->create(['project_id' => $selectedProject->id]);
+
+        ProjectVersionDailyDownload::factory()->forVersion($selectedVersion)->forDate('2026-05-07')->withDownloads(12)->create();
+
+        $chart = $service->getChartForProject($selectedProject, 'cumulative', 3);
+
+        $this->assertSame(['2026-05-08', '2026-05-09', '2026-05-10'], $chart['labels']);
+        $this->assertCount(1, $chart['datasets']);
+        $this->assertSame('Historical Project', $chart['datasets'][0]['label']);
+        $this->assertSame([12, 12, 12], $chart['datasets'][0]['data']);
+        $this->assertNull(collect($chart['datasets'])->firstWhere('label', 'Other'));
+    }
 }

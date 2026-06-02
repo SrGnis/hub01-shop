@@ -2,14 +2,14 @@
     <livewire:report-abuse />
 
     <!-- Back Button and Actions -->
-    <div class="mb-6 flex justify-between items-center flex-wrap gap-4">
+    <div class="mb-4 flex justify-between items-center flex-wrap gap-4">
         <x-button
             link="{{ route('project.show', ['projectType' => $project->projectType, 'project' => $project, 'activeTab' => 'versions']) }}"
             icon="arrow-left"
             label="Back to Project"
             class="btn-ghost"
         />
-        <div class="flex flex-col lg:flex-row gap-2">
+        <div class="flex flex-col lg:flex-row gap-1.5">
             @auth
                 @can('editVersion', $project)
                     <x-button
@@ -35,12 +35,12 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <!-- COLUMN 1: Main Content (8/12) -->
         <div class="lg:col-span-8 space-y-6">
 
             <!-- VERSION CARD -->
-            <x-card class="!py-3 !px-5">
+            <x-card class="!py-2 !px-4">
                 <!-- Mobile Layout -->
                 <div class="block lg:hidden">
                     <div class="flex gap-4 mb-4">
@@ -86,7 +86,7 @@
 
                     @if ($project->mainTags->count() > 0)
                         <div class="mb-4">
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap gap-1.5">
                                 @foreach ($project->mainTags as $tag)
                                     <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
                                         <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
@@ -100,7 +100,7 @@
 
                 <!-- Desktop Layout -->
                 <div class="hidden lg:block">
-                    <div class="flex gap-6">
+                    <div class="flex gap-4">
                         <!-- Left: Project Image -->
                         <div class="flex-shrink-0 flex items-center">
                             <img src="{{ $project->getLogoUrl() }}"
@@ -111,7 +111,7 @@
                         <!-- Center: Project & Version Info -->
                         <div class="flex-grow min-w-0">
                             <h1 class="text-xl font-bold mb-1">{{ $project->name }}</h1>
-                            <div class="text-base mb-3 flex items-center gap-2">
+                            <div class="text-base mb-2 flex items-center gap-1.5">
                                 <span>Version: <span class="font-semibold">{{ $version->name }} - {{ $version->version }}</span></span>
                                 <x-badge :value="$version->display_name" class="badge-sm {{ $version->bg_color_class }}" />
                             </div>
@@ -125,7 +125,7 @@
 
                             @if ($project->mainTags->count() > 0)
                                 <div class="mb-4">
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-wrap gap-1.5">
                                         @foreach ($project->mainTags as $tag)
                                             <div class="flex items-center text-xs bg-base-200 px-2 py-1 rounded">
                                                 <x-icon :name="$tag->icon" class="w-3 h-3 mr-1" />
@@ -170,7 +170,7 @@
 
             <!-- CHANGELOG -->
             @if($version->changelog)
-                <x-card title="Changelog" separator>
+                <x-card title="Changelog">
                     <x-markdown class="prose max-w-none dark:prose-invert">
                         {!! $version->changelog !!}
                     </x-markdown>
@@ -178,9 +178,9 @@
             @endif
 
             <!-- FILES & DEPENDENCIES -->
-            <div class="grid grid-cols-1 {{ $version->dependencies->count() > 0 ? 'lg:grid-cols-2' : '' }} gap-6 items-start">
+            <div class="grid grid-cols-1 {{ $version->dependencies->count() > 0 ? 'lg:grid-cols-2' : '' }} gap-4 items-start">
                 <!-- FILES Section -->
-                <x-card title="Files" separator>
+                <x-card title="Files">
                     @if($version->files->count() > 0)
                         <div class="space-y-3" x-ref="filesList">
                             @foreach($version->files as $file)
@@ -218,7 +218,7 @@
         <div class="lg:col-span-4 space-y-6">
 
             <!-- METADATA CARD -->
-            <x-card title="Version Info" separator>
+            <x-card title="Version Info">
                 <div class="space-y-3">
                     <!-- Release Type -->
                     <div>
@@ -233,7 +233,7 @@
                                 @foreach ($version->mainTags->groupBy('tagGroup.name') as $groupName => $tags)
                                     <div>
                                         <div class="text-xs font-medium text-base-content/60 mb-1">{{ $groupName ?? 'Other Tags' }}</div>
-                                        <div class="flex flex-col items-start gap-2">
+                                        <div class="flex flex-col items-start gap-1.5">
                                             @foreach ($tags as $tag)
                                                 <div class="version-tag flex flex-col items-center gap-1">
                                                     <div class="badge badge-sm badge-primary badge-soft gap-1">
@@ -262,7 +262,7 @@
                     <!-- Downloads -->
                     <div>
                         <div class="text-xs text-base-content/60 mb-1">Downloads</div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
                             <x-icon name="download" class="w-4 h-4" />
                             <span class="font-bold text-lg">{{ number_format($version->downloads) }}</span>
                         </div>
@@ -271,7 +271,7 @@
                     <!-- Release Date -->
                     <div>
                         <div class="text-xs text-base-content/60 mb-1">Release Date</div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
                             <x-icon name="calendar" class="w-4 h-4" />
                             <span>{{ $version->release_date->format('M d, Y') }}</span>
                         </div>
@@ -288,7 +288,7 @@
     </div>
 
     <!-- FILES MODAL -->
-    <x-modal x-show="showFilesModal" title="Available Files" separator>
+    <x-modal x-show="showFilesModal" title="Available Files">
         <div x-html="$refs.filesList ? $refs.filesList.innerHTML : ''"></div>
     </x-modal>
 </div>

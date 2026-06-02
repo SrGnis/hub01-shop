@@ -17,7 +17,7 @@ class VerifyEmail extends Component
     public function resendVerification()
     {
         if (Auth::user()->hasVerifiedEmail()) {
-            $this->success('Email already verified!', redirectTo: '/');
+            $this->success('Email already verified!', redirectTo: route('platform.dashboard'));
             return;
         }
 

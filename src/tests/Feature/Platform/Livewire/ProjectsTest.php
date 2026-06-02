@@ -24,15 +24,88 @@ class ProjectsTest extends TestCase
 
         $activeProject = Project::factory()->create(['project_type_id' => $type->id, 'name' => 'Active One']);
         $inactiveProject = Project::factory()->create(['project_type_id' => $type->id, 'name' => 'Inactive One']);
+        $deletedProject = Project::factory()->create(['project_type_id' => $type->id, 'name' => 'Deleted One']);
+        $deletedProject->delete();
 
         Membership::factory()->create(['user_id' => $user->id, 'project_id' => $activeProject->id, 'status' => 'active']);
         Membership::factory()->create(['user_id' => $user->id, 'project_id' => $inactiveProject->id, 'status' => 'pending']);
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $deletedProject->id, 'status' => 'active']);
 
         $this->actingAs($user);
 
         Livewire::test(Projects::class)
             ->assertSee('Active One')
+            ->assertSee('Deleted One')
+            ->assertSee('Deleted')
             ->assertDontSee('Inactive One');
+    }
+
+    #[Test]
+    public function deleted_filter_lists_only_deleted_active_membership_projects(): void
+    {
+        $user = User::factory()->create();
+        $type = ProjectType::factory()->create();
+
+        $activeProject = Project::factory()->create(['project_type_id' => $type->id, 'name' => 'Active One']);
+        $deletedProject = Project::factory()->create(['project_type_id' => $type->id, 'name' => 'Deleted One']);
+        $pendingDeletedProject = Project::factory()->create(['project_type_id' => $type->id, 'name' => 'Pending Deleted One']);
+        $deletedProject->delete();
+        $pendingDeletedProject->delete();
+
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $activeProject->id, 'status' => 'active']);
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $deletedProject->id, 'status' => 'active']);
+        Membership::factory()->create(['user_id' => $user->id, 'project_id' => $pendingDeletedProject->id, 'status' => 'pending']);
+
+        $this->actingAs($user);
+
+        Livewire::test(Projects::class)
+            ->set('status', 'deleted')
+            ->assertSee('Deleted One')
+            ->assertDontSee('Active One')
+            ->assertDontSee('Pending Deleted One');
+    }
+
+    #[Test]
+    public function primary_owner_can_restore_deleted_project_from_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->owner($user)->create(['name' => 'Restorable Project']);
+        $project->delete();
+
+        $this->actingAs($user);
+
+        Livewire::test(Projects::class)
+            ->assertSee('Restorable Project')
+            ->assertSee('Restore project Restorable Project')
+            ->call('restoreProject', $project->id)
+            ->assertHasNoErrors();
+
+        $this->assertFalse($project->fresh()->trashed());
+    }
+
+    #[Test]
+    public function non_primary_member_cannot_restore_deleted_project_from_dashboard(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        $project = Project::factory()->owner($owner)->create(['name' => 'Protected Project']);
+        Membership::factory()->create([
+            'user_id' => $member->id,
+            'project_id' => $project->id,
+            'primary' => false,
+            'status' => 'active',
+        ]);
+        $project->delete();
+
+        $this->actingAs($member);
+
+        Livewire::test(Projects::class)
+            ->assertSee('Protected Project')
+            ->assertDontSee('Restore project Protected Project')
+            ->call('restoreProject', $project->id)
+            ->assertHasNoErrors();
+
+        $this->assertTrue($project->fresh()->trashed());
     }
 
     #[Test]

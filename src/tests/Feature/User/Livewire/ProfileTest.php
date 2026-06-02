@@ -43,6 +43,21 @@ class ProfileTest extends TestCase
     }
 
     #[Test]
+    public function test_profile_bio_accepts_280_characters()
+    {
+        $user = User::factory()->create();
+        $bio = str_repeat('a', 280);
+
+        Livewire::actingAs($user)
+            ->test(UserProfileEdit::class)
+            ->set('bio', $bio)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame($bio, $user->refresh()->bio);
+    }
+
+    #[Test]
     public function test_avatar_can_be_updated()
     {
         Storage::fake('public');

@@ -3,7 +3,7 @@
 @endphp
 
 @if(!empty($links))
-    <div class="flex gap-5">
+    <div class="flex flex-col md:flex-row gap-5">
         @foreach($links as $section => $items)
             <div class="text-center">
                 <header class="footer-title">{{ $section }}</header>

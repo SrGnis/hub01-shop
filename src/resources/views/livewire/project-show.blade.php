@@ -27,7 +27,7 @@
     @endif
 
     {{-- Top Action Bar --}}
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         {{-- Back button --}}
         <x-button link="{{ route('project-search', ['projectType' => $project->projectType]) }}"
             icon="arrow-left"
@@ -50,21 +50,23 @@
                         link="{{ route('project.version.create', ['projectType' => $project->projectType, 'project' => $this->project]) }}"
                         icon="upload"
                         class="btn-success btn-sm btn-square sm:hidden"
+                        aria-label="Upload Version"
                         no-wire-navigate />
                 @endcan
 
                 @can('update', $project)
                     <x-button
-                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
-                        label="Edit Project"
+                        link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        icon="settings"
+                        label="Manage Project"
                         class="btn-primary btn-sm hidden sm:inline-flex"
                         no-wire-navigate />
                     {{-- Mobile: icon-only edit --}}
                     <x-button
-                        link="{{ route('project.edit', ['projectType' => $project->projectType, 'project' => $project]) }}"
-                        icon="pencil"
+                        link="{{ route('project.manage', ['projectType' => $project->projectType, 'project' => $project]) }}"
+                        icon="settings"
                         class="btn-primary btn-sm btn-square sm:hidden"
+                        aria-label="Manage Project"
                         no-wire-navigate />
                 @endcan
 
@@ -74,6 +76,7 @@
                     class="btn-ghost btn-sm btn-square [&_svg]:w-5 [&_svg]:h-5 {{ (bool) ($project->is_favorited ?? false) ? 'text-secondary' : '' }}"
                     wire:click="toggleFavorite({{ $project->id }})"
                     title="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
+                    aria-label="{{ (bool) ($project->is_favorited ?? false) ? 'Remove from favorites' : 'Add to favorites' }}"
                 />
 
                 {{-- Bookmark --}}
@@ -82,13 +85,14 @@
                     class="btn-ghost btn-sm btn-square [&_svg]:w-5 [&_svg]:h-5 {{ $this->isInUserCollection ? 'text-info' : '' }}"
                     wire:click="openAddToCollectionModal({{ $project->id }})"
                     title="Add to collection"
+                    aria-label="Add to collection"
                 />
             @endauth
 
             {{-- More menu --}}
             <x-dropdown right>
                 <x-slot:trigger>
-                    <x-button icon="ellipsis" class="btn-ghost btn-sm btn-square" />
+                    <x-button icon="ellipsis" class="btn-ghost btn-sm btn-square" aria-label="More actions" />
                 </x-slot:trigger>
                 <x-menu-item title="Report" class="text-error" icon="flag"
                     @click="$dispatch('open-report-modal', { itemId: {{ $project->id }}, itemType: 'App\\\\Models\\\\Project', itemName: '{{ addslashes($project->name) }}' })" />
@@ -97,10 +101,10 @@
     </div>
 
     {{-- Main Layout: stacked on mobile, 2-col on lg --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 items-start">
 
         {{-- Left Column --}}
-        <div class="lg:col-span-8 flex flex-col gap-4">
+        <div class="lg:col-span-8 flex flex-col gap-3">
 
             {{-- Project Card --}}
             <x-project-card :project="$project" />
@@ -135,7 +139,7 @@
 
         {{-- Right Column / Sidebar --}}
         {{-- On mobile: shown after main content. On lg: side column. --}}
-        <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+        <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
             <x-project-recent-versions :project="$project" />
             <x-project-creators :project="$project" />
             <x-project-external-credits :project="$project" />

@@ -28,37 +28,21 @@ class CollectionController extends Controller
     {
         $validated = $request->validated();
 
-        $query = Collection::query()
-            ->discoverable()
-            ->with('user');
-
-        if (!empty($validated['search'])) {
-            $search = $validated['search'];
-            $query->where(function ($query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
-            });
-        }
-
-        $orderBy = $validated['order_by'] ?? 'updated_at';
-        $orderDirection = $validated['order_direction'] ?? 'desc';
-        $perPage = $validated['per_page'] ?? 10;
-
-        $paginator = $query
-            ->orderBy($orderBy, $orderDirection)
-            ->orderBy('uid')
-            ->paginate($perPage);
+        $paginator = $this->collectionService->paginatePublic(
+            search: $validated['search'] ?? null,
+            orderBy: $validated['order_by'] ?? 'updated_at',
+            orderDirection: $validated['order_direction'] ?? 'desc',
+            perPage: $validated['per_page'] ?? 10,
+        );
 
         return CollectionResource::collection($paginator);
     }
 
     public function publicShow(string $uid)
     {
-        $collection = Collection::query()
-            ->discoverable()
-            ->where('uid', $uid)
-            ->with(['user', 'entries.project'])
-            ->firstOrFail();
+        $collection = $this->collectionService->getDiscoverableByUid($uid);
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('view', $collection);
 
@@ -69,10 +53,9 @@ class CollectionController extends Controller
     {
         $token = $request->validated()['token'];
 
-        $collection = Collection::query()
-            ->hiddenToken($token)
-            ->with(['user', 'entries.project'])
-            ->firstOrFail();
+        $collection = $this->collectionService->getHiddenByToken($token);
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('collections.view.hidden-token', [$collection, $token]);
 
@@ -83,37 +66,25 @@ class CollectionController extends Controller
     {
         $validated = $request->validated();
 
-        $query = Collection::query()
-            ->ownerVisible($request->user()->id)
-            ->with('user');
-
-        if (!empty($validated['search'])) {
-            $search = $validated['search'];
-            $query->where(function ($query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
-            });
-        }
-
-        if (!empty($validated['visibility'])) {
-            $query->where('visibility', $validated['visibility']);
-        }
-
-        $orderBy = $validated['order_by'] ?? 'updated_at';
-        $orderDirection = $validated['order_direction'] ?? 'desc';
-        $perPage = $validated['per_page'] ?? 10;
-
-        $paginator = $query
-            ->orderBy($orderBy, $orderDirection)
-            ->orderBy('uid')
-            ->paginate($perPage);
+        $paginator = $this->collectionService->paginateForOwner(
+            user: $request->user(),
+            search: $validated['search'] ?? null,
+            visibility: $validated['visibility'] ?? 'all',
+            orderBy: $validated['order_by'] ?? 'updated_at',
+            orderDirection: $validated['order_direction'] ?? 'desc',
+            perPage: $validated['per_page'] ?? 10,
+            excludeSystem: true,
+            withUser: true,
+        );
 
         return CollectionResource::collection($paginator);
     }
 
     public function ownerShow(string $uid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, request()->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('view', $collection);
 
@@ -137,7 +108,9 @@ class CollectionController extends Controller
 
     public function update(CollectionUpdateRequest $request, string $uid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, $request->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('update', $collection);
 
@@ -151,7 +124,9 @@ class CollectionController extends Controller
 
     public function destroy(string $uid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, request()->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('delete', $collection);
 
@@ -166,7 +141,9 @@ class CollectionController extends Controller
 
     public function addEntry(CollectionEntryStoreRequest $request, string $uid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, $request->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('collections.manage.entries', $collection);
 
@@ -194,7 +171,9 @@ class CollectionController extends Controller
 
     public function removeEntry(string $uid, string $entryUid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, request()->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('collections.manage.entries', $collection);
 
@@ -209,7 +188,9 @@ class CollectionController extends Controller
 
     public function updateEntryNote(CollectionEntryUpdateNoteRequest $request, string $uid, string $entryUid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, request()->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('collections.manage.entries', $collection);
 
@@ -229,7 +210,9 @@ class CollectionController extends Controller
 
     public function reorderEntries(CollectionEntryReorderRequest $request, string $uid)
     {
-        $collection = $this->resolveOwnerCollection($uid);
+        $collection = $this->collectionService->getByUidForUser($uid, request()->user());
+
+        abort_if($collection === null, 404);
 
         Gate::authorize('collections.manage.entries', $collection);
 
@@ -269,13 +252,4 @@ class CollectionController extends Controller
             ->response()
             ->setStatusCode(201);
     }
-
-    private function resolveOwnerCollection(string $uid): Collection
-    {
-        return Collection::query()
-            ->where('uid', $uid)
-            ->where('user_id', request()->user()->id)
-            ->firstOrFail();
-    }
 }
-

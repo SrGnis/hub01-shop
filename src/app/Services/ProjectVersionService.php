@@ -2,14 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\ReleaseType;
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectType;
 use App\Models\ProjectVersion;
 use App\Models\ProjectVersionDependency;
 use App\Models\ProjectVersionTag;
 use App\Models\ProjectVersionTagGroup;
-use App\Models\ProjectType;
 use App\Notifications\BrokenDependencyNotification;
+use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,7 +33,7 @@ class ProjectVersionService
      * Resolve parent tags for a list of tag IDs.
      * When a sub-tag is selected, automatically include its main tag.
      *
-     * @param array $tagIds The selected tag IDs
+     * @param  array  $tagIds  The selected tag IDs
      * @return array The resolved tag IDs including parent tags
      */
     public function resolveParentTags(array $tagIds): array
@@ -75,7 +80,7 @@ class ProjectVersionService
             $project->owner->first(),
             $project,
             $netSizeChange,
-            !$version // isNewVersion
+            ! $version // isNewVersion
         );
 
         // Resolve parent tags for sub-tags
@@ -100,7 +105,7 @@ class ProjectVersionService
                 'version_id' => $projectVersion->id,
                 'project_id' => $project->id,
                 'version' => $projectVersion->version,
-                'is_new' => !$version,
+                'is_new' => ! $version,
             ]);
 
             return $projectVersion;
@@ -114,7 +119,7 @@ class ProjectVersionService
     {
         if ($isEditing) {
             $projectVersion->tags()->sync($tags);
-        } elseif (!empty($tags)) {
+        } elseif (! empty($tags)) {
             $projectVersion->tags()->attach($tags);
         }
     }
@@ -146,7 +151,7 @@ class ProjectVersionService
             // Double check for duplicates if editing, though validation should catch this
             if ($isEditing) {
                 foreach ($existingFiles as $existingFile) {
-                    if (!isset($existingFile['delete']) || !$existingFile['delete']) {
+                    if (! isset($existingFile['delete']) || ! $existingFile['delete']) {
                         if ($existingFile['name'] === $fileName) {
                             throw new \Exception("A file with the name '{$fileName}' already exists in this version.");
                         }
@@ -162,7 +167,7 @@ class ProjectVersionService
                     'path' => $path,
                     'size' => $file->getSize(),
                 ]);
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 if (str_contains($e->getMessage(), 'project_file_unique')) {
                     Storage::disk(ProjectFile::getDisk())->delete($path);
                     throw new \Exception("A file with the name '{$fileName}' already exists in this version.");
@@ -178,9 +183,9 @@ class ProjectVersionService
     private function saveDependencies(ProjectVersion $projectVersion, array $dependencies)
     {
         foreach ($dependencies as $dependency) {
-            if ($dependency['mode'] === 'linked' && !empty($dependency['project_id'])) {
+            if ($dependency['mode'] === 'linked' && ! empty($dependency['project_id'])) {
                 $this->saveLinkedDependency($projectVersion, $dependency);
-            } elseif ($dependency['mode'] === 'manual' && !empty($dependency['dependency_name'])) {
+            } elseif ($dependency['mode'] === 'manual' && ! empty($dependency['dependency_name'])) {
                 $this->saveManualDependency($projectVersion, $dependency);
             }
         }
@@ -198,11 +203,11 @@ class ProjectVersionService
             'dependency_type' => $dependency['type'],
         ];
 
-        if (!empty($dependency['dependency_name'])) {
+        if (! empty($dependency['dependency_name'])) {
             $dependencyData['dependency_name'] = $dependency['dependency_name'];
         }
 
-        if (!empty($dependency['dependency_version'])) {
+        if (! empty($dependency['dependency_version'])) {
             $dependencyData['dependency_version'] = $dependency['dependency_version'];
         }
 
@@ -238,7 +243,7 @@ class ProjectVersionService
                     $depProject = $dependency->projectVersion->project;
                     $depVersion = $dependency->projectVersion;
 
-                    if (!isset($dependentProjects[$depProject->id])) {
+                    if (! isset($dependentProjects[$depProject->id])) {
                         $dependentProjects[$depProject->id] = [
                             'project' => $depProject,
                             'versions' => [],
@@ -306,8 +311,8 @@ class ProjectVersionService
             $query->whereHas('projectTypes', function ($subQuery) use ($projectType) {
                 $subQuery->where('project_type_id', $projectType->id);
             })
-            ->whereNull('parent_id')
-            ->with('children');
+                ->whereNull('parent_id')
+                ->with('children');
         }])->get();
     }
 
@@ -320,13 +325,13 @@ class ProjectVersionService
             ->orderBy('release_date', 'desc')
             ->get()
             ->map(function ($version) {
-                $releaseType = $version->release_type instanceof \App\Enums\ReleaseType
+                $releaseType = $version->release_type instanceof ReleaseType
                     ? $version->release_type->value
                     : (string) $version->release_type;
 
                 return [
                     'id' => $version->id,
-                    'name' => $version->version . ' (' . $releaseType . ')',
+                    'name' => $version->version.' ('.$releaseType.')',
                 ];
             })
             ->toArray();
@@ -344,18 +349,19 @@ class ProjectVersionService
         string $releaseDatePeriod = 'all',
         ?string $releaseDateStart = null,
         ?string $releaseDateEnd = null,
-        ?array $with = null
-    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
+        ?array $with = null,
+        string $pageName = 'page'
+    ): LengthAwarePaginator {
         $query = $project->versions()
             ->with($with ?? [
                 'tags.tagGroup',
                 'project.projectType',
-                'project.owner'
+                'project.owner',
             ])
-            ->when(!empty($selectedVersionTags) || $releaseDatePeriod !== 'all', function (\Illuminate\Database\Eloquent\Builder $query) use ($selectedVersionTags, $releaseDatePeriod, $releaseDateStart, $releaseDateEnd) {
+            ->when(! empty($selectedVersionTags) || $releaseDatePeriod !== 'all', function (Builder $query) use ($selectedVersionTags, $releaseDatePeriod, $releaseDateStart, $releaseDateEnd) {
                 // Filter by version tags
-                if (!empty($selectedVersionTags)) {
-                    $query->whereHas('tags', function (\Illuminate\Database\Eloquent\Builder $q) use ($selectedVersionTags) {
+                if (! empty($selectedVersionTags)) {
+                    $query->whereHas('tags', function (Builder $q) use ($selectedVersionTags) {
                         $q->withoutGlobalScope('display_priority_order');
 
                         $q->whereIn('project_version_tag.id', $selectedVersionTags);
@@ -368,12 +374,12 @@ class ProjectVersionService
                         'last_30_days' => now()->subDays(30)->startOfDay(),
                         'last_90_days' => now()->subDays(90)->startOfDay(),
                         'last_year' => now()->subYear()->startOfDay(),
-                        'custom' => $releaseDateStart ? \Carbon\Carbon::parse($releaseDateStart)->startOfDay() : null,
+                        'custom' => $releaseDateStart ? Carbon::parse($releaseDateStart)->startOfDay() : null,
                         default => null,
                     };
 
                     $endDate = match ($releaseDatePeriod) {
-                        'custom' => $releaseDateEnd ? \Carbon\Carbon::parse($releaseDateEnd)->endOfDay() : null,
+                        'custom' => $releaseDateEnd ? Carbon::parse($releaseDateEnd)->endOfDay() : null,
                         default => null,
                     };
 
@@ -395,7 +401,7 @@ class ProjectVersionService
             $query->orderBy($orderBy, $orderDirection);
         }
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage, ['*'], $pageName);
     }
 
     /**
@@ -409,7 +415,7 @@ class ProjectVersionService
                 'project.projectType',
                 'project.owner',
                 'files',
-                'dependencies'
+                'dependencies',
             ])
             ->where('version', $version)
             ->first();

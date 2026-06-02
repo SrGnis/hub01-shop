@@ -75,7 +75,7 @@ class Register extends Component
             'ip' => request()->ip(),
         ]);
 
-        $this->success('Welcome! Your account has been created.', redirectTo: '/');
+        $this->success('Welcome! Your account has been created.', redirectTo: route('platform.dashboard'));
     }
 
     public function render()
