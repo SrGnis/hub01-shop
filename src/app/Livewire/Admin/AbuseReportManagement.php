@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('components.layouts.admin')]
+#[Layout('layouts::admin')]
 class AbuseReportManagement extends Component
 {
     use AuthorizesRequests;

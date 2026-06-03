@@ -5,7 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('components.layouts.admin')]
+#[Layout('layouts::admin')]
 class SiteManagement extends Component
 {
     public $activeTab = 'project-types';

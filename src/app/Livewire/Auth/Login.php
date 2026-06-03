@@ -13,7 +13,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.auth')]
+#[Layout('layouts::auth')]
 #[Title('Login')]
 class Login extends Component
 {

@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.auth')]
+#[Layout('layouts::auth')]
 #[Title('Two-Factor Authentication')]
 class TwoFactorChallenge extends Component
 {
