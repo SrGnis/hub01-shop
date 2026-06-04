@@ -9,7 +9,7 @@
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.19",
         "@tailwindcss/vite": "^4.1.14",
-        "axios": "^1.16.1",
+        "axios": "^1.17.0",
         "concurrently": "^9.0.1",
         "daisyui": "^5.5.20",
         "laravel-vite-plugin": "^2.0.0",
