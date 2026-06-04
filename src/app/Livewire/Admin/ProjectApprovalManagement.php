@@ -12,7 +12,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.admin')]
+#[Layout('layouts::admin')]
 class ProjectApprovalManagement extends Component
 {
     use WithPagination, Toast;

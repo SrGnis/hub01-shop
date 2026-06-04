@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', Dashboard::class)->name('admin.dashboard');
-    Route::get('/users', UserManagement::class)->name('admin.users');
-    Route::get('/projects/index', ProjectManagement::class)->name('admin.projects.index');
-    Route::get('/projects/approvals', ProjectApprovalManagement::class)->name('admin.projects.approvals');
-    Route::get('/quotas', QuotaManagement::class)->name('admin.quotas');
-    Route::get('/site', SiteManagement::class)->name('admin.site');
-    Route::get('/abuse-reports', AbuseReportManagement::class)->name('admin.abuse-reports');
-    Route::get('/notifications', NotificationManagement::class)->name('admin.notifications');
+    Route::livewire('/dashboard', Dashboard::class)->name('admin.dashboard');
+    Route::livewire('/users', UserManagement::class)->name('admin.users');
+    Route::livewire('/projects/index', ProjectManagement::class)->name('admin.projects.index');
+    Route::livewire('/projects/approvals', ProjectApprovalManagement::class)->name('admin.projects.approvals');
+    Route::livewire('/quotas', QuotaManagement::class)->name('admin.quotas');
+    Route::livewire('/site', SiteManagement::class)->name('admin.site');
+    Route::livewire('/abuse-reports', AbuseReportManagement::class)->name('admin.abuse-reports');
+    Route::livewire('/notifications', NotificationManagement::class)->name('admin.notifications');
 });
 

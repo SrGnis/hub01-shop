@@ -326,6 +326,8 @@ class ProjectVersionForm extends Component
                     'version_key' => $projectVersion->version,
                 ])
             );
+
+            $this->files = [];
         } catch (\Exception $e) {
             logger()->error('Error saving project version: ' . $e->getMessage(), [
                 'project_id' => $this->project->id,

@@ -8,7 +8,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.auth')]
+#[Layout('layouts::auth')]
 #[Title('Verify Email')]
 class VerifyEmail extends Component
 {

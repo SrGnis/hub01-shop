@@ -15,7 +15,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.auth')]
+#[Layout('layouts::auth')]
 #[Title('Reset Password')]
 class ResetPassword extends Component
 {
