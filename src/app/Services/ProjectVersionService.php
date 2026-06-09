@@ -159,13 +159,15 @@ class ProjectVersionService
                 }
             }
 
+            $fileSize = $file->getSize();
+
             $path = $file->store(ProjectFile::getDirectory(), ProjectFile::getDisk());
 
             try {
                 $projectVersion->files()->create([
                     'name' => $fileName,
                     'path' => $path,
-                    'size' => $file->getSize(),
+                    'size' => $fileSize,
                 ]);
             } catch (QueryException $e) {
                 if (str_contains($e->getMessage(), 'project_file_unique')) {

@@ -27,27 +27,27 @@ require __DIR__.'/admin.php';
 require __DIR__.'/api_docs.php';
 
 // Homepage
-Route::get('/', Welcome::class)->name('welcome');
+Route::livewire('/', Welcome::class)->name('welcome');
 
 // Dynamic Pages
-Route::get('/pages/{pageName}', Page::class)
+Route::livewire('/pages/{pageName}', Page::class)
     ->name('page.show');
 
 // Account Deactivated Page
-Route::get('/account/deactivated', AccountDeactivated::class)
+Route::livewire('/account/deactivated', AccountDeactivated::class)
     ->name('account.deactivated')
     ->withoutMiddleware(\App\Http\Middleware\EnsureUserIsNotDeactivated::class);
 
 // User Profile
-Route::get('/user/{user}', UserProfile::class)->name('user.profile');
+Route::livewire('/user/{user}', UserProfile::class)->name('user.profile');
 
 // Collections
-Route::get('/collection/hidden/{token}', CollectionShow::class)->name('collection.hidden.show');
-Route::get('/collection/{collection}', CollectionShow::class)->name('collection.show');
+Route::livewire('/collection/hidden/{token}', CollectionShow::class)->name('collection.hidden.show');
+Route::livewire('/collection/{collection}', CollectionShow::class)->name('collection.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // User Profile Edit
-    Route::get('/profile/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
+    Route::livewire('/profile/edit', UserProfileEdit::class)->middleware('auth')->name('user.profile.edit');
 
     // Email Change Routes
     Route::get('/email-change/authorize/{token}', [EmailChangeController::class, 'authorize'])->name('email-change.authorize');
@@ -66,37 +66,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('membership.reject');
 
     // Collection Management
-    Route::get('/collection/{collection}/edit', CollectionEdit::class)->name('collection.edit');
+    Route::livewire('/collection/{collection}/edit', CollectionEdit::class)->name('collection.edit');
 
     // Dashboard
-    Route::get('/dashboard', Dashboard::class)->name('platform.dashboard');
-    Route::get('/dashboard/notifications', NotificationsComingSoon::class)->name('platform.notifications');
-    Route::get('/dashboard/collections', Collections::class)->name('platform.collections');
-    Route::get('/dashboard/projects', Projects::class)->name('platform.projects');
-    Route::get('/dashboard/analytics', Analytics::class)->name('platform.analytics');
+    Route::livewire('/dashboard', Dashboard::class)->name('platform.dashboard');
+    Route::livewire('/dashboard/notifications', NotificationsComingSoon::class)->name('platform.notifications');
+    Route::livewire('/dashboard/collections', Collections::class)->name('platform.collections');
+    Route::livewire('/dashboard/projects', Projects::class)->name('platform.projects');
+    Route::livewire('/dashboard/analytics', Analytics::class)->name('platform.analytics');
 
 });
 
 
-Route::get('/search/{projectType}s', ProjectSearch::class)->name('project-search');
+Route::livewire('/search/{projectType}s', ProjectSearch::class)->name('project-search');
 
 // Dummy route to use in the project-form component
 Route::get('/{projectType}/', function () {
     return redirect(route('project-search', ['projectType' => request()->route('projectType')]));
 })->name('dummy.project.show');
-Route::get('/{projectType}/{project}', ProjectShow::class)->name('project.show');
+Route::livewire('/{projectType}/{project}', ProjectShow::class)->name('project.show');
 
 // Project Management
 Route::middleware(['auth','verified'])->group(function () {
-    Route::get('/{projectType}/{project}/manage/{section?}', ProjectManager::class)
+    Route::livewire('/{projectType}/{project}/manage/{section?}', ProjectManager::class)
         ->name('project.manage')
         ->where('section', 'general|description|tags|links|versions|members|analytics|danger');
-    Route::get('/{projectType}/{project}/version/create', ProjectVersionForm::class)->name('project.version.create');
+    Route::livewire('/{projectType}/{project}/version/create', ProjectVersionForm::class)->name('project.version.create');
 });
 
 // Project Version Management
-Route::get('/{projectType}/{project}/version/{version_key}', ProjectVersionShow::class)->name('project.version.show');
-Route::get('/{projectType}/{project}/version/{version_key}/edit', ProjectVersionForm::class)->name('project.version.edit')->middleware(['auth','verified']);
+Route::livewire('/{projectType}/{project}/version/{version_key}', ProjectVersionShow::class)->name('project.version.show');
+Route::livewire('/{projectType}/{project}/version/{version_key}/edit', ProjectVersionForm::class)->name('project.version.edit')->middleware(['auth','verified']);
 
 // File Downloads
 Route::get('/{projectType}/{project}/version/{version}/file/{file}', [FileDownloadController::class, 'download'])

@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('components.layouts.admin')]
+#[Layout('layouts::admin')]
 class NotificationManagement extends Component
 {
     use WithPagination;

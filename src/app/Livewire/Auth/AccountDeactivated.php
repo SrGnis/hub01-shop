@@ -6,7 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('components.layouts.auth')]
+#[Layout('layouts::auth')]
 #[Title('Account Deactivated')]
 class AccountDeactivated extends Component
 {

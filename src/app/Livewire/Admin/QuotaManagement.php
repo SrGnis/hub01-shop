@@ -15,7 +15,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.admin')]
+#[Layout('layouts::admin')]
 class QuotaManagement extends Component
 {
     use WithPagination, Toast;

@@ -6,7 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
-#[Layout('components.layouts.welcome')]
+#[Layout('layouts::welcome')]
 class Welcome extends Component
 {
     use Toast;

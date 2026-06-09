@@ -38,11 +38,24 @@ return [
     |
     */
 
-    'layout' => 'components.layouts.navbar',
+    'component_layout' => 'layouts::navbar',
 
     /*
     |---------------------------------------------------------------------------
-    | Lazy Loading Placeholder
+    | Component Namespaces
+    |---------------------------------------------------------------------------
+    | Creates custom namespaces for organizing view-based components
+    | (e.g., <livewire:pages::dashboard />).
+    |
+    */
+
+    'component_namespaces' => [
+        'layouts' => resource_path('views/components/layouts'),
+    ],
+
+    /*
+    |---------------------------------------------------------------------------
+    | Component Placeholder
     |---------------------------------------------------------------------------
     | Livewire allows you to lazy load components that would otherwise slow down
     | the initial page load. Every component can have a custom placeholder or
@@ -50,7 +63,7 @@ return [
     |
     */
 
-    'lazy_placeholder' => null,
+    'component_placeholder' => null,
 
     /*
     |---------------------------------------------------------------------------
