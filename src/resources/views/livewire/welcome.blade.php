@@ -14,7 +14,7 @@
                     <img src="{{ asset('images/logo.svg') }}" alt="{{ config('app.name') }} home" class="w-full h-full object-contain">
                 </div>
                 <div class="text-5xl lg:text-7xl font-bold">
-                    <span>{{ config('app.name') }}</span><span class="text-secondary"> ᵇᵉᵗᵃ</span>
+                    <span>{{ config('app.name') }}</span>
                 </div>
             </div>
         </div>
